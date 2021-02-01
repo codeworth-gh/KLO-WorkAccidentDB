@@ -1,0 +1,53 @@
+@(username:Option[String], message:Option[String])(implicit request:RequestHeader, msgs:MessagesProvider)
+
+@templates.bsBase(Messages("application.title")) {
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h1 class="display-1"><strong>PSPS Template app</strong></h1>
+        <hr class="my-4">
+        <div class="alert alert-info" role="alert">
+          <strong>Text here!</strong>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-8 col-md-offset-2">
+        <form class="form-horizontal" action="@routes.UserCtrl.doLogin" method="POST">
+          @for( m <- message ){
+            <div class="form-group has-error">
+              <div class="alert alert-danger">@m</div>
+            </div>
+          }
+          <div class="form-group">
+            <label for="idInput" class="col-sm-2 control-label">@Messages("username")</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="usernameInput" name="username" value="@username.getOrElse("")" placeholder="username">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="passwordInput" class="col-sm-2 control-label">@Messages("password")</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" id="passwordInput" name="password" value="" placeholder="password">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="col-md-4">
+              <a href="/admin/forgotPassword">@Messages("forgotPassword")?</a>
+            </div>
+            <div class="col-md-8">
+              <div class="text-right">
+                <a class="btn btn-default" href="/">@Messages("cancel")</a>
+                <button type="submit" class="btn btn-primary"><i class="fa fa-sign-in"></i> Log In</button>
+              </div>
+            </div>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+}

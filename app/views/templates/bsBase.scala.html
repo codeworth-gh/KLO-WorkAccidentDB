@@ -1,0 +1,39 @@
+@import controllers.Informational
+@(title:String, extraHead: Html=Html(""), extraBottom: Html=Html(""))(content:Html)(implicit request: RequestHeader, msgs:MessagesProvider)
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="@routes.Assets.versioned("lib/bootstrap/css/bootstrap.min.css")">
+        <link rel="stylesheet" href="@routes.Assets.versioned("lib/jquery-ui/jquery-ui.min.css")">
+        <link rel="stylesheet" href="@routes.Assets.versioned("lib/fontawesome/css/font-awesome.min.css")">
+        <link rel="stylesheet" href="@routes.Assets.versioned("css/Informationals.css")">
+        <link rel="stylesheet" href="@routes.Assets.versioned("css/main.css")">
+        <link rel="stylesheet" href="@routes.Assets.versioned("css/styledInputs.css")">
+      <title>@msgs.messages(title)</title>
+        @extraHead
+    </head>
+    <body>
+        @content
+        <script src="@routes.HomeCtrl.frontEndRoutes()?@controllers.HomeCtrl.feRouteHash"></script>
+        <script src="@routes.Assets.versioned("lib/jquery/jquery.min.js")"></script>
+        <script src="@routes.Assets.versioned("lib/jquery-ui/jquery-ui.min.js")"></script>
+        <script src="@routes.Assets.versioned("lib/tether/js/tether.min.js")"></script>
+        <script src="@routes.Assets.versioned("lib/bootstrap/js/bootstrap.min.js")"></script>
+        <script src="@routes.Assets.versioned("lib/sweetalert/sweetalert.min.js")"></script>
+        <script src="@routes.Assets.versioned("js/UiUtils.js")"></script>
+        <script src="@routes.Assets.versioned("js/Informationals.js")"></script>
+        <script src="@routes.Assets.versioned("js/Playjax.js")"></script>
+        @extraBottom
+        @for( msg <- request.flash.get(controllers.FlashKeys.MESSAGE) ){
+          <script language="JavaScript">
+            @defining( Informational.decode(msg) ){ inf =>
+              Informationals.make("@inf.level", "@inf.title", "@inf.subtitle", @Informational.defaultTimes.getOrElse(inf.level, "undefined") ).show();
+            }
+          </script>
+        }
+      @for( csrfToken <- play.filters.csrf.CSRF.getToken ){
+      <div id="Playjax_csrfTokenValue" style="display:none">@csrfToken.value</div>}
+    </body>
+</html>

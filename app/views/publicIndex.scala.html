@@ -1,0 +1,61 @@
+@()(implicit request:RequestHeader, msgs:MessagesProvider)
+
+@scripts={
+  <script lang="JavaScript">
+    var pj = new Playjax(feRoutes);
+
+    function runAjax() {
+      var name = document.getElementById("personName").value;
+      console.log("name: " + name);
+      pj.using( c => c.HomeCtrl.apiSayHi() )
+        .fetch( {name:name} )
+        .then( r => r.json() )
+        .then( json => swal("Server returned: " + json.message ) );
+    }
+  </script>
+}
+
+@templates.bsNavbar("PSPS Base-app", views.Structure.publicItems, views.PublicSections.Home, Html(""), scripts) {
+  <div class="container">
+    <div class="row mt-5">
+      <div class="col bg-light">
+        <h1 class="display-1"><strong>PSPS Template app</strong></h1>
+        <hr class="my-4">
+        <div class="alert alert-info" role="alert">
+          <strong>A rather opinionated application seed</strong>, based on PlayFramework, Scala, PostgreSQL, and Slick (...and Bootstrap, of course).
+        </div>
+      </div>
+    </div>
+    <div class="row my-3">
+      <div class="col">
+        <div class="text-center">
+          Welcome to PSPS basic app template.
+          <hr>
+          <a class="btn btn-info" href="@routes.UserCtrl.showLogin">@Messages("login")</a>
+          <a class="btn btn-success" href="@routes.UserCtrl.showSignup()">@Messages("signUp")</a>
+        </div>
+      </div>
+    </div>
+    <div class="row my-3">
+      <div class="col">
+        <h2>Some Sample Content</h2>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Blanditiis exercitationem libero molestiae molestias officia sed sit vel veritatis! Alias amet, beatae corporis cumque delectus dolores est necessitatibus quis reprehenderit vel vitae voluptas.
+      </div>
+    </div>
+    <div class="row my-3">
+      <div class="col">
+        <form onsubmit="runAjax(); return false;">
+          <div class="form-group row my-2">
+            <label for="personName" class="col-sm-2 col-form-label">Ajax Test</label>
+            <div class="col-sm-5">
+              <input class="form-control" type="text" id="personName" placeholder="Enter name here">
+            </div>
+            <div class="col-sm-5">
+              <button class="btn btn-outline-info" type="button" onclick="runAjax()" onsubmit="runAjax()">Say Hi</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}

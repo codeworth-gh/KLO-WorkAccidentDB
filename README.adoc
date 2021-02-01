@@ -1,0 +1,56 @@
+ifndef::env-github[:icons: font]
+ifdef::env-github[]
+:status:
+:outfilesuffix: .adoc
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :page_with_curl:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+= PSPS
+
+**A Play-Scala-PostgreSQL-Slick stack for web applications. Created by http://codeworth.io[CodeWorth.io] and the http://playframework.com[Play Framework] community.**
+
+== Overview
+
+PSPS is a seed project for web applications that have user accounts, a public side, and require database connectivity (a very common type indeed). It is targeted at small-to-medium sites, that can use a single main part ("monolith"). In other words, if you need a microservice-based cloud native hyper-distributed app, that's not it. If you need a website that can be hosted on a VPS, have a public and a back-office parts, and scale up nicely, PSPS is a good start.
+
+PSPS is based on our experience with Play for creating web applications. Some of these sites handle thousands of visitors each month, sitting on a $4/month VPS (from https://manage.digitalfyre.com/aff.php?aff=24[digitalFyre], BTW). It works for us (and on our machines!), we hope the play community will find it useful too.
+
+[TIP]
+Before going to production, reduce leaked system information by preventing `httpd` from sending detailed system info in the headers. See https://www.tecmint.com/hide-apache-web-server-version-information/[here].
+
+**https://psps-play-app.netlify.com/[Documentation]**
+
+image::https://api.netlify.com/api/v1/badges/fb260db4-9c0f-45d3-8759-02d76d9b015a/deploy-status[link="https://app.netlify.com/sites/psps-play-app/deploys"]
+
+
+== Change Log
+
+=== 2021-01
+
+* :arrow_upper_right: Updated Play to 2.8.7.
+* :arrow_upper_right: Updated libraries to be compatible with 2.8.x
+* :arrow_upper_right: Filters updated
+* :arrow_upper_right: Sticky footer: on screen bottom when there's not enough space to fill the screen, or at the bottom of the content when the page is higher than the screen.
+* :bug: 0 warning-ness achieved.
+* :arrow_upper_right: Fixed layout issues with the Page Title Row component.
+* :tada: Bootstrap 5! (beta-1, but Bootstrap5 nonetheless)
+* :arrow_upper_right: Floating labels at the login page.
+* :bug: Various improvements to the site structure.
+* :arrow_upper_right: Improved signup screen - no "change password" tab.
+* :arrow_upper_right: Support for ES6. Existing code upgraded.
+* :arrow_upper_right: Stylesheet pre-processor changed from LESS to SASS.
+
+=== 2020-08
+* :arrow_upper_right: Targeting JDK11 (current Java LTS, also supported by https://www.graalvm.org[GraalVM 20])
+* :arrow_upper_right: Slick configuration moved to `profile` (from the deprecated `driver`).
+
+=== 2019-10
+* :bug: Fixed minor cosmetic issues with button classes
+* :arrow_upper_right: Updated SBT to version 1.3.3.
+* :tada: Moved to Scala 2.13
+* :cyclone: Refined the behavior of the prompt on the public index.
+* :arrow_upper_right: Updated SBT to version 1.3.0.

@@ -1,0 +1,144 @@
+
+
+body {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+footer {
+  margin: auto 0 0 0;
+  padding-top: 3em;
+  .footer-body {
+    padding: 3em 0;
+    border-top: 3px solid #888888;
+    background-color: #EEEEEE;
+  }
+}
+
+.placeholder {
+  background-color: #BBB;
+  color: #FFF;
+  border-radius: 5px;
+  border: 1px dashed #444;
+  box-shadow: 0 2px 4px rgba(0,0,0,.5) inset;
+  text-shadow: 0 -1px 0 rgba(255,255,255,.25);
+  text-align: center;
+  display: block;
+  padding: 1em;
+
+}
+
+.pageTitleRow-ctnr {
+  display: flex;
+  flex-direction: row;
+  flex-flow: wrap;
+  background-color: rgba(0,180,180,.05);
+  border-bottom: 1px solid rgba(0,0,0,.4);
+  padding: .5em;
+  margin-bottom: 2em;
+
+  h1 {
+    flex-grow: 1;
+    flex-shrink: 1;
+  }
+  .pageTitleRow-component{
+    flex-grow: 0;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    .btn {
+      margin-left: .5em;
+      i {
+        vertical-align: middle;
+      }
+    }
+  }
+  .pageTitleRow-subtitle {
+    width: 100%;
+    flex-grow: 0;
+    flex-shrink: 0;
+    font-size: 0.9em;
+    color: #446;
+  }
+}
+
+@media( max-width: 501px ) {
+  .pageTitleRow-ctnr {
+    flex-direction: column;
+    h1 {
+      order: 1;
+    }
+    .pageTitleRow-subtitle {
+      order: 2;
+    }
+    .pageTitleRow-component {
+      margin: .5em 0;
+      order: 3;
+      text-align: center;
+    }
+  }
+}
+
+.noData {
+  background-color: #CCC;
+  color: #776;
+  text-align: center;
+  font-style: italic;
+}
+
+.rtl {
+  direction: rtl;
+}
+
+.slideUpPanel{
+  background-color: #DDD;
+  border-bottom: 1px solid black;
+  border-top: 1px solid black;
+  box-shadow: 0 0 4px rgba(0,0,0,0.5) inset;
+}
+
+.staticMessage {
+  border-radius: 5px;
+  padding: 5px;
+  background-color: #AAA;
+  color: #FFF;
+  text-align: center;
+
+  small {
+    color: #EED;
+  }
+}
+
+ul.tagLikeSiteList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    display: inline-block;
+    background-color: rgba(0,0,0,.1);
+    margin: 3px;
+    padding: 3px;
+    border-radius: 3px;
+    font-size: smaller;
+  }
+}
+
+.errors {
+  color: #F00;
+  background-color: #FDD;
+  padding: 0.5em;
+}
+
+ul.errors{
+  list-style: none;
+}
+
+// BS4 fix
+.input-group-text {
+  height: 100%;
+}
+

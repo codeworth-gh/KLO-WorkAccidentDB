@@ -1,0 +1,36 @@
+@import views._
+@import be.objectify.deadbolt.scala.AuthenticatedRequest
+@(title:String, currentSection:BackOfficeSections.Value, extraHead: Html=Html(""), extraBottom: Html=Html("")
+)(content:Html
+)(implicit request: AuthenticatedRequest[_], msgs:MessagesProvider)
+
+@internalExtraHead = {
+<meta name="robots" content="noindex, nofollow">
+  @extraHead
+}
+
+@internalExtraBottom={
+  <script src="@routes.HomeCtrl.backEndRoutes()?@controllers.HomeCtrl.beRouteHash"></script>
+  @extraBottom
+}
+@logoutButton={
+  @for( sub<-request.subject ){
+    <ul class="navbar-nav">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          @@@sub.identifier
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarUserDropdown">
+          <a class="dropdown-item" href="@routes.UserCtrl.showEditUserPage(sub.identifier)">My Profile</a>
+          <div class="dropdown-divider"></div>
+          <form class="dropdown-item" action="@routes.UserCtrl.doLogout()" method="POST">
+            @helper.CSRF.formField
+          <button type="submit" class="btn btn-outline-danger"> Logout</button>
+          </form>
+        </div>
+      </li>
+    </ul>
+  }
+
+}
+@bsNavbar(title, views.Structure.backOfficeSections, currentSection, internalExtraHead, internalExtraBottom, Some(logoutButton))(content)
