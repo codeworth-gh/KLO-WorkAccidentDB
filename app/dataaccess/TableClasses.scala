@@ -5,6 +5,7 @@ import models.{Citizenship, Industry, InjuryCause, Invitation, PasswordResetRequ
 import slick.lifted.Tag
 import slick.jdbc.PostgresProfile.api._
 
+import scala.reflect.ClassTag
 
 class UsersTable(tag:Tag) extends Table[User](tag,"users") {
 
@@ -39,31 +40,17 @@ class PasswordResetRequestsTable(tag:Tag) extends Table[PasswordResetRequest](ta
   def * = (username, uuid, reset_password_date) <> (PasswordResetRequest.tupled, PasswordResetRequest.unapply)
 }
 
-class RegionsTable(tag:Tag) extends Table[Region](tag, "regions") {
+class IdNameTable[T](tag: Tag, tableName: String, apply: (Int, String) => T, unapply: T => Option[(Int, String)])
+                    (implicit classTag: ClassTag[T]) extends Table[T](tag, tableName) {
   def id = column[Int]("id", O.AutoInc, O.PrimaryKey)
   def name = column[String]("name", O.Unique)
-  
-  def * = (id, name) <> (Region.tupled, Region.unapply)
+  def * = (id, name) <> (apply.tupled, unapply)
 }
 
-class InjuryCausesTable(tag:Tag) extends Table[InjuryCause](tag, "injury_causes") {
-  def id = column[Int]("id", O.AutoInc, O.PrimaryKey)
-  def name = column[String]("name", O.Unique)
-  
-  def * = (id, name) <> (InjuryCause.tupled, InjuryCause.unapply)
-}
+class RegionsTable(tag: Tag) extends IdNameTable[Region](tag, "regions", Region.apply, Region.unapply)
 
-class IndustriesTable(tag:Tag) extends Table[Industry](tag, "industries") {
-  def id = column[Int]("id", O.AutoInc, O.PrimaryKey)
-  def name = column[String]("name", O.Unique)
-  
-  def * = (id, name) <> (Industry.tupled, Industry.unapply)
-}
+class CitizenshipsTable(tag:Tag) extends IdNameTable[Citizenship](tag, "citizenships", Citizenship, Citizenship.unapply)
 
-class CitizenshipsTable(tag:Tag) extends Table[Citizenship](tag, "citizenships") {
-  def id = column[Int]("id", O.AutoInc, O.PrimaryKey)
-  def name = column[String]("name", O.Unique)
-  
-  def * = (id, name) <> (Citizenship.tupled, Citizenship.unapply)
-}
+class IndustriesTable(tag:Tag) extends IdNameTable[Industry](tag, "industries", Industry, Industry.unapply)
 
+class InjuryCausesTable(tag:Tag) extends IdNameTable[InjuryCause](tag, "injury_causes", InjuryCause, InjuryCause.unapply)
