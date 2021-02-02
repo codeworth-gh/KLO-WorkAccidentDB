@@ -20,3 +20,7 @@ echo Creating user $1 with email $2 and password $3
 curl -H "Content-type:application/json" \
      -X POST -d $json $ENDPOINT
 
+echo
+echo DONE
+
+

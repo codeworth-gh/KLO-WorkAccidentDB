@@ -2,8 +2,8 @@
 @(users:Seq[User], curUser:User)(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
 @templates.backEndBase("Users", views.BackOfficeSections.Users) {
     @comps.pageTitleRow(Messages("users")){
-        <a href="@routes.UserCtrl.showNewUserPage" class="btn btn-large btn-outline-primary"><i class="fa fa-plus-circle"></i> @Messages("add")</a>
-        <a href="@routes.UserCtrl.showInviteUser" class="btn btn-large btn-outline-secondary"><i class="fa fa-send"></i> @Messages("users.inviteUser")</a>
+        <a href="@routes.UserCtrl.showNewUserPage()" class="btn btn-large btn-outline-primary"><i class="fa fa-plus-circle"></i> @Messages("add")</a>
+        <a href="@routes.UserCtrl.showInviteUser()" class="btn btn-large btn-outline-secondary"><i class="fa fa-send"></i> @Messages("users.inviteUser")</a>
     }
     <div class="row">
         <div class="col-md-12">
@@ -25,17 +25,18 @@
                 @for( u <- users ) {
                     <tr>
                         <td>
-                            @if( u.username == curUser.username ) {<span class="badge bg-success">@Messages("users.me")</span>}
                             @u.name
-                            @if( u.username == curUser.username ) {
-                                <a class="btn btn-sm btn-outline-secondary" href="@routes.UserCtrl.showEditUserPage(u.username)"><i class="fa fa-edit"></i>
-                                    Edit</a>
-                            }
+                            @if( u.username == curUser.username ) {<span class="badge bg-success">@Messages("users.me")</span>}
+                          @if( u.username == curUser.username ) {
+                            <a class="btn btn-sm btn-outline-secondary pull-left" href="@routes.UserCtrl.showEditUserPage(u.username)"><i class="fa fa-edit"></i>
+                              @Messages("edit")</a>
+                          }
                         </td>
                         <td><code>@u.username</code></td>
                         <td>@if((u.email != null) & (u.email.trim.nonEmpty)){
                             <a href="mailto:@u.email">@u.email</a>
-                        }</td>
+                        }
+                        </td>
                     </tr>
                 }
                 </tbody>

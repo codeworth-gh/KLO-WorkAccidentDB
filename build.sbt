@@ -1,10 +1,10 @@
 import play.sbt.PlayImport.caffeine
 
-name := """PSPS-baseapp"""
+name := """Work Accident Database"""
 
-organization := "com.example"
+organization := "il.org.kavlaoved"
 
-maintainer := "your.name@company.org"
+maintainer := "michael@codeworth.io"
 
 version := "1.0-SNAPSHOT"
 
@@ -53,3 +53,4 @@ pipelineStages := Seq(digest, gzip)
 // Disable documentation creation
 sources in (Compile, doc) := Seq.empty
 publishArtifact in (Compile, packageDoc) := false
+

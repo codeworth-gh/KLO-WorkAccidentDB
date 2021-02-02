@@ -1,7 +1,0 @@
-:experimental:
-:moduledir: ..
-:attachmentsdir: {moduledir}/assets/attachments
-:examplesdir: {moduledir}/examples
-:imagesdir: {moduledir}/assets/images
-:partialsdir: {moduledir}/pages/_partials
-

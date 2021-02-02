@@ -11,6 +11,9 @@
         <link rel="stylesheet" href="@routes.Assets.versioned("css/Informationals.css")">
         <link rel="stylesheet" href="@routes.Assets.versioned("css/main.css")">
         <link rel="stylesheet" href="@routes.Assets.versioned("css/styledInputs.css")">
+        <link rel="icon" type="image/png" sizes="32x32" href="@routes.Assets.versioned("images/favicon-32x32.png")">
+        <link rel="icon" type="image/png" sizes="96x96" href="@routes.Assets.versioned("images/favicon-96x96.png")">
+        <link rel="icon" type="image/png" sizes="16x16" href="@routes.Assets.versioned("images/favicon-16x16.png")">
       <title>@msgs.messages(title)</title>
         @extraHead
     </head>
@@ -27,7 +30,7 @@
         <script src="@routes.Assets.versioned("js/Playjax.js")"></script>
         @extraBottom
         @for( msg <- request.flash.get(controllers.FlashKeys.MESSAGE) ){
-          <script language="JavaScript">
+          <script>
             @defining( Informational.decode(msg) ){ inf =>
               Informationals.make("@inf.level", "@inf.title", "@inf.subtitle", @Informational.defaultTimes.getOrElse(inf.level, "undefined") ).show();
             }

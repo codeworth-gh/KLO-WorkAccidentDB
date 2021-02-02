@@ -1,4 +1,4 @@
-
+@import "colors";
 
 body {
   display: flex;
@@ -10,9 +10,19 @@ footer {
   margin: auto 0 0 0;
   padding-top: 3em;
   .footer-body {
-    padding: 3em 0;
-    border-top: 3px solid #888888;
-    background-color: #EEEEEE;
+    box-shadow: 0 4px 8px rgba(0,0,0,.25) inset;
+    padding: 3em 0 0 0;
+    color: white;
+    background-color: $KloBlue;
+    a {
+      color: $KloLightGray;
+      display: block;
+      margin: auto;
+      max-width: 300px;
+      &:hover {
+        background: rgba(255,255,255,.1);
+      }
+    }
   }
 }
 
@@ -33,10 +43,7 @@ footer {
   display: flex;
   flex-direction: row;
   flex-flow: wrap;
-  background-color: rgba(0,180,180,.05);
-  border-bottom: 1px solid rgba(0,0,0,.4);
-  padding: .5em;
-  margin-bottom: 2em;
+  margin: 1em 0;
 
   h1 {
     flex-grow: 1;
@@ -137,8 +144,27 @@ ul.errors{
   list-style: none;
 }
 
-// BS4 fix
-.input-group-text {
-  height: 100%;
+.bg-klo-lGray {
+  background-color: $KloLightGray;
 }
 
+.klo-navbar {
+  background-color: $KloLightGray;
+
+  .navbar-brand {
+    font-weight: bold;
+  }
+
+  .dropdown-item {
+    color: $KloDarkGray;
+  }
+  .dropdown-item:focus, .dropdown-item:hover {
+    color: white;
+    background-color: $KloBlue;
+  }
+
+  .dropdown-item-bg-red:focus, .dropdown-item-bg-red:hover {
+    color: yellow;
+    background-color: red;
+  }
+}

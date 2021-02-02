@@ -5,13 +5,13 @@
 @showSection(mi:TopSiteSection[_], isSelected:Boolean) = {
   @mi match {
     case PageSection(title, id, call) => {
-      <li class="nav-item @if(isSelected){active}">
-        <a class="nav-link" href="@call" @if(isSelected){aria-current="page"}>@Messages(title) @if(isSelected){<span class="sr-only">(current)</span>}</a>
+      <li class="nav-item">
+        <a class="nav-link @if(isSelected){active}" href="@call" @if(isSelected){aria-current="page"}>@Messages(title) @if(isSelected){<span class="sr-only">(current)</span>}</a>
       </li>
     }
     case MultiPageSection(title, id, children) => {
-      <li class="nav-item dropdown @if(isSelected){active}">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown@id" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle @if(isSelected){active}" href="#" id="navbarDropdown@id" role="button" data-bs-toggle="dropdown" aria-expanded="false">
           @Messages(title) @if(isSelected){<span class="sr-only">(current)</span>}
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown@id">
@@ -19,7 +19,7 @@
             @c match {
               case SeparatorSectionItem => {<div class="dropdown-divider"></div>}
               case PageSectionItem(title, call ) => {<a class="dropdown-item" href="@call">@Messages(title)</a>}
-              case JsSectionItem(title, jsCode) => {<button class="btn" style="padding:.25rem 1.5rem;" onclick="@jsCode"> @Messages(title)</button>}
+              case JsSectionItem(title, jsCode) => {<div class="dropdown-item"><button class="btn" style="padding:.25rem 1.5rem;" onclick="@jsCode"> @Messages(title)</button></div>}
             }
           }
         </div>
@@ -28,28 +28,33 @@
   }
 }
 
-@bsBase(title, extraHead, extraBottom){
-  <div class="bg-light">
-    <div class="container-fluid">
-      <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="/">@Messages("navbar.title")</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
+@wExtraHead={
+  <link rel="stylesheet" href="@routes.Assets.versioned("css/rtl.css")">
+  @extraHead
+}
 
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav me-auto">
-            @for( sec <- sections ){
-              @showSection(sec, currentSection==sec.id)
-            }
-          </ul>
-          @for( navBarExt <-navbarExtras ) {
-            @navBarExt
+@bsBase(title, wExtraHead, extraBottom){
+<div class="bg-klo-lGray shadow-sm">
+  <div class="container-fluid">
+    <nav class="navbar navbar-expand-lg navbar-light klo-navbar">
+      <a class="navbar-brand" href="/">@Messages("navbar.title")</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto">
+          @for( sec <- sections ){
+            @showSection(sec, currentSection==sec.id)
           }
-        </div>
-      </nav>
-    </div>
+        </ul>
+        @for( navBarExt <-navbarExtras ) {
+          @navBarExt
+        }
+      </div>
+    </nav>
   </div>
+</div>
 <div class="container">
 @content
 </div>
@@ -57,8 +62,9 @@
   <div class="footer-body">
     <div class="container">
       <div class="row">
-        <div class="col">
-          <strong><a href="https://github.com/codeworth-gh/PSPS">PSPS</a></strong> - an Opinionated <a href="https://playframework.com">Play</a> application template from <a href="http://codeworth.io">CodeWorth.io</a>
+        <div class="col text-center">
+          <a href="https://kavlaoved.org.il"><img height="50" src="@routes.Assets.versioned("images/logo-footer.png")"></a>
+          <a class="mt-5" href="http://codeworth.io" target="_blank"><img height="12" src="@routes.Assets.versioned("images/cowoMini.png")"></a>
         </div>
       </div>
     </div>
