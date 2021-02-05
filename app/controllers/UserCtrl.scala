@@ -374,7 +374,7 @@ class UserCtrl @Inject()(deadbolt:DeadboltActions, conf:Configuration,
   
   def sendInvitationEmail( invi:Invitation ): Unit = {
     val link = conf.get[String]("psps.server.publicUrl") + routes.UserCtrl.showNewUserInvitation(invi.uuid).url
-    val bodyText = Messages("inviteEmail.body", link)
+    val bodyText = Messages("inviteEmail.body", link).replaceFirst("\\{0\\}", link)
     val email = Email(Messages("inviteEmail.title"), conf.get[String]("play.mailer.user"), Seq(invi.email), Some(bodyText))
     mailerClient.send(email)
     invitations.updateLastSend( invi.uuid, java.time.LocalDateTime.now() )
