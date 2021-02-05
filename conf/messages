@@ -43,6 +43,7 @@ navbar.publicHome=Public Home
 navbar.login=כניסה
 navbar.logout=התנתקות
 navbar.main=ראשי
+navbar.helperTables=מאפיינים
 navbar.users=משתמשות
 navbar.users.list=רשימה
 navbar.users.invite=הזמנה
@@ -55,6 +56,8 @@ users.pendingInvitations=הזמנות ממתינות
 users.signup.title=Sign up
 users.me=אני!
 
+userHome.title=ניהול האתר
+
 userEditor.title=עריכת פרופיל
 userEditor.new.title=משתמשת חדשה
 userEditor.tabs.edit=פרטים
@@ -64,6 +67,14 @@ userEditor.previousPassword=סיסמא קודמת
 userEditor.newPassword=סיסמא חדשה
 userEditor.newPasswordAgain=סיסמא חדשה (שוב)
 userEditor.email.help=כתובת האימייל הזו תשמש אותנו במקרה שנידרש לאפס את הסיסמא שלך.
+
+helperTables.title=מאפייני תאונות
+helperTables.help=במסך זה ניתן לערוך את רשימות המאפיינים המשמשים בתיאור תאונות ונפגעים.
+helperTables.tabs.regions=אזורים
+helperTables.tabs.industries=ענפי תעשייה
+helperTables.tabs.injuryCauses=סיבות פגיעה
+helperTables.tabs.citizenships=אזרחויות
+helperTables.newRow=הוספת מאפיין
 
 add=הוספה
 cancel=ביטול

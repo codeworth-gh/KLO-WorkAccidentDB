@@ -1,4 +1,5 @@
-/**
+/* jshint esversion:6 */
+/*
  * Utility stuff for UI in Javascript.
  *
  * Depends on JQuery!
@@ -6,7 +7,7 @@
  * @Author: Michael Bar-Sinai
  */
 
-var UiUtils = (function () {
+const UiUtils = (function () {
 
     /**
      * Gets the default height of an element without displaying it.

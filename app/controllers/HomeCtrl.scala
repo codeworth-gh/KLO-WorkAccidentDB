@@ -1,6 +1,7 @@
 package controllers
 
-import be.objectify.deadbolt.scala.DeadboltActions
+import be.objectify.deadbolt.scala.{AuthenticatedRequest, DeadboltActions}
+
 import javax.inject._
 import play.api._
 import play.api.i18n.{I18nSupport, Langs, MessagesApi}
@@ -19,12 +20,25 @@ import scala.concurrent.{ExecutionContext, Future}
 object HomeCtrl {
 
   val feRouteSeq = Seq(
-    routes.javascript.HomeCtrl.apiSayHi
+    routes.javascript.HelperTableCtrl.apiListRegions,
+    routes.javascript.HelperTableCtrl.apiGetRegion
   )
 
   val feRouteHash:Int = Math.abs(feRouteSeq.map( r => r.f + r.name ).map( _.hashCode ).sum)
 
   val beRouteSeq = Seq(
+    routes.javascript.HelperTableCtrl.apiAddRegion,
+    routes.javascript.HelperTableCtrl.apiEditRegion,
+    routes.javascript.HelperTableCtrl.apiDeleteRegion,
+    routes.javascript.HelperTableCtrl.apiAddIndustry,
+    routes.javascript.HelperTableCtrl.apiEditIndustry,
+    routes.javascript.HelperTableCtrl.apiDeleteIndustry,
+    routes.javascript.HelperTableCtrl.apiAddCitizenship,
+    routes.javascript.HelperTableCtrl.apiEditCitizenship,
+    routes.javascript.HelperTableCtrl.apiDeleteCitizenship,
+    routes.javascript.HelperTableCtrl.apiAddInjuryCause,
+    routes.javascript.HelperTableCtrl.apiEditInjuryCause,
+    routes.javascript.HelperTableCtrl.apiDeleteInjuryCause,
     routes.javascript.UserCtrl.apiAddUser,
     routes.javascript.UserCtrl.apiReInviteUser,
     routes.javascript.UserCtrl.apiDeleteInvitation
@@ -83,7 +97,7 @@ class HomeCtrl @Inject()(deadbolt:DeadboltActions, cc: ControllerComponents)
     Action { implicit request =>
       Ok(
         routing.JavaScriptReverseRouter("feRoutes")(
-          routes.javascript.HomeCtrl.apiSayHi
+          HomeCtrl.feRouteSeq: _*
         )).as("text/javascript")
     }
 

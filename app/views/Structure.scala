@@ -31,6 +31,7 @@ object PublicSections extends Enumeration {
 
 object BackOfficeSections extends Enumeration {
   val Home = Value("Home")
+  val HelperTables = Value("Helper Tables")
   val Users = Value("Users")
 }
 
@@ -63,6 +64,7 @@ object Structure {
   
   val backOfficeSections:Seq[TopSiteSection[BackOfficeSections.Value]] = Seq(
     PageSection("navbar.main", BackOfficeSections.Home, routes.UserCtrl.userHome() ),
+    PageSection("navbar.helperTables", BackOfficeSections.HelperTables, routes.HelperTableCtrl.helperTablesIndex() ),
     MultiPageSection("navbar.users", BackOfficeSections.Users, Seq(
       PageSectionItem("navbar.users.list", routes.UserCtrl.showUserList()),
       PageSectionItem("navbar.users.editMyProfile", routes.UserCtrl.showEditMyProfile()),

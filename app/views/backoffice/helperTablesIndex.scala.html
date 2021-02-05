@@ -1,0 +1,57 @@
+@import be.objectify.deadbolt.scala.AuthenticatedRequest
+@(regionsList:Seq[Region], citizenships:Seq[Citizenship], injuryCauses:Seq[InjuryCause], industries:Seq[Industry])(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
+
+@extraHead={
+  <script src="@routes.Assets.versioned("js/EditableList.js")"></script>
+  <script src="@routes.Assets.versioned("js/HelperTablesIndex.js")"></script>
+}
+
+@extraBottom={
+  <script>
+    UiUtils.documentReady(function(){
+        setup();
+        @for(r<-regionsList){elRegions.addRow({id:@r.id, name:"@r.name"});}
+        @for(r<-citizenships){elCitizenships.addRow({id:@r.id, name:"@r.name"});}
+        @for(r<-injuryCauses){elInjuryCauses.addRow({id:@r.id, name:"@r.name"});}
+        @for(r<-industries){elIndustries.addRow({id:@r.id, name:"@r.name"});}
+    });
+  </script>
+}
+
+@templates.backEndBase(Messages("helperTables.title"), views.BackOfficeSections.HelperTables, extraHead, extraBottom) {
+  @comps.pageTitleRow(Messages("helperTables.title"))()
+  <div class="row my-2">
+    <div class="col">
+      <div class="alert alert-info">
+        @Messages("helperTables.help")
+      </div>
+    </div>
+  </div>
+  <div class="row my-2">
+    <div class="col">
+      <ul class="nav nav-pills nav-fill" role="tablist" id="topicTabs">
+        @for(t<-Seq("regions","citizenships","injuryCauses","industries").zipWithIndex){
+          <li class="nav-item" role="presentation">
+            <a class="nav-link@if(t._2==0){ active}" data-bs-toggle="tab" href="#@{t._1}-tab">@Messages(s"helperTables.tabs.${t._1}")</a>
+          </li>
+        }
+      </ul>
+      <div class="tab-content py-4">
+      @for(t<-Seq("regions","citizenships","injuryCauses","industries").zipWithIndex){
+        <div class="tab-pane@if(t._2==0){ show active}" id="@{t._1}-tab">
+          <ul class="editableList" id="el-@{t._1}">
+            <li>
+              <input type="text" class="form-control d-inline-block w-50" value="" disabled>
+              <button type="button" data-el-role="editBtn" class="el-readMode btn btn-outline-secondary">@comps.svgEdit()</button>
+              <button type="button" data-el-role="delBtn" class="el-readMode btn btn-outline-danger">@comps.svgTrash()</button>
+              <button type="button" data-el-role="commitBtn" class="el-editMode btn btn-outline-success">@comps.svgCheck()</button>
+              <button type="button" data-el-role="cancelBtn" class="el-editMode btn btn-outline-danger">@comps.svgX()</button>
+            </li>
+          </ul>
+          <button type="button" id="el-@{t._1}-add" class="btn btn-outline-primary">@comps.svgAdd() @Messages("helperTables.newRow")</button>
+        </div>
+      }
+      </div>
+    </div>
+  </div>
+}
