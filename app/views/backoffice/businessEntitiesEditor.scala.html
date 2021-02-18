@@ -1,0 +1,16 @@
+@import be.objectify.deadbolt.scala.AuthenticatedRequest
+@(frm:Form[BusinessEntity])(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
+
+@templates.backEndBase(Messages("businessEntities.title"), views.BackOfficeSections.BusinessEntities) {
+  @comps.pageTitleRow(Messages("businessEntities.title")){
+    <button class="btn btn-primary">@comps.svgCheck() @Messages("save")</button>
+    <a class="btn btn-outline-danger" href="@routes.BusinessEntityCtrl.backofficeIndex(None)">@comps.svgX() @Messages("cancel")</a>
+  }
+  @comps.helpRow(Messages("businessEntities.help"))
+
+  <div class="row my-2">
+    <div class="col">
+      NEW NEW NEW NEW
+    </div>
+  </div>
+}

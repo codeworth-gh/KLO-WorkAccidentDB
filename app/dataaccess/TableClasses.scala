@@ -1,7 +1,7 @@
 package dataaccess
 
 import java.sql.Timestamp
-import models.{Citizenship, Industry, InjuryCause, Invitation, PasswordResetRequest, Region, User}
+import models.{BusinessEntity, Citizenship, Industry, InjuryCause, Invitation, PasswordResetRequest, Region, User}
 import slick.lifted.Tag
 import slick.jdbc.PostgresProfile.api._
 
@@ -38,6 +38,22 @@ class PasswordResetRequestsTable(tag:Tag) extends Table[PasswordResetRequest](ta
   def pk = primaryKey("uuid_for_forgot_password_pkey", (username, uuid))
 
   def * = (username, uuid, reset_password_date) <> (PasswordResetRequest.tupled, PasswordResetRequest.unapply)
+}
+
+class BusinessEntityTable(tag:Tag) extends Table[BusinessEntity](tag, "business_entities") {
+  def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
+  def name = column[String]("name")
+  def phone = column[Option[String]]("phone")
+  def email = column[Option[String]]("email")
+  def website = column[Option[String]]("website")
+  def isPrivatePerson = column[Boolean]("is_private_person")
+  def memo = column[Option[String]]("memo")
+  
+  def * = (
+    id, name, phone, email, website, isPrivatePerson, memo
+  ) <> (BusinessEntity.tupled, BusinessEntity.unapply)
+  
+  def nameIdx = index("business_entities_name", (name))
 }
 
 class IdNameTable[T](tag: Tag, tableName: String, apply: (Int, String) => T, unapply: T => Option[(Int, String)])

@@ -48,6 +48,7 @@ navbar.users=משתמשות
 navbar.users.list=רשימה
 navbar.users.invite=הזמנה
 navbar.users.editMyProfile=עריכת פרופיל
+navbar.businessEntities=גורמים מעורבים
 
 users=משתמשות
 users.inviteUser=הזמנה
@@ -67,6 +68,11 @@ userEditor.previousPassword=סיסמא קודמת
 userEditor.newPassword=סיסמא חדשה
 userEditor.newPasswordAgain=סיסמא חדשה (שוב)
 userEditor.email.help=כתובת האימייל הזו תשמש אותנו במקרה שנידרש לאפס את הסיסמא שלך.
+
+businessEntities.title=גורמים עסקיים מעורבים
+businessEntities.help=גורמים עסקיים המעורבים בתאונות, כגון המעסיקים, הקבלנים, ויזמי פרוייקטים
+businessEntities.addNew=גורם חדש
+businessEntities.noData=לא רשומים במערכת גורמים מעורבים
 
 helperTables.title=מאפייני תאונות
 helperTables.help=במסך זה ניתן לערוך את רשימות המאפיינים המשמשים בתיאור תאונות ונפגעים.
@@ -89,5 +95,6 @@ username=שם משתמשת
 usernameOrEmail=שם משתמשת/אימייל
 name=שם
 send=שליחה
+save=שמירה
 login=כניסה
 signUp=Sign up

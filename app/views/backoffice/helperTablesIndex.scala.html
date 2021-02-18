@@ -20,13 +20,8 @@
 
 @templates.backEndBase(Messages("helperTables.title"), views.BackOfficeSections.HelperTables, extraHead, extraBottom) {
   @comps.pageTitleRow(Messages("helperTables.title"))()
-  <div class="row my-2">
-    <div class="col">
-      <div class="alert alert-info">
-        @Messages("helperTables.help")
-      </div>
-    </div>
-  </div>
+  @comps.helpRow(Messages("helperTables.help"))
+
   <div class="row my-2">
     <div class="col">
       <ul class="nav nav-pills nav-fill" role="tablist" id="topicTabs">

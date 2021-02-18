@@ -1,0 +1,52 @@
+
+@import views.PaginationInfo
+@import be.objectify.deadbolt.scala.AuthenticatedRequest
+@(ents:Seq[BusinessEntity], pi:PaginationInfo)(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
+
+@templates.backEndBase(Messages("businessEntities.title"), views.BackOfficeSections.BusinessEntities) {
+  @comps.pageTitleRow(Messages("businessEntities.title")){
+    <a href="@routes.BusinessEntityCtrl.showNew()" class="btn btn-outline-primary">@comps.svgAdd() @Messages("businessEntities.addNew")</a>
+  }
+  @comps.helpRow(Messages("businessEntities.help"))
+
+  <div class="row my-2">
+    <div class="col">
+      @if( ents.isEmpty ){
+        <div class="noData noData-block py-4">
+          <div class="my-4">
+            @Messages("businessEntities.noData")
+          </div>
+          <a href="@routes.BusinessEntityCtrl.showNew()" class="btn btn-outline-light">@comps.svgAdd() @Messages("businessEntities.addNew")</a>
+        </div>
+      }else{
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">@Messages("name")</th>
+              <th scope="col">@Messages("phone")</th>
+              <th scope="col">@Messages("email")</th>
+              <th scope="col">@Messages("site")</th>
+              <th scope="col">&nbsp;</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for( ent <- ents ){
+              <tr>
+                <td>@ent.name<td>
+                <td>@for( p <- ent.phone ){
+                  <a href="phone:@p">@p</a>}<td>
+                <td>@for( p <- ent.email ){
+                  <a href="mailto:@p">@p</a>}<td>
+                <td>@for( p <- ent.website ){
+                  <a href="@p">@p</a>}<td>
+                <td>
+                  <a href="@routes.BusinessEntityCtrl.showEdit(ent.id)" class="btn btn-sm btn-outline-secondary">@comps.svgEdit() @Messages("edit")</a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </div>
+}
