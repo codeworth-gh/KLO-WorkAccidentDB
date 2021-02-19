@@ -12,6 +12,7 @@ import views.PaginationInfo
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 object BusinessEntityCtrl {
   val PAGE_SIZE=40
@@ -73,6 +74,14 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
         )
       }
     )
+  }
+  
+  def doDeleteEntity(id:Long) = deadbolt.SubjectPresent()(){ req =>
+    businessEntities.delete(id).map({
+      case Failure(exception) => log.warn("Error while deleting business entity", exception)
+        internalServerErrorJson(exception.getMessage)
+      case Success(value) => okJson("deleted");
+    })
   }
   
 }

@@ -26,6 +26,14 @@ footer {
   }
 }
 
+hr.vr {
+  display: inline-block;
+  height: 100%;
+  width: 0;
+  margin: 0 .5em;
+  border-left: 1px solid #000;
+}
+
 .placeholder {
   background-color: #BBB;
   color: #FFF;
@@ -49,6 +57,11 @@ footer {
     flex-grow: 1;
     flex-shrink: 1;
   }
+
+  hr.vr {
+    margin-left: 1em;
+  }
+
   .pageTitleRow-component{
     flex-grow: 0;
     flex-shrink: 0;

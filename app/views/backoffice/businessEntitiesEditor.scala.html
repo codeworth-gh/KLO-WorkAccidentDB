@@ -1,8 +1,40 @@
 @import be.objectify.deadbolt.scala.AuthenticatedRequest
 @(frm:Form[BusinessEntity])(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
 
-@templates.backEndBase(Messages("businessEntitiesEditor.title"), views.BackOfficeSections.BusinessEntities) {
+@extraHead={
+  <script>
+    const deleteMsg="@Messages("businessEntitiesEditor.deleteMsg")";
+    const subMsg="@Messages("businessEntitiesEditor.deleteMsgSub")";
+    function kickoffDeleteEntity(){
+        Informationals.makeYesNo(deleteMsg, subMsg,
+                (res, info)=>{info.dismiss(); if (res){ doDelete();}},
+                null,
+                Informationals.messageTypes.DANGER
+                ).show();
+    }
+
+    function doDelete(){
+        Informationals.loader("@Messages("deleting")");
+        new Playjax(beRoutes).using(c=>c.BusinessEntityCtrl.doDeleteEntity(@frm("id").value.get))
+                .fetch()
+                .then( function(r){
+                    if (r.ok) {
+                      window.location.href=beRoutes.controllers.BusinessEntityCtrl.backofficeIndex().url;
+                    } else {
+                      Informationals.loader.dismiss();
+                      Informationals.makeDanger("@Messages("businessEntitiesEditor.deletionFailed")");
+                    }
+                });
+    }
+  </script>
+}
+
+@templates.backEndBase(Messages("businessEntitiesEditor.title"), views.BackOfficeSections.BusinessEntities, extraHead) {
   @comps.pageTitleRow(Messages("businessEntitiesEditor.title")){
+    @if( frm("id").value.getOrElse(0)!="0" ){
+      <button type="button" onclick="kickoffDeleteEntity()" class="btn btn-danger">@comps.svgTrash() @Messages("delete")</button>
+      <hr class="vr">
+    }
     <button type="button" onclick="document.getElementById('bizEntityForm').submit()" class="btn btn-primary">@comps.svgCheck() @Messages("save")</button>
     <a class="btn btn-outline-danger" href="@routes.BusinessEntityCtrl.backofficeIndex(None)">@comps.svgX() @Messages("cancel")</a>
   }

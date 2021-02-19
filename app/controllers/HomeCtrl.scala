@@ -41,7 +41,9 @@ object HomeCtrl {
     routes.javascript.HelperTableCtrl.apiDeleteInjuryCause,
     routes.javascript.UserCtrl.apiAddUser,
     routes.javascript.UserCtrl.apiReInviteUser,
-    routes.javascript.UserCtrl.apiDeleteInvitation
+    routes.javascript.UserCtrl.apiDeleteInvitation,
+    routes.javascript.BusinessEntityCtrl.doDeleteEntity,
+    routes.javascript.BusinessEntityCtrl.backofficeIndex
   )
 
   val beRouteHash:Int = Math.abs(beRouteSeq.map( r => r.f + r.name ).map( _.hashCode ).sum)

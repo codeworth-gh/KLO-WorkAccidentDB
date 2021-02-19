@@ -77,6 +77,9 @@ businessEntities.isPrivatePerson=אדם פרטי
 businessEntities.saved=הגורם המעורב ״{0}״ נשמר
 
 businessEntitiesEditor.title=עריכת גורם מעורב
+businessEntitiesEditor.deleteMsg=למחוק את הגורם המעורב?
+businessEntitiesEditor.deleteMsgSub=לא ניתן יהיה לשחזר את הנתונים לאחר מכן
+businessEntitiesEditor.deletionFailed=המחיקה נכלשה
 
 helperTables.title=מאפייני תאונות
 helperTables.help=במסך זה ניתן לערוך את רשימות המאפיינים המשמשים בתיאור תאונות ונפגעים.
@@ -105,3 +108,5 @@ signUp=הצטרפות
 id=מספר מזהה
 mandatoryField=שדה חובה
 website=אתר אינטרנט
+delete=מחיקה
+deleting=מוקח

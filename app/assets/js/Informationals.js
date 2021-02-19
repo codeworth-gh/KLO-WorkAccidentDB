@@ -104,12 +104,12 @@ const Informationals = (function(){
     function showYesNo(ynMsg) {
 
         const yesButton = UiUtils.makeButton( function(){},
-            {classes:["btn", "btn-primary"]},
-            ["Yes"]
+            {classes:["btn", "btn-"+ynMsg.type]},
+            ["כן"]
         );
         const noButton = UiUtils.makeButton( function(){},
-            {classes:["btn", "btn-default"]},
-            ["No"]
+            {classes:["btn", "btn-outline-secondary"]},
+            ["לא"]
         );
         const btnContainer = UiUtils.makeDiv("btnContainer", [noButton, yesButton]);
 

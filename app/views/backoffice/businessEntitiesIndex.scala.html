@@ -19,21 +19,21 @@
           <a href="@routes.BusinessEntityCtrl.showNew()" class="btn btn-outline-light">@comps.svgAdd() @Messages("businessEntities.addNew")</a>
         </div>
       }else{
-        <table class="table">
+        <table class="table table-sm table-striped">
           <thead>
             <tr>
               <th scope="col">@Messages("name")</th>
               <th scope="col">@Messages("phone")</th>
               <th scope="col">@Messages("email")</th>
               <th scope="col">@Messages("website")</th>
-              <th scope="col">&nbsp;</th>
             </tr>
           </thead>
           <tbody>
             @for( ent <- ents ){
               <tr>
                 <td><a href="@routes.BusinessEntityCtrl.showEdit(ent.id)">@ent.name</a>
-                  @if(ent.isPrivatePerson){<span class="badge bg-warning">@Messages("businessEntities.isPrivatePerson")</span>}
+                  @if(ent.isPrivatePerson){<span class="badge bg-success">@Messages("businessEntities.isPrivatePerson")</span>}
+                  <a href="@routes.BusinessEntityCtrl.showEdit(ent.id)" class="btn btn-sm btn-outline-secondary">@comps.svgEdit()</a>
                 </td>
                 <td>@for( p <- ent.phone ){
                   <a href="tel:@p">@p</a>}</td>
@@ -41,9 +41,6 @@
                   <a href="mailto:@p">@p</a>}</td>
                 <td>@for( p <- ent.website ){
                   <a href="@p">@p</a>}</td>
-                <td>
-                  <a href="@routes.BusinessEntityCtrl.showEdit(ent.id)" class="btn btn-sm btn-outline-secondary">@comps.svgEdit() @Messages("edit")</a>
-                </td>
               </tr>
             }
           </tbody>
