@@ -73,6 +73,10 @@ businessEntities.title=גורמים עסקיים מעורבים
 businessEntities.help=גורמים עסקיים המעורבים בתאונות, כגון המעסיקים, הקבלנים, ויזמי פרוייקטים
 businessEntities.addNew=גורם חדש
 businessEntities.noData=לא רשומים במערכת גורמים מעורבים
+businessEntities.isPrivatePerson=אדם פרטי
+businessEntities.saved=הגורם המעורב ״{0}״ נשמר
+
+businessEntitiesEditor.title=עריכת גורם מעורב
 
 helperTables.title=מאפייני תאונות
 helperTables.help=במסך זה ניתן לערוך את רשימות המאפיינים המשמשים בתיאור תאונות ונפגעים.
@@ -97,4 +101,7 @@ name=שם
 send=שליחה
 save=שמירה
 login=כניסה
-signUp=Sign up
+signUp=הצטרפות
+id=מספר מזהה
+mandatoryField=שדה חובה
+website=אתר אינטרנט

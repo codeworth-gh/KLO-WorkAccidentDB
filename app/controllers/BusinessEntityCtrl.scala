@@ -3,6 +3,7 @@ package controllers
 import be.objectify.deadbolt.scala.DeadboltActions
 import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO}
 import models.BusinessEntity
+import play.api.Logger
 import play.api.data._
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
@@ -19,6 +20,8 @@ object BusinessEntityCtrl {
 class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponents,
                                    businessEntities:BusinessEntityDAO)
           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport with JsonApiHelper {
+  
+  private val log = Logger(classOf[BusinessEntityCtrl])
   
   def backofficeIndex(name:Option[String]) = deadbolt.SubjectPresent()() { implicit req =>
     for {
@@ -54,6 +57,22 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
         case Some(ntt) => Ok(views.html.backoffice.businessEntitiesEditor(bizEntityForm.fill(ntt)))
       }
     }
+  }
+  
+  def doSaveEntity() = deadbolt.SubjectPresent()(){ implicit req =>
+    bizEntityForm.bindFromRequest().fold(
+      fwe => {
+        fwe.errors.foreach( fe => log.info(fe.key + ": " + fe.message) )
+        Future(BadRequest(views.html.backoffice.businessEntitiesEditor(fwe)))
+      },
+      bizEnt => {
+        val msgs = request2Messages(req)
+        businessEntities.store( bizEnt ).map( _ =>
+          Redirect(routes.BusinessEntityCtrl.backofficeIndex(None)
+          ).flashing(FlashKeys.MESSAGE->Informational(Informational.Level.Success, msgs("businessEntities.saved", bizEnt.name) ,"").encoded)
+        )
+      }
+    )
   }
   
 }

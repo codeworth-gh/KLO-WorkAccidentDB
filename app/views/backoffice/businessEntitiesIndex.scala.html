@@ -25,20 +25,22 @@
               <th scope="col">@Messages("name")</th>
               <th scope="col">@Messages("phone")</th>
               <th scope="col">@Messages("email")</th>
-              <th scope="col">@Messages("site")</th>
+              <th scope="col">@Messages("website")</th>
               <th scope="col">&nbsp;</th>
             </tr>
           </thead>
           <tbody>
             @for( ent <- ents ){
               <tr>
-                <td>@ent.name<td>
+                <td><a href="@routes.BusinessEntityCtrl.showEdit(ent.id)">@ent.name</a>
+                  @if(ent.isPrivatePerson){<span class="badge bg-warning">@Messages("businessEntities.isPrivatePerson")</span>}
+                </td>
                 <td>@for( p <- ent.phone ){
-                  <a href="phone:@p">@p</a>}<td>
+                  <a href="tel:@p">@p</a>}</td>
                 <td>@for( p <- ent.email ){
-                  <a href="mailto:@p">@p</a>}<td>
+                  <a href="mailto:@p">@p</a>}</td>
                 <td>@for( p <- ent.website ){
-                  <a href="@p">@p</a>}<td>
+                  <a href="@p">@p</a>}</td>
                 <td>
                   <a href="@routes.BusinessEntityCtrl.showEdit(ent.id)" class="btn btn-sm btn-outline-secondary">@comps.svgEdit() @Messages("edit")</a>
                 </td>
