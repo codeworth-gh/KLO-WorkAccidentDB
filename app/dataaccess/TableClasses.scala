@@ -5,6 +5,7 @@ import models.{BusinessEntity, Citizenship, Industry, InjuryCause, Invitation, P
 import slick.lifted.Tag
 import slick.jdbc.PostgresProfile.api._
 
+import java.time.LocalDateTime
 import scala.reflect.ClassTag
 
 class UsersTable(tag:Tag) extends Table[User](tag,"users") {
@@ -70,3 +71,56 @@ class CitizenshipsTable(tag:Tag) extends IdNameTable[Citizenship](tag, "citizens
 class IndustriesTable(tag:Tag) extends IdNameTable[Industry](tag, "industries", Industry, Industry.unapply)
 
 class InjuryCausesTable(tag:Tag) extends IdNameTable[InjuryCause](tag, "injury_causes", InjuryCause, InjuryCause.unapply)
+
+class WorkAccidentsTable(t:Tag) extends Table[WorkAccidentRecord](t, "work_accidents") {
+  
+  def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+  def date_time = column[LocalDateTime]("date_time")
+  def entrepreneur_id = column[Option[Long]]("entrepreneur_id")
+  def region_id = column[Option[Int]]("region_id")
+  def blog_post_url = column[String]("blog_post_url")
+  def details = column[String]("details")
+  def investigation = column[String]("investigation")
+  def mediaReports = column[String]("mediaReports")
+  def public_remarks = column[String]("public_remarks")
+  def sensitive_remarks = column[String]("sensitive_remarks")
+  
+  def * = (id, date_time, entrepreneur_id, region_id, blog_post_url, details, investigation, mediaReports, public_remarks, sensitive_remarks
+  )<>(WorkAccidentRecord.tupled, WorkAccidentRecord.unapply)
+  
+  def fkEnt = foreignKey("fk_wa_ent", entrepreneur_id, TableRefs.businessEntities)(_.id.?)
+  def fkRgn = foreignKey("fk_wa_rgn", region_id, TableRefs.regions)(_.id.?)
+}
+
+class InjuredWorkersTable(t:Tag) extends Table[InjuredWorkerRecord](t, "injured_workers") {
+  
+  def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+  def accident_id = column[Long]("accident_id")
+  def name = column[String]("name")
+  def age = column[Option[Int]]("age")
+  def citizenship_id = column[Option[Int]]("citizenship_id")
+  def industry_id = column[Option[Int]]("industry_id")
+  def from_place = column[String]("from_place")
+  def injury_cause_id = column[Option[Int]]("injury_cause_id")
+  def injury_severity = column[Option[String]]("injury_severity")
+  def injury_description = column[String]("injury_description")
+  def public_remarks = column[String]("public_remarks")
+  def sensitive_remarks = column[String]("sensitive_remarks")
+  
+  def * = (id, accident_id, name, age, citizenship_id, industry_id, from_place, injury_cause_id, injury_severity,
+    injury_description, public_remarks, sensitive_remarks)<>(InjuredWorkerRecord.tupled, InjuredWorkerRecord.unapply)
+  
+  def fkAcc = foreignKey("fk_iw_wa", accident_id, TableRefs.accidents)(_.id)
+  def fkCtz = foreignKey("fk_iw_cz", citizenship_id, TableRefs.citizenships)(_.id.?)
+  def fkInd = foreignKey("fk_iw_in", industry_id, TableRefs.industries)(_.id.?)
+  def fkICs = foreignKey("fk_iw_ic", injury_cause_id, TableRefs.injuryCauses)(_.id.?)
+}
+
+object TableRefs {
+  val businessEntities = TableQuery[BusinessEntityTable]
+  val regions = TableQuery[RegionsTable]
+  val accidents = TableQuery[WorkAccidentsTable]
+  val citizenships = TableQuery[CitizenshipsTable]
+  val industries = TableQuery[IndustriesTable]
+  val injuryCauses = TableQuery[InjuryCausesTable]
+}
