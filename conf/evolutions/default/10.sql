@@ -25,7 +25,7 @@ create table injured_workers(
     industry_id int,
     from_place varchar(512),
     injury_cause_id int,
-    injury_severity varchar(9),
+    injury_severity int,
     injury_description text,
     public_remarks text,
     sensitive_remarks text,
@@ -36,7 +36,9 @@ create table injured_workers(
     constraint fk_iw_ic foreign key (injury_cause_id) references injury_causes(id) on delete set null
 );
 
-# -- !Downs
+create index iw_by_ac on injured_workers(accident_id);
 
+# -- !Downs
+drop index iw_by_ac;
 drop table injured_workers;
 drop table work_accidents;

@@ -1,0 +1,13 @@
+@import be.objectify.deadbolt.scala.AuthenticatedRequest
+@(frm:Form[WorkAccidentFD])(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
+
+@templates.backEndBase(Messages("workAccidentEditor.title"), views.BackOfficeSections.WorkAccidents) {
+  @comps.pageTitleRow(Messages("workAccidentEditor.title")){
+    @if( frm("id").value.getOrElse(0)!="0" ){
+      <button type="button" onclick="kickoffDeleteEntity()" class="btn btn-danger">@comps.svgTrash() @Messages("delete")</button>
+      <hr class="vr">
+    }
+    <button type="button" onclick="document.getElementById('workAccidentForm').submit()" class="btn btn-primary">@comps.svgCheck() @Messages("save")</button>
+    <a class="btn btn-outline-danger" href="@routes.WorkAccidentCtrl.backofficeIndex()">@comps.svgX() @Messages("cancel")</a>
+  }
+}

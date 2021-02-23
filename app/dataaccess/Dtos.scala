@@ -20,19 +20,6 @@ case class WorkAccidentRecord(
                          sensitiveRemarks:String
                        )
 
-//object WorkAccidentRecord {
-//  def encode(wa:WorkAccident):WorkAccidentRecord=WorkAccidentRecord(
-//      wa.id, wa.when, entrepreneurId = wa.entrepreneur.map(_.id),
-//      regionId = wa.region.map(_.id),
-//      blogPostUrl = wa.blogPostUrl,
-//      details = wa.details,
-//      investigation = wa.investigation,
-//      mediaReports = wa.mediaReports.mkString("\n"),
-//      publicRemarks = wa.publicRemarks,
-//      sensitiveRemarks = wa.sensitiveRemarks
-//  )
-//}
-
 case class InjuredWorkerRecord(
                           id:Long,
                           accidentId:Long,
@@ -42,25 +29,9 @@ case class InjuredWorkerRecord(
                           industry: Option[Int],
                           from:String,
                           injuryCause: Option[Int],
-                          injurySeverity: Option[String],
+                          injurySeverity: Option[Int],
                           injuryDescription: String,
                           publicRemarks:String,
                           sensitiveRemarks:String
                         )
 
-//object InjuredWorkerRecord {
-//  def from(iw:InjuredWorker, accidentId:Long):InjuredWorkerRecord=InjuredWorkerRecord(
-//    id = iw.id,
-//    accidentId = accidentId,
-//    name = iw.name,
-//    age = iw.age,
-//    citizenship = iw.citizenship.map(_.id),
-//    industry = iw.industry.map(_.id),
-//    from= iw.from,
-//    injuryCause= iw.injuryCause.map(_.id),
-//    injurySeverity= iw.injurySeverity.map(_.toString),
-//    injuryDescription= iw.injuryDescription,
-//    publicRemarks= iw.publicRemarks,
-//    sensitiveRemarks= iw.sensitiveRemarks
-//  )
-//}

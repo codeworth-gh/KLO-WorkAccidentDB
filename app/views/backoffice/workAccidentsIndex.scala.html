@@ -1,0 +1,41 @@
+@import views.PaginationInfo
+@import be.objectify.deadbolt.scala.AuthenticatedRequest
+@(ents:Seq[WorkAccident], pi:PaginationInfo)(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
+
+@templates.backEndBase(Messages("workAccidents.title"), views.BackOfficeSections.WorkAccidents) {
+  @comps.pageTitleRow(Messages("workAccidents.title")){
+    <a href="@routes.WorkAccidentCtrl.showNew()" class="btn btn-outline-primary">@comps.svgAdd() @Messages("add")</a>
+  }
+  <div class="row my-2">
+    <div class="col">
+    @if( ents.isEmpty ){
+      <div class="noData noData-block py-4">
+        <div class="my-4">
+        @Messages("workAccidents.noData")
+        </div>
+        <a href="@routes.WorkAccidentCtrl.showNew()" class="btn btn-outline-light">@comps.svgAdd() @Messages("add")</a>
+      </div>
+    }else{
+      <table class="table table-sm table-striped">
+        <thead>
+          <tr>
+            <th scope="col">@Messages("workAccidents.dateTime")</th>
+            <th scope="col">@Messages("workAccidents.region")</th>
+            <th scope="col">@Messages("workAccidents.entrepreneur")</th>
+            <th scope="col">@Messages("workAccidents.numInjured")</th>
+            <th scope="col">@Messages("workAccidents.numFatalities")</th>
+            <th scope="col">@Messages("workAccidents.details")</th>
+          </tr>
+        </thead>
+        <tbody>
+        @for( ent <- ents ){
+          <tr>
+            <td>PLACEHOLDER</td>
+          </tr>
+        }
+        </tbody>
+      </table>
+    }
+    </div>
+  </div>
+}

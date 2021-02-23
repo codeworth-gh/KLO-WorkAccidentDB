@@ -63,11 +63,13 @@
           </div>
         </div>
         <div class="row mb-3">
-          <div class="form-check">
-            @defining( frm("isPrivatePerson").value.contains("true")){ isPrPsn =>
-              <input type="checkbox" class="form-check-input" value="true" name="isPrivatePerson" id="fldPrivatePerson" @if(isPrPsn){checked="checked"}>
-            }
-            <label for="fldPrivatePerson" class="form-check-label">@Messages("businessEntities.isPrivatePerson")</label>
+          <div class="col-7" style="padding-right: 14.5em;">
+            <div class="form-check">
+              @defining( frm("isPrivatePerson").value.contains("true")){ isPrPsn =>
+                <input type="checkbox" class="form-check-input" value="true" name="isPrivatePerson" id="fldPrivatePerson" @if(isPrPsn){checked="checked"}>
+              }
+              <label for="fldPrivatePerson" class="form-check-label">@Messages("businessEntities.isPrivatePerson")</label>
+            </div>
           </div>
         </div>
         <div class="row mb-3">

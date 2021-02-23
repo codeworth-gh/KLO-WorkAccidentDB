@@ -17,7 +17,7 @@ class BusinessEntityDAO @Inject() (protected val dbConfigProvider:DatabaseConfig
   
   def store( bizEnt:BusinessEntity ):Future[BusinessEntity] = {
     bizEnt.id match {
-      case 0 => db.run((Entities returning Entities.map(_.id) ).into((b,newId)=>b.copy(id=newId))+= bizEnt)
+      case 0 => db.run((Entities returning Entities.map(_.id) ).into((b,newId)=>b.copy(id=newId)) += bizEnt)
       case _ => db.run(Entities.filter(_.id===bizEnt.id).update(bizEnt)).map( _ => bizEnt )
     }
   }

@@ -49,6 +49,7 @@ navbar.users.list=רשימה
 navbar.users.invite=הזמנה
 navbar.users.editMyProfile=עריכת פרופיל
 navbar.businessEntities=גורמים מעורבים
+navbar.workAccidents=תאונות
 
 users=משתמשות
 users.inviteUser=הזמנה
@@ -88,6 +89,15 @@ helperTables.tabs.industries=ענפי תעשייה
 helperTables.tabs.injuryCauses=סיבות פגיעה
 helperTables.tabs.citizenships=אזרחויות
 helperTables.newRow=הוספת מאפיין
+
+workAccidents.title=תאונות עבודה
+workAccidents.noData=לא נמצאו תאונות עבודה
+workAccidents.dateTime=תאריך ושעה
+workAccidents.region=אזור
+workAccidents.entrepreneur=יזם
+workAccidents.numInjured=נפגעים
+workAccidents.numFatalities=מתוכם הרוגים
+workAccidents.details=פרטים
 
 add=הוספה
 cancel=ביטול

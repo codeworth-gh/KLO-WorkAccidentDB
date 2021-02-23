@@ -1,7 +1,7 @@
 package controllers
 
 import be.objectify.deadbolt.scala.DeadboltActions
-import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO}
+import dataaccess.BusinessEntityDAO
 import models.BusinessEntity
 import play.api.Logger
 import play.api.data._

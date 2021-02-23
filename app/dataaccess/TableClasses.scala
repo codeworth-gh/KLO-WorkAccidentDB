@@ -102,7 +102,7 @@ class InjuredWorkersTable(t:Tag) extends Table[InjuredWorkerRecord](t, "injured_
   def industry_id = column[Option[Int]]("industry_id")
   def from_place = column[String]("from_place")
   def injury_cause_id = column[Option[Int]]("injury_cause_id")
-  def injury_severity = column[Option[String]]("injury_severity")
+  def injury_severity = column[Option[Int]]("injury_severity")
   def injury_description = column[String]("injury_description")
   def public_remarks = column[String]("public_remarks")
   def sensitive_remarks = column[String]("sensitive_remarks")
