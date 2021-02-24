@@ -25,6 +25,9 @@ class BusinessEntityDAO @Inject() (protected val dbConfigProvider:DatabaseConfig
   // get by id
   def get(id:Long):Future[Option[BusinessEntity]] = db.run( Entities.filter( r => r.id === id ).take(1).result ).map( _.headOption )
   
+  def listIdNamePairs():Future[Map[Long,String]] = db.run(
+    Entities.map(r=>(r.id, r.name)).result
+  ).map( _.toMap )
   
   // delete
   def delete(id:Long):Future[Try[Int]] = db.run(

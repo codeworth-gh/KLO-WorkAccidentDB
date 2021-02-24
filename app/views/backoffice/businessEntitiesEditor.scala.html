@@ -44,24 +44,11 @@
       <form action="@routes.BusinessEntityCtrl.doSaveEntity()" method="post" id="bizEntityForm">
         @helper.CSRF.formField
         @if( frm("id").value.getOrElse(0)!="0" ){
-          <div class="row mb-3">
-            <label for="fldId" class="col-sm-2 col-form-label">@Messages("id")</label>
-            <div class="col-sm-10">
-              <input id="fldId" type="text" class="form-control-plaintext" name="id" readonly value="@frm("id").value.get">
-            </div>
-          </div>
+          @comps.bform.fieldHRow(frm, "id", isReadOnly = true )
         }else{
           <input type="hidden" name="id" value="0">
         }
-        <div class="row mb-3">
-          <label for="fldName" class="col-sm-2 col-form-label">
-            @Messages("name")
-            <span class="badge bg-warning">@Messages("mandatoryField")</span>
-          </label>
-          <div class="col-sm-10">
-            <input type="text" class="form-control" name="name" id="fldName" value="@frm("name").value">
-          </div>
-        </div>
+        @comps.bform.fieldHRow(frm,"name", isRequired=true)
         <div class="row mb-3">
           <div class="col-7" style="padding-right: 14.5em;">
             <div class="form-check">
@@ -72,36 +59,12 @@
             </div>
           </div>
         </div>
-        <div class="row mb-3">
-          <label for="fldPhone" class="col-sm-2 col-form-label">@Messages("phone")</label>
-          <div class="col-sm-10">
-            <input type="text" class="form-control" id="fldPhone" name="phone" value="@frm("phone").value.getOrElse("")">
-          </div>
-        </div>
-        <div class="row mb-3">
-          <label for="fldEmail" class="col-sm-2 col-form-label">@Messages("email")</label>
-          <div class="col-sm-10">
-            <input type="email" class="form-control" name="email" id="fldEmail" value="@frm("email").value.getOrElse("")">
-          </div>
-        </div>
-        <div class="row mb-3">
-          <label for="fldWebsite" class="col-sm-2 col-form-label">@Messages("website")</label>
-          <div class="col-sm-10">
-            <input type="url" class="form-control" name="website" id="fldWebsite" value="@frm("website").value.getOrElse("")">
-          </div>
-        </div>
-        <div class="row mb-3">
-          <label for="fldMemo" class="col-sm-2 col-form-label">@Messages("memo")</label>
-          <div class="col-sm-10">
-            <textarea name="memo" rows="5" id="fldMemo" class="form-control">@frm("memo").value.getOrElse("")</textarea>
-          </div>
-        </div>
-        <div class="row mb-3">
-          <div class="col text-end">
-            <button type="submit" class="btn btn-primary">@comps.svgCheck() @Messages("save")</button>
-            <a class="btn btn-outline-danger" href="@routes.BusinessEntityCtrl.backofficeIndex(None)">@comps.svgX() @Messages("cancel")</a>
-          </div>
-        </div>
+        @comps.bform.fieldHRow(frm, "phone")
+        @comps.bform.fieldHRow(frm, "email", inputType="email")
+        @comps.bform.fieldHRow(frm, "website", inputType="url")
+        @comps.bform.textareaHRow(frm, "memo")
+        @comps.bform.submitRow(routes.BusinessEntityCtrl.backofficeIndex(None))
+
       </form>
     </div>
   </div>

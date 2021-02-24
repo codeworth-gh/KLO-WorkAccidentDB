@@ -1,0 +1,8 @@
+@import views.html.comps.bform.formHRow
+@(frm:Form[_], fieldName:String, locPrefix:String="", rows:Int=5,
+        isReadOnly:Boolean=false, isRequired:Boolean=false, isShowHelp:Boolean=false)(implicit msgs:MessagesProvider)
+@defining( Seq(if(isReadOnly) "readonly" else "", if(isRequired) "required" else "").mkString(" ") ) { atts =>
+  @formHRow(frm, fieldName, locPrefix, isReadOnly, isRequired, isShowHelp ){
+    <textarea name="@fieldName" rows="@rows" id="fld-@fieldName" class="form-control@if(isReadOnly){-plaintext}" @atts>@frm(fieldName).value.getOrElse("")</textarea>
+  }
+}

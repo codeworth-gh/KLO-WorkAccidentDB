@@ -1,7 +1,17 @@
 @import be.objectify.deadbolt.scala.AuthenticatedRequest
-@(frm:Form[WorkAccidentFD])(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
+@(frm:Form[WorkAccidentFD], regions:Seq[Region], bizEnts:Map[Long,String])(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
 
-@templates.backEndBase(Messages("workAccidentEditor.title"), views.BackOfficeSections.WorkAccidents) {
+@extraHead={
+<script>
+  function addMediaReportRow() {
+      const row = document.getElementById("mediaReportRowTemplate").content.firstElementChild.cloneNode(true);
+      const mediaReportsUl = document.getElementById("mediaReportsList").appendChild(row);
+      row.getElementsByTagName("input")[0].focus();
+  }
+</script>
+}
+
+@templates.backEndBase(Messages("workAccidentEditor.title"), views.BackOfficeSections.WorkAccidents, extraHead) {
   @comps.pageTitleRow(Messages("workAccidentEditor.title")){
     @if( frm("id").value.getOrElse(0)!="0" ){
       <button type="button" onclick="kickoffDeleteEntity()" class="btn btn-danger">@comps.svgTrash() @Messages("delete")</button>
@@ -10,4 +20,46 @@
     <button type="button" onclick="document.getElementById('workAccidentForm').submit()" class="btn btn-primary">@comps.svgCheck() @Messages("save")</button>
     <a class="btn btn-outline-danger" href="@routes.WorkAccidentCtrl.backofficeIndex()">@comps.svgX() @Messages("cancel")</a>
   }
+
+  <div class="row my-2">
+    <div class="col">
+      <form action="@routes.WorkAccidentCtrl.doSaveAccident()" method="post" id="bizEntityForm">
+        @comps.bform.datalist("bizEnts", bizEnts.values)
+        @helper.CSRF.formField
+        @if( frm("id").value.getOrElse(0)!="0" ){
+          @comps.bform.fieldHRow(frm, "id", isReadOnly = true )
+        }else{<input type="hidden" name="id" value="0">}
+        @comps.bform.fieldHRow(frm, "date", "workAccidentEditor.", inputType="date", isRequired=true)
+        @comps.bform.fieldHRow(frm, "time", "workAccidentEditor.", inputType="time")
+        @comps.bform.listInputHRow(frm, "entrepreneurName", "bizEnts", "workAccidentEditor.")
+        @comps.bform.selectHRow(frm, "region", options=regions.map(r=>r.id.toString->r.name))
+        @comps.bform.textareaHRow(frm, "details", "workAccidentEditor.", rows=3)
+        @comps.bform.textareaHRow(frm, "investigation", "workAccidentEditor.", rows=3)
+        @comps.bform.fieldHRow(frm, "blogPostUrl", "workAccidentEditor.", inputType="url", isShowHelp = true)
+        @comps.bform.formHRow(frm, "mediaReports", "workAccidentEditor." ){
+          <ul id="mediaReportsList" class="list-unstyled p-0 m-0">
+          @for( idx <- frm("mediaReports").indexes ){
+            <li class="d-flex flex-row mb-1">
+              <input type="url" name="mediaReports[]" class="form-control flex-grow-1 flex"
+                value="@frm("mediaReports")("["+idx+"]").value.getOrElse("")">
+                &nbsp;
+              <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svgTrash()</button>
+            </li>
+          }
+          </ul>
+          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addMediaReportRow()">@comps.svgAdd() @Messages("workAccidentEditor.addMediaReport")</button>
+        }
+        @comps.bform.textareaHRow(frm, "publicRemarks", "workAccidentEditor.", isShowHelp=true)
+        @comps.bform.textareaHRow(frm, "sensitiveRemarks", "workAccidentEditor.", isShowHelp=true)
+        @comps.bform.submitRow(routes.WorkAccidentCtrl.backofficeIndex())
+      </form>
+    </div>
+  </div>
+  <template id="mediaReportRowTemplate">
+    <li class="d-flex flex-row mb-1">
+      <input type="url" name="mediaReports[]" class="form-control flex-grow-1 flex">
+      &nbsp;
+      <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svgTrash()</button>
+    </li>
+  </template>
 }
