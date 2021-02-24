@@ -85,6 +85,14 @@ hr.vr {
   }
 }
 
+.injuredCard {
+  border: 1px solid $KloDarkGray;
+  border-radius: 5px;
+  padding: 5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+  margin-bottom: .5em;
+}
+
 @media( max-width: 501px ) {
   .pageTitleRow-ctnr {
     flex-direction: column;
@@ -99,6 +107,17 @@ hr.vr {
       order: 3;
       text-align: center;
     }
+  }
+}
+
+.formTitleRow {
+  border-bottom: 1px solid $KloBlue;
+  h2 {
+    font-size: 12pt;
+    font-weight: bold;
+  }
+  button {
+    margin-bottom: .5em;
   }
 }
 

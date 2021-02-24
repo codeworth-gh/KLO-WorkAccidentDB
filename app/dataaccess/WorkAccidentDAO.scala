@@ -20,6 +20,7 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   private val injuredWorkers = TableQuery[InjuredWorkersTable]
   private val businessEntities = TableQuery[BusinessEntityTable]
   private val accidentsAndEntrepreneurs = workAccidents.joinLeft(businessEntities).on( (a,b)=> a.entrepreneur_id === b.id )
+  private val workersAndEmployers = injuredWorkers.joinLeft(businessEntities).on( (w,e)=>w.employer_id === e.id )
   
   private val log = Logger(classOf[WorkAccidentDAO])
   
@@ -58,26 +59,33 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   
   def getInjuredWorker( id:Long ):Future[Option[InjuredWorker]] = {
     for {
-      res <- db.run(injuredWorkers.filter(_.id===id).result.headOption)
+      res <- db.run(workersAndEmployers.filter(_._1.id===id).result.headOption)
     } yield {
-      res.map( fromDto )
+      res.map( row=>fromDto(row._1, row._2) )
     }
   }
   
   def workersInAccident(accId:Long):Future[Seq[InjuredWorker]] = db.run(
-    injuredWorkers.filter( _.accident_id === accId ).sortBy(_.name).result
-  ).map( _.map(fromDto) )
+    workersAndEmployers.filter( _._1.accident_id === accId ).sortBy(_._1.name).result
+  ).map( _.map( p=>fromDto(p._1, p._2)) )
   
   def deleteWorker( id:Long ):Future[Try[Int]] = db.run(
     injuredWorkers.filter(_.id===id).delete.asTry
   )
   
-  def listWorkers():Future[Seq[InjuredWorker]] = db.run(
-    injuredWorkers.sortBy(_.injury_severity.desc).result
-  ).map( _.map(fromDto) )
+  def listWorkers():Future[Seq[InjuredWorker]] = {
+    for {
+      iws <- db.run(injuredWorkers.sortBy(_.injury_severity.desc).result )
+      ems <- db.run( businessEntities.result )
+    } yield {
+      val emsMap:Map[Long, BusinessEntity] = ems.map(e=>e.id->e).toMap
+      iws.map( iwr=>fromDto(iwr, iwr.employer.flatMap(id=>emsMap.get(id))) )
+    }
+    
+  }
   
-  private def fromDto(iwRow:InjuredWorkerRecord) = InjuredWorker( iwRow.id, iwRow.name, iwRow.age, iwRow.citizenship.flatMap(citizenships(_)),
-    iwRow.industry.flatMap(industries(_)), iwRow.from, iwRow.injuryCause.flatMap(injuryCauses(_)),
+  private def fromDto(iwRow:InjuredWorkerRecord, employer:Option[BusinessEntity]) = InjuredWorker( iwRow.id, iwRow.name, iwRow.age, iwRow.citizenship.flatMap(citizenships(_)),
+    iwRow.industry.flatMap(industries(_)), employer, iwRow.from, iwRow.injuryCause.flatMap(injuryCauses(_)),
     iwRow.injurySeverity.map( Severity.apply ), iwRow.injuryDescription, iwRow.publicRemarks, iwRow.sensitiveRemarks
   )
   
@@ -104,6 +112,7 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
       age = iw.age,
       citizenship = iw.citizenship.map(_.id),
       industry = iw.industry.map(_.id),
+      employer = iw.employer.map(_.id),
       from= iw.from,
       injuryCause= iw.injuryCause.map(_.id),
       injurySeverity= iw.injurySeverity.map(_.id),

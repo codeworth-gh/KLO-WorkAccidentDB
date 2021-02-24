@@ -1,9 +1,7 @@
 package dataaccess
 
-import models.{BusinessEntity, Citizenship, Industry, InjuredWorker, InjuryCause, Region, Severity, WorkAccident}
 
 import java.time.LocalDateTime
-import scala.xml.dtd.ContentModelParser
 
 // Data Transfer objects for the DB layer
 
@@ -27,6 +25,7 @@ case class InjuredWorkerRecord(
                           age:Option[Int],
                           citizenship:Option[Int],
                           industry: Option[Int],
+                          employer: Option[Long],
                           from:String,
                           injuryCause: Option[Int],
                           injurySeverity: Option[Int],

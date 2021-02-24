@@ -1,12 +1,37 @@
 @import be.objectify.deadbolt.scala.AuthenticatedRequest
-@(frm:Form[WorkAccidentFD], regions:Seq[Region], bizEnts:Map[Long,String])(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
+@(frm:Form[WorkAccidentFD], regions:Seq[Region], bizEnts:Map[Long,String], industries:Seq[Industry],
+        citizenships: Seq[Citizenship], injuryCauses:Seq[InjuryCause])(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
 
 @extraHead={
 <script>
   function addMediaReportRow() {
       const row = document.getElementById("mediaReportRowTemplate").content.firstElementChild.cloneNode(true);
-      const mediaReportsUl = document.getElementById("mediaReportsList").appendChild(row);
+      document.getElementById("mediaReportsList").appendChild(row);
       row.getElementsByTagName("input")[0].focus();
+  }
+
+  let newCardIdx=@frm("injured").indexes.size;
+  function addInjuredCard(){
+      newCardIdx++;
+      const card = document.getElementById("injuredWorkerTemplate").content.firstElementChild.cloneNode(true);
+      ["input","select","textarea"].forEach( tagName=>{
+        const inputs = card.getElementsByTagName(tagName);
+        for (let i = 0; i < inputs.length; i++) {
+          const inp = inputs[i];
+          inp.name=inp.name.replace("%",String(newCardIdx));
+        }
+      });
+      document.getElementById("injuredCards").prepend(card);
+      card.getElementsByTagName("input")[0].focus();
+      UiUtils.highlight(card);
+  }
+
+  function removeInjuredCard(button) {
+      let cardEmt = button;
+      while ( ! cardEmt.classList.contains("injuredCard-Row") ) {
+          cardEmt = cardEmt.parentElement;
+      }
+      cardEmt.remove();
   }
 </script>
 }
@@ -23,16 +48,25 @@
 
   <div class="row my-2">
     <div class="col">
-      <form action="@routes.WorkAccidentCtrl.doSaveAccident()" method="post" id="bizEntityForm">
+      <form action="@routes.WorkAccidentCtrl.doSaveAccident()" method="post" id="workAccidentForm">
         @comps.bform.datalist("bizEnts", bizEnts.values)
         @helper.CSRF.formField
         @if( frm("id").value.getOrElse(0)!="0" ){
           @comps.bform.fieldHRow(frm, "id", isReadOnly = true )
         }else{<input type="hidden" name="id" value="0">}
-        @comps.bform.fieldHRow(frm, "date", "workAccidentEditor.", inputType="date", isRequired=true)
-        @comps.bform.fieldHRow(frm, "time", "workAccidentEditor.", inputType="time")
-        @comps.bform.listInputHRow(frm, "entrepreneurName", "bizEnts", "workAccidentEditor.")
-        @comps.bform.selectHRow(frm, "region", options=regions.map(r=>r.id.toString->r.name))
+        @comps.bform.titleRow(Messages("workAccidentEditor.details")){ }
+        <div class="row">
+          <div class="col-sm-6">
+            @comps.bform.fieldHRow(frm, "date", "workAccidentEditor.", inputType="date", isRequired=true)
+          </div>
+          <div class="col-sm-6">
+            @comps.bform.fieldHRow(frm, "time", "workAccidentEditor.", inputType="time")
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-6">@comps.bform.selectHRow(frm, "region", options=regions.map(r=>r.id.toString->r.name))</div>
+          <div class="col-sm-6">@comps.bform.listInputHRow(frm, "entrepreneurName", "bizEnts", "workAccidentEditor.")</div>
+        </div>
         @comps.bform.textareaHRow(frm, "details", "workAccidentEditor.", rows=3)
         @comps.bform.textareaHRow(frm, "investigation", "workAccidentEditor.", rows=3)
         @comps.bform.fieldHRow(frm, "blogPostUrl", "workAccidentEditor.", inputType="url", isShowHelp = true)
@@ -49,8 +83,51 @@
           </ul>
           <button type="button" class="btn btn-outline-primary btn-sm" onclick="addMediaReportRow()">@comps.svgAdd() @Messages("workAccidentEditor.addMediaReport")</button>
         }
-        @comps.bform.textareaHRow(frm, "publicRemarks", "workAccidentEditor.", isShowHelp=true)
-        @comps.bform.textareaHRow(frm, "sensitiveRemarks", "workAccidentEditor.", isShowHelp=true)
+        <div class="row mb-3">
+          <div class="col"><button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#waRemarksDiv">
+          @comps.svg.remarks() @Messages("toggleRemarks")</button></div>
+        </div>
+        <div class="collapse" id="waRemarksDiv">
+          @comps.bform.textareaHRow(frm, "publicRemarks", "workAccidentEditor.", isShowHelp=true)
+          @comps.bform.textareaHRow(frm, "sensitiveRemarks", "workAccidentEditor.", isShowHelp=true)
+        </div>
+        @comps.bform.titleRow(Messages("injuredWorkers")){<button type="button" onclick="addInjuredCard()" class="btn btn-sm btn-outline-primary">@comps.svgAdd() @Messages("add")</button>}
+        <div id="injuredCards" class="container-fluid">
+          @for( idx<-frm("injured").indexes ){
+            @defining( "injured["+idx+"]." ) { baseName =>
+              <div class="row injuredCard-Row">
+                <input type="hidden" name="@{baseName}id" value="@frm(baseName+"id").value.getOrElse("0")">
+                <div class="col injuredCard">
+                  <div class="row">
+                    <div class="col-sm-6">@comps.bform.fieldHRow(frm, baseName+"name", labelText=Messages("name"))</div>
+                    <div class="col-sm-6">@comps.bform.fieldHRow(frm, baseName+"age", labelText=Messages("age"), inputType="number", min=1)</div>
+                  </div>
+                  <div class="row">
+                    <div class="col-sm-6">@comps.bform.selectHRow(frm, baseName+"industry", industries.map(c=>c.id.toString->c.name), labelText=Messages("industry"))</div>
+                    <div class="col-sm-6">@comps.bform.listInputHRow(frm, baseName+"employerName", "bizEnts", labelText=Messages("employer"))</div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md">@comps.bform.selectHRow(frm, baseName+"citizenship", citizenships.map(c=>c.id.toString->c.name), labelText=Messages("citizenship"))</div>
+                    <div class="col-md">@comps.bform.fieldHRow(frm, baseName+"from", labelText=Messages("livingAddress"), labelWidth=3)</div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md">@comps.bform.selectHRow(frm, baseName+"injuryCause", injuryCauses.map(c=>c.id.toString->c.name), labelText=Messages("workAccidentEditor.injuryCause"))</div>
+                    <div class="col-md">@comps.bform.selectHRow(frm, baseName+"Severity", Severity.values.map(c=>c.id.toString->Messages("severity."+c.toString)).toSeq, labelWidth=3, labelText=Messages("severity"))</div>
+                  </div>
+                  @comps.bform.textareaHRow(frm, baseName+"injuryDescription", rows=2, labelWidth=1, labelText=Messages("workAccidentEditor.injuryDescription"))
+                  @comps.bform.textareaHRow(frm, baseName+"publicRemarks", rows=2, labelWidth=1, labelText=Messages("workAccidentEditor.publicRemarks") )
+                  @comps.bform.textareaHRow(frm, baseName+"sensitiveRemarks", rows=2, labelWidth=1, labelText=Messages("workAccidentEditor.sensitiveRemarks") )
+                  <div class="row">
+                    <div class="col">
+                      <button type="button" onclick="removeInjuredCard(this)" class="btn btn-sm btn-outline-danger">@comps.svgTrash() @Messages("delete") </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+        </div>
+        @comps.bform.titleRow(""){ }
         @comps.bform.submitRow(routes.WorkAccidentCtrl.backofficeIndex())
       </form>
     </div>
@@ -61,5 +138,36 @@
       &nbsp;
       <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svgTrash()</button>
     </li>
+  </template>
+  <template id="injuredWorkerTemplate">
+    <div class="row injuredCard-Row">
+      @defining("injured[%]."){ baseName => <input type="hidden" name="@{baseName}id" value="@frm(baseName+"id").value.getOrElse("0")">
+        <div class="col injuredCard">
+          <div class="row">
+            <div class="col-md">@comps.bform.fieldHRow(frm, baseName+"name", labelText=Messages("name"))</div>
+            <div class="col-md">@comps.bform.fieldHRow(frm, baseName+"age", labelText=Messages("age"), inputType="number", min=1)</div>
+          </div>
+          <div class="row">
+            <div class="col-md">@comps.bform.selectHRow(frm, baseName+"industry", industries.map(c=>c.id.toString->c.name), labelText=Messages("industry"))</div>
+            <div class="col-sm-6">@comps.bform.listInputHRow(frm, baseName+"employerName", "bizEnts", labelText=Messages("employer"))</div>
+          </div>
+          <div class="row">
+            <div class="col-md">@comps.bform.selectHRow(frm, baseName+"citizenship", citizenships.map(c=>c.id.toString->c.name), labelText=Messages("citizenship"))</div>
+            <div class="col-md">@comps.bform.fieldHRow(frm, baseName+"from", labelText=Messages("livingAddress"), labelWidth=3)</div>
+          </div>
+          <div class="row">
+            <div class="col-md">@comps.bform.selectHRow(frm, baseName+"injuryCause", injuryCauses.map(c=>c.id.toString->c.name), labelText=Messages("workAccidentEditor.injuryCause"))</div>
+            <div class="col-md">@comps.bform.selectHRow(frm, baseName+"Severity", Severity.values.map(c=>c.id.toString->Messages("severity."+c.toString)).toSeq, labelWidth=3, labelText=Messages("severity"))</div>
+          </div>
+          @comps.bform.textareaHRow(frm, baseName+"injuryDescription", rows=2, labelWidth=1, labelText=Messages("workAccidentEditor.injuryDescription"))
+          @comps.bform.textareaHRow(frm, baseName+"publicRemarks", rows=2, labelWidth=1, labelText=Messages("workAccidentEditor.publicRemarks") )
+          @comps.bform.textareaHRow(frm, baseName+"sensitiveRemarks", rows=2, labelWidth=1, labelText=Messages("workAccidentEditor.sensitiveRemarks") )
+          <div class="row">
+            <div class="col">
+              <button type="button" onclick="removeInjuredCard(this)" class="btn btn-sm btn-outline-danger">@comps.svgTrash() @Messages("delete") </button>
+            </div>
+          </div>
+        </div>}
+    </div>
   </template>
 }

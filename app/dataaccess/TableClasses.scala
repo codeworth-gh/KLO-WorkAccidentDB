@@ -100,6 +100,7 @@ class InjuredWorkersTable(t:Tag) extends Table[InjuredWorkerRecord](t, "injured_
   def age = column[Option[Int]]("age")
   def citizenship_id = column[Option[Int]]("citizenship_id")
   def industry_id = column[Option[Int]]("industry_id")
+  def employer_id = column[Option[Long]]("employer_id")
   def from_place = column[String]("from_place")
   def injury_cause_id = column[Option[Int]]("injury_cause_id")
   def injury_severity = column[Option[Int]]("injury_severity")
@@ -107,11 +108,12 @@ class InjuredWorkersTable(t:Tag) extends Table[InjuredWorkerRecord](t, "injured_
   def public_remarks = column[String]("public_remarks")
   def sensitive_remarks = column[String]("sensitive_remarks")
   
-  def * = (id, accident_id, name, age, citizenship_id, industry_id, from_place, injury_cause_id, injury_severity,
+  def * = (id, accident_id, name, age, citizenship_id, industry_id, employer_id, from_place, injury_cause_id, injury_severity,
     injury_description, public_remarks, sensitive_remarks)<>(InjuredWorkerRecord.tupled, InjuredWorkerRecord.unapply)
   
   def fkAcc = foreignKey("fk_iw_wa", accident_id, TableRefs.accidents)(_.id)
   def fkCtz = foreignKey("fk_iw_cz", citizenship_id, TableRefs.citizenships)(_.id.?)
+  def fkBnt = foreignKey("fk_iw_be", employer_id, TableRefs.businessEntities)(_.id.?)
   def fkInd = foreignKey("fk_iw_in", industry_id, TableRefs.industries)(_.id.?)
   def fkICs = foreignKey("fk_iw_ic", injury_cause_id, TableRefs.injuryCauses)(_.id.?)
 }

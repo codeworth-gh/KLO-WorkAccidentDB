@@ -22,6 +22,7 @@ case class InjuredWorker(
                         age:Option[Int],
                         citizenship:Option[Citizenship],
                         industry: Option[Industry],
+                        employer: Option[BusinessEntity],
                         from:String,
                         injuryCause: Option[InjuryCause],
                         injurySeverity: Option[Severity.Value],

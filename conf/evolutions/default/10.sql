@@ -23,6 +23,7 @@ create table injured_workers(
     age int,
     citizenship_id int,
     industry_id int,
+    employer_id int,
     from_place varchar(512),
     injury_cause_id int,
     injury_severity int,
@@ -31,6 +32,7 @@ create table injured_workers(
     sensitive_remarks text,
 
     constraint fk_iw_wa foreign key (accident_id) references work_accidents(id) on delete cascade,
+    constraint fk_iw_be foreign key (employer_id) references business_entities(id) on delete set null,
     constraint fk_iw_cz foreign key (citizenship_id) references citizenships(id) on delete set null,
     constraint fk_iw_in foreign key (industry_id) references industries(id) on delete set null,
     constraint fk_iw_ic foreign key (injury_cause_id) references injury_causes(id) on delete set null
