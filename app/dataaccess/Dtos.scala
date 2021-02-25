@@ -9,10 +9,12 @@ case class WorkAccidentRecord(
                          id: Long,
                          when: LocalDateTime,
                          entrepreneurId:Option[Long],
+                         location: String,
                          regionId: Option[Int],
                          blogPostUrl: String,
                          details: String,
                          investigation:String,
+                         initialSource:String,
                          mediaReports:String,
                          publicRemarks:String,
                          sensitiveRemarks:String

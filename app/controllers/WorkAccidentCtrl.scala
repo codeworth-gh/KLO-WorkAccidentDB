@@ -39,12 +39,13 @@ case class WorkAccidentFD(
   id:Long,
   date: LocalDate,
   time: Option[LocalTime],
-  entrepreneurId:Option[Long],
   entrepreneurName:Option[String],
+  locaion: String,
   region: Option[Int],
   blogPostUrl: String,
   details: String,
   investigation:String,
+  initialSource:String,
   mediaReports:Seq[String],
   publicRemarks:String,
   sensitiveRemarks:String,
@@ -54,9 +55,9 @@ object WorkAccidentFD{
   def make(wa: WorkAccident):WorkAccidentFD = {
     val time = wa.when.toLocalTime
     val timeOpt = if ( time.getHour==0 && time.getMinute==0) None else Some(time)
-    WorkAccidentFD(wa.id, wa.when.toLocalDate, timeOpt, wa.entrepreneur.map(_.id), wa.entrepreneur.map(_.name), wa.region.map(_.id),
-      wa.blogPostUrl, wa.details, wa.investigation, wa.mediaReports.toSeq.sorted, wa.publicRemarks, wa.sensitiveRemarks,
-      wa.injured.toSeq.map(InjuredWorkerFD.make)
+    WorkAccidentFD(wa.id, wa.when.toLocalDate, timeOpt, wa.entrepreneur.map(_.name), wa.location, wa.region.map(_.id),
+      wa.blogPostUrl, wa.details, wa.investigation, wa.initialSource, wa.mediaReports.toSeq.sorted, wa.publicRemarks,
+      wa.sensitiveRemarks, wa.injured.toSeq.map(InjuredWorkerFD.make)
     )
   }
 }
@@ -87,12 +88,13 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
     "id"->longNumber,
     "date"->localDate,
     "time"->optional(localTime("HH:mm")),
-    "entrepreneurId"->optional(longNumber),
     "entrepreneurName"->optional(text),
+    "location"->text,
     "region"->optional(number),
     "blogPostUrl"->text,
     "details"->text,
     "investigation"->text,
+    "initialSource"->text,
     "mediaReports"->seq(text),
     "publicRemarks"->text,
     "sensitiveRemarks"->text,
@@ -106,7 +108,7 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
   def showNew() = deadbolt.SubjectPresent()() { implicit req =>
     val wa = WorkAccidentFD(
       0, LocalDate.now(ZoneId.of(conf.get[String]("timeZoneId"))),
-      None, None, None, None, "", "", "", Seq(), "","",Seq(
+      None, None, "", None, "", "", "", "", Seq(), "","",Seq(
         InjuredWorkerFD(0, "", None, None, None, None, "", None, None, "", "", "")
       )
     )
@@ -130,7 +132,15 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
         showEditAccidentForm(fwe)
       },
       wafd => {
-        Future(Ok(wafd.toString.replaceAll(",", "\n")))
+        for {
+          bizEntMap <- businesses.findOrCreateNames( (Seq(wafd.entrepreneurName) ++ wafd.injured.map(_.employerName)).flatten.toSet)
+          wa = constructWorkAccident(wafd, bizEntMap)
+          dbWa <- accidents.store(wa)
+        } yield {
+          val msgs = request2Messages(req)
+          Redirect(routes.WorkAccidentCtrl.backofficeIndex()
+          ).flashing(FlashKeys.MESSAGE->Informational(Informational.Level.Success, msgs("workAccident.saved", dbWa.id) ,"").encoded)
+        }
       }
     )
   }
@@ -145,6 +155,22 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
     } yield {
       Ok(views.html.backoffice.workAccidentEditor(aForm, rgns, bePr, inds, ctzs, ijcs))
     }
+  }
+  
+  def constructInjuredWorker(iwfd: InjuredWorkerFD, bizEntMap: Map[String, BusinessEntity]): InjuredWorker = InjuredWorker(
+    iwfd.id, iwfd.name, iwfd.age, iwfd.citizenship.flatMap(citizenships.apply), iwfd.industry.flatMap(industries.apply),
+    iwfd.employerName.map(bizEntMap), iwfd.from, iwfd.injuryCause.flatMap(causes.apply), iwfd.injurySeverity.map( Severity.apply ),
+    iwfd.injuryDescription, iwfd.publicRemarks, iwfd.sensitiveRemarks
+  )
+  
+  private def constructWorkAccident(wafd: WorkAccidentFD, bizEntMap: Map[String, BusinessEntity]):WorkAccident = {
+    val waTimeStamp = wafd.date.atTime(wafd.time.getOrElse(LocalTime.of(0,0)))
+    WorkAccident( wafd.id, waTimeStamp, wafd.entrepreneurName.map(bizEntMap),
+      wafd.locaion, wafd.region.flatMap( regions.apply ),
+      wafd.blogPostUrl, wafd.details, wafd.investigation, wafd.initialSource,
+      wafd.mediaReports.toSet, wafd.publicRemarks, wafd.sensitiveRemarks,
+      wafd.injured.toSet.map( iwfd=>constructInjuredWorker(iwfd, bizEntMap))
+    )
   }
   
 }

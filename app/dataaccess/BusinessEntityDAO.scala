@@ -47,6 +47,19 @@ class BusinessEntityDAO @Inject() (protected val dbConfigProvider:DatabaseConfig
     Entities.filter( makeNameFilter(namePart) ).sortBy(_.name).result
     ).map( _.toSeq )
   
+  
+  def findOrCreateNames(names:Set[String]):Future[Map[String,BusinessEntity]] = {
+    val cleanNames = names.map(_.trim).filter(_.nonEmpty)
+    for {
+      existing <- db.run( Entities.filter( _.name inSet cleanNames ).result )
+      missingNames  = cleanNames.removedAll( existing.map(_.name) )
+      toAdd = missingNames.map( name => BusinessEntity(0, name, None, None, None, false, None) )
+      added <- db.run( (Entities returning Entities)++=toAdd )
+    } yield {
+      (existing++added).map( a => a.name -> a ).toMap
+    }
+  }
+  
   private def makeNameFilter(namePart: String) = {
     (r:BusinessEntityTable) => r.name.startsWith(namePart) ||
          r.name.like("%" + namePart + "%") ||

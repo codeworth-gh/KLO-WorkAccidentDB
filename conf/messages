@@ -99,12 +99,20 @@ workAccidents.numInjured=נפגעים
 workAccidents.numFatalities=מתוכם הרוגים
 workAccidents.details=פרטים
 
-workAccidentEditor.title=עריכת תאונת עבודה
-workAccidentEditor.date=תאריך
-workAccidentEditor.time=שעה
-workAccidentEditor.details=פרטי המקרה
+workAccident.saved=תאונת העבודה {0} נשמרה
+
+workAccidentEditor.addMediaReport=דיווח חדש
 workAccidentEditor.blogPostUrl=הודעה לעיתונות
 workAccidentEditor.blogPostUrl.help=אם קו לעובד פרסמה הודעה לעיתונות בנושא תאונה זו, אפשר לשים את הלינק להודעה כאן.
+workAccidentEditor.entrepreneurName=שם היזם
+workAccidentEditor.date=תאריך
+workAccidentEditor.details=פרטי התאונה
+workAccidentEditor.location=מקום התאונה
+workAccidentEditor.time=שעה
+workAccidentEditor.title=עריכת תאונת עבודה
+workAccidentEditor.injuryCause=גורם הפגיעה
+workAccidentEditor.injuryDescription=תאור הפגיעה
+workAccidentEditor.initialSource=מקור ראשוני
 workAccidentEditor.investigation=תוצאות החקירה
 workAccidentEditor.publicRemarks=הערות פומביות
 workAccidentEditor.publicRemarks.help=הערות אלו תוצגנה בחלק הציבורי של האתר ובקבצי הנתונים להורדה.
@@ -112,11 +120,6 @@ workAccidentEditor.sensitiveRemarks=הערות רגישות
 workAccidentEditor.sensitiveRemarks.help=הערות אלו תשארנה מוסתרות מהציבור. זה המקום לרשום פרטים רגישים, אם יש כאלו.
 workAccidentEditor.mediaReports=דיווחים בתקשורת
 workAccidentEditor.mediaReports.help=לינקים לדיווחים על התאונה באתרים של כלי תקשורת
-workAccidentEditor.addMediaReport=דיווח חדש
-workAccidentEditor.entrepreneurName=שם היזם
-workAccidentEditor.details=פרטי התאונה
-workAccidentEditor.injuryCause=גורם הפגיעה
-workAccidentEditor.injuryDescription=תאור הפגיעה
 
 severity.light=פציעה קלה
 severity.medium=פציעה בינונית

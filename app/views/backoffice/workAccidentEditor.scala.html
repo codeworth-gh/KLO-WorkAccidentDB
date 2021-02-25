@@ -65,10 +65,12 @@
         </div>
         <div class="row">
           <div class="col-sm-6">@comps.bform.selectHRow(frm, "region", options=regions.map(r=>r.id.toString->r.name))</div>
-          <div class="col-sm-6">@comps.bform.listInputHRow(frm, "entrepreneurName", "bizEnts", "workAccidentEditor.")</div>
+          <div class="col-sm-6">@comps.bform.fieldHRow(frm, "location", "workAccidentEditor.")</div>
         </div>
+        @comps.bform.listInputHRow(frm, "entrepreneurName", "bizEnts", "workAccidentEditor.")
         @comps.bform.textareaHRow(frm, "details", "workAccidentEditor.", rows=3)
         @comps.bform.textareaHRow(frm, "investigation", "workAccidentEditor.", rows=3)
+        @comps.bform.fieldHRow(frm, "initialSource", "workAccidentEditor.")
         @comps.bform.fieldHRow(frm, "blogPostUrl", "workAccidentEditor.", inputType="url", isShowHelp = true)
         @comps.bform.formHRow(frm, "mediaReports", "workAccidentEditor." ){
           <ul id="mediaReportsList" class="list-unstyled p-0 m-0">
@@ -112,7 +114,7 @@
                   </div>
                   <div class="row">
                     <div class="col-md">@comps.bform.selectHRow(frm, baseName+"injuryCause", injuryCauses.map(c=>c.id.toString->c.name), labelText=Messages("workAccidentEditor.injuryCause"))</div>
-                    <div class="col-md">@comps.bform.selectHRow(frm, baseName+"Severity", Severity.values.map(c=>c.id.toString->Messages("severity."+c.toString)).toSeq, labelWidth=3, labelText=Messages("severity"))</div>
+                    <div class="col-md">@comps.bform.selectHRow(frm, baseName+"injurySeverity", Severity.values.map(c=>c.id.toString->Messages("severity."+c.toString)).toSeq, labelWidth=3, labelText=Messages("severity"))</div>
                   </div>
                   @comps.bform.textareaHRow(frm, baseName+"injuryDescription", rows=2, labelWidth=1, labelText=Messages("workAccidentEditor.injuryDescription"))
                   @comps.bform.textareaHRow(frm, baseName+"publicRemarks", rows=2, labelWidth=1, labelText=Messages("workAccidentEditor.publicRemarks") )
@@ -157,7 +159,7 @@
           </div>
           <div class="row">
             <div class="col-md">@comps.bform.selectHRow(frm, baseName+"injuryCause", injuryCauses.map(c=>c.id.toString->c.name), labelText=Messages("workAccidentEditor.injuryCause"))</div>
-            <div class="col-md">@comps.bform.selectHRow(frm, baseName+"Severity", Severity.values.map(c=>c.id.toString->Messages("severity."+c.toString)).toSeq, labelWidth=3, labelText=Messages("severity"))</div>
+            <div class="col-md">@comps.bform.selectHRow(frm, baseName+"injurySeverity", Severity.values.map(c=>c.id.toString->Messages("severity."+c.toString)).toSeq, labelWidth=3, labelText=Messages("severity"))</div>
           </div>
           @comps.bform.textareaHRow(frm, baseName+"injuryDescription", rows=2, labelWidth=1, labelText=Messages("workAccidentEditor.injuryDescription"))
           @comps.bform.textareaHRow(frm, baseName+"publicRemarks", rows=2, labelWidth=1, labelText=Messages("workAccidentEditor.publicRemarks") )

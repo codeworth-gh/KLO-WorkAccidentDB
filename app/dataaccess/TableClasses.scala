@@ -77,15 +77,17 @@ class WorkAccidentsTable(t:Tag) extends Table[WorkAccidentRecord](t, "work_accid
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def date_time = column[LocalDateTime]("date_time")
   def entrepreneur_id = column[Option[Long]]("entrepreneur_id")
+  def location = column[String]("location")
   def region_id = column[Option[Int]]("region_id")
   def blog_post_url = column[String]("blog_post_url")
   def details = column[String]("details")
   def investigation = column[String]("investigation")
-  def mediaReports = column[String]("mediaReports")
+  def initialSource = column[String]("initial_source")
+  def mediaReports = column[String]("media_reports")
   def public_remarks = column[String]("public_remarks")
   def sensitive_remarks = column[String]("sensitive_remarks")
   
-  def * = (id, date_time, entrepreneur_id, region_id, blog_post_url, details, investigation, mediaReports, public_remarks, sensitive_remarks
+  def * = (id, date_time, entrepreneur_id, location, region_id, blog_post_url, details, investigation, initialSource, mediaReports, public_remarks, sensitive_remarks
   )<>(WorkAccidentRecord.tupled, WorkAccidentRecord.unapply)
   
   def fkEnt = foreignKey("fk_wa_ent", entrepreneur_id, TableRefs.businessEntities)(_.id.?)

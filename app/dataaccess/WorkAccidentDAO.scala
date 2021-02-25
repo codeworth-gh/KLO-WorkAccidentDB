@@ -11,8 +11,7 @@ import scala.util.Try
 
 class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigProvider,
                                  citizenships: CitizenshipsDAO, regions: RegionsDAO,
-                                 industries: IndustriesDAO, injuryCauses: InjuryCausesDAO,
-                                 businesses: BusinessEntityDAO
+                                 industries: IndustriesDAO, injuryCauses: InjuryCausesDAO
                                 )(implicit ec:ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
   
   import profile.api._
@@ -36,7 +35,8 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     for {
       waIn <- db.run((workAccidents returning workAccidents.map(_.id)).into((_, newId)=>waRow.copy(id=newId)).insertOrUpdate(waRow))
       accId = waIn.getOrElse(waRow).id
-      iwIn <- Future.sequence( wa.injured.map( store(_, accId)) )
+      _    <- db.run(injuredWorkers.filter(_.id inSet wa.injured.map(_.id)).delete ) // remove old records
+      iwIn <- Future.sequence( wa.injured.map( store(_, accId)) ) // easy, as all are new now
     } yield {
       wa.copy( id=accId, injured = iwIn )
     }
@@ -90,16 +90,18 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   )
   
   private def fromDto( waRow:WorkAccidentRecord, iws:Set[InjuredWorker], entrepreneur:Option[BusinessEntity] ) = WorkAccident(
-    waRow.id, waRow.when, entrepreneur, waRow.regionId.flatMap( regions.apply ), waRow.blogPostUrl, waRow.details,
-    waRow.investigation, waRow.mediaReports.split("\n").toSet, waRow.publicRemarks, waRow.sensitiveRemarks, iws
+    waRow.id, waRow.when, entrepreneur, waRow.location, waRow.regionId.flatMap( regions.apply ), waRow.blogPostUrl, waRow.details,
+    waRow.investigation, waRow.initialSource, waRow.mediaReports.split("\n").toSet, waRow.publicRemarks, waRow.sensitiveRemarks, iws
   )
   
   private def toDto( wa:WorkAccident ) = WorkAccidentRecord(
       wa.id, wa.when, entrepreneurId = wa.entrepreneur.map(_.id),
+      location=wa.location,
       regionId = wa.region.map(_.id),
       blogPostUrl = wa.blogPostUrl,
       details = wa.details,
       investigation = wa.investigation,
+      initialSource = wa.initialSource,
       mediaReports = wa.mediaReports.mkString("\n"),
       publicRemarks = wa.publicRemarks,
       sensitiveRemarks = wa.sensitiveRemarks
