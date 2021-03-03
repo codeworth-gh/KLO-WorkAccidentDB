@@ -43,7 +43,7 @@
       <hr class="vr">
     }
     <button type="button" onclick="document.getElementById('workAccidentForm').submit()" class="btn btn-primary">@comps.svgCheck() @Messages("save")</button>
-    <a class="btn btn-outline-danger" href="@routes.WorkAccidentCtrl.backofficeIndex()">@comps.svgX() @Messages("cancel")</a>
+    <a class="btn btn-outline-danger" href="@routes.WorkAccidentCtrl.backofficeIndex(None, None, None)">@comps.svgX() @Messages("cancel")</a>
   }
 
   <div class="row my-2">
@@ -130,7 +130,7 @@
           }
         </div>
         @comps.bform.titleRow(""){ }
-        @comps.bform.submitRow(routes.WorkAccidentCtrl.backofficeIndex())
+        @comps.bform.submitRow(routes.WorkAccidentCtrl.backofficeIndex(None, None, None))
       </form>
     </div>
   </div>

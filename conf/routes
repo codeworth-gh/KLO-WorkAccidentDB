@@ -33,7 +33,7 @@ GET   /bkofc/businessEntities/     controllers.BusinessEntityCtrl.backofficeInde
 GET   /bkofc/businessEntities/new  controllers.BusinessEntityCtrl.showNew()
 GET   /bkofc/businessEntities/:id  controllers.BusinessEntityCtrl.showEdit(id:Long)
 POST  /bkofc/businessEntities/     controllers.BusinessEntityCtrl.doSaveEntity()
-GET   /bkofc/accidents/     controllers.WorkAccidentCtrl.backofficeIndex()
+GET   /bkofc/accidents/     controllers.WorkAccidentCtrl.backofficeIndex(sort:Option[String], asc:Option[String], page:Option[Int])
 GET   /bkofc/accidents/new  controllers.WorkAccidentCtrl.showNew()
 GET   /bkofc/accidents/:id  controllers.WorkAccidentCtrl.showEdit(id:Long)
 POST  /bkofc/accidents/     controllers.WorkAccidentCtrl.doSaveAccident()

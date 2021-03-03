@@ -9,12 +9,31 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
+object WorkAccidentDAO {
+  object SortKey extends Enumeration {
+    val Datetime = Value
+    val Region   = Value
+    val Entrepreneur = Value
+    val Injuries = Value
+    val Fatalities    = Value
+  
+    def named(name:String):Option[SortKey.Value] = {
+      try {
+        Some(SortKey.withName(name))
+      } catch {
+        case _:Exception => None
+      }
+    }
+  }
+}
+
 class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigProvider,
                                  citizenships: CitizenshipsDAO, regions: RegionsDAO,
                                  industries: IndustriesDAO, injuryCauses: InjuryCausesDAO
                                 )(implicit ec:ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
   
   import profile.api._
+  import WorkAccidentDAO.SortKey
   private val workAccidents = TableQuery[WorkAccidentsTable]
   private val injuredWorkers = TableQuery[InjuredWorkersTable]
   private val businessEntities = TableQuery[BusinessEntityTable]
@@ -52,11 +71,21 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     }
   }
   
-  def listAccidents(start:Int, pageSize:Int):Future[Seq[WorkAccidentSummary]] = {
+  def listAccidents(start:Int, pageSize:Int, sortBy:SortKey.Value=SortKey.Datetime, isAsc:Boolean=false):Future[Seq[WorkAccidentSummary]] = {
     db.run(
-      workAccidentSummaries.drop(start).take(pageSize).sortBy(_.dateTime.desc).result
+      workAccidentSummaries.sortBy( makeSorter(sortBy, isAsc) ).drop(start).take(pageSize).result
     )
   }
+  
+  private def makeSorter( sk:SortKey.Value, asc:Boolean ) = sk match {
+    case SortKey.Datetime     => (r:WorkAccidentSummaryTable) => if (asc) r.dateTime.asc.nullsLast else r.dateTime.desc.nullsFirst
+    case SortKey.Region       => (r:WorkAccidentSummaryTable) => if (asc) r.regionId.asc.nullsLast else r.regionId.desc.nullsFirst
+    case SortKey.Entrepreneur => (r:WorkAccidentSummaryTable) => if (asc) r.entrepreneurName.asc.nullsLast else r.entrepreneurName.desc.nullsFirst
+    case SortKey.Injuries      => (r:WorkAccidentSummaryTable) => if (asc) r.injuredCount.asc.nullsLast else r.injuredCount.desc.nullsFirst
+    case SortKey.Fatalities         => (r:WorkAccidentSummaryTable) => if (asc) r.killedCount.asc.nullsLast else r.killedCount.desc.nullsFirst
+  }
+  
+  def countAll():Future[Int] = db.run( workAccidents.length.result )
   
   def getInjuredWorker( id:Long ):Future[Option[InjuredWorker]] = {
     for {

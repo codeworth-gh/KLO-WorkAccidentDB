@@ -1,16 +1,17 @@
 package controllers
 
 import be.objectify.deadbolt.scala.{AuthenticatedRequest, DeadboltActions}
-import com.typesafe.config.Config
 import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, WorkAccidentDAO}
-import models.{BusinessEntity, Citizenship, Industry, InjuredWorker, InjuryCause, Region, Severity, WorkAccident}
+import models.{BusinessEntity, InjuredWorker, Severity, WorkAccident}
 import play.api.{Configuration, Logger}
 import play.api.i18n.{I18nSupport, MessagesProvider}
 import play.api.mvc.{AbstractController, ControllerComponents}
 import play.api.data._
 import play.api.data.Forms.{optional, _}
+import dataaccess.WorkAccidentDAO.SortKey
+import views.{PageSectionItem, PaginationInfo}
 
-import java.time.{LocalDate, LocalDateTime, LocalTime, ZoneId}
+import java.time.{LocalDate, LocalTime, ZoneId}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -68,6 +69,7 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
                                 )(implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport with JsonApiHelper {
   
   private val log = Logger(classOf[WorkAccidentCtrl])
+  private val PAGE_SIZE=40
   
   private val injuredWorkerMapping = mapping(
     "id"->longNumber,
@@ -101,13 +103,17 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
     "injured"->seq(injuredWorkerMapping)
   )(WorkAccidentFD.apply)(WorkAccidentFD.unapply))
   
-  def backofficeIndex() = deadbolt.SubjectPresent()() { implicit req =>
+  def backofficeIndex(pSortBy:Option[String]=None, pAsc:Option[String]=None, pPage:Option[Int]=None ) = deadbolt.SubjectPresent()() { implicit req =>
+    val page = pPage.getOrElse(1)
+    val asc = pAsc.getOrElse("f").trim=="t"
+    val sortBy = WorkAccidentDAO.SortKey.named(pSortBy.getOrElse("Datetime") ).getOrElse(WorkAccidentDAO.SortKey.Datetime)
     for {
-      accRows <- accidents.listAccidents(0,10000)
+      accRows <- accidents.listAccidents((page-1)*PAGE_SIZE, PAGE_SIZE, sortBy, asc)
+      accCount <- accidents.countAll()
     } yield {
       Ok(views.html.backoffice.workAccidentsIndex(accRows,
         regions.apply _,
-        null))
+        PaginationInfo(page, Math.ceil(accCount/PAGE_SIZE.toDouble).toInt), sortBy, asc))
     }
   }
   
@@ -144,7 +150,7 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
           dbWa <- accidents.store(wa)
         } yield {
           val msgs = request2Messages(req)
-          Redirect(routes.WorkAccidentCtrl.backofficeIndex()
+          Redirect(routes.WorkAccidentCtrl.backofficeIndex(None, None, None)
           ).flashing(FlashKeys.MESSAGE->Informational(Informational.Level.Success, msgs("workAccident.saved", dbWa.id) ,"").encoded)
         }
       }
