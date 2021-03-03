@@ -1,5 +1,7 @@
 package controllers
 
+import actors.ImportDataActor
+import akka.actor.ActorRef
 import be.objectify.deadbolt.scala.{AuthenticatedRequest, DeadboltActions}
 
 import javax.inject._
@@ -9,6 +11,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import views.PaginationInfo
 
+import java.nio.file.{Files, Paths}
 import scala.concurrent.{ExecutionContext, Future}
 
 
@@ -49,7 +52,9 @@ object HomeCtrl {
   val beRouteHash:Int = Math.abs(beRouteSeq.map( r => r.f + r.name ).map( _.hashCode ).sum)
 }
 
-class HomeCtrl @Inject()(deadbolt:DeadboltActions, cc: ControllerComponents)
+class HomeCtrl @Inject()(deadbolt:DeadboltActions, localAction:LocalAction,
+                         @Named("ImportDataActor")importActor:ActorRef,
+                         cc: ControllerComponents)
                         (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport {
   
   private val logger = Logger(classOf[HomeCtrl])
@@ -63,16 +68,6 @@ class HomeCtrl @Inject()(deadbolt:DeadboltActions, cc: ControllerComponents)
     */
   def index() = Action { implicit request: Request[AnyContent] =>
     Ok(views.html.publicIndex())
-  }
-  
-  def sampleNavbar = Action { implicit req =>
-    Ok(views.html.sampleNavbar("Parametrized Message"))
-  }
-  
-  def apiSayHi = Action(cc.parsers.tolerantJson) { implicit req =>
-    val json = req.body.as[JsObject]
-    val name = json("name")
-    Ok(Json.obj("message"->s"Hello, $name."))
   }
   
   def pager( currentPage:Int ) = Action{ implicit req =>
@@ -92,7 +87,7 @@ class HomeCtrl @Inject()(deadbolt:DeadboltActions, cc: ControllerComponents)
   }
   
   /**
-    * Routes for the front-end.
+    * Routes for the public part
     * @return
     */
   def frontEndRoutes =
@@ -103,22 +98,28 @@ class HomeCtrl @Inject()(deadbolt:DeadboltActions, cc: ControllerComponents)
         )).as("text/javascript")
     }
 
-
-
-
   /**
-    * Routes for the front-end.
+    * Routes for the back-office part
     * @return
     */
-  def backEndRoutes =
-    deadbolt.SubjectPresent()() { implicit request =>
+  def backEndRoutes = deadbolt.SubjectPresent()() { implicit request =>
       Future(Ok(
         routing.JavaScriptReverseRouter("beRoutes")(
           HomeCtrl.beRouteSeq: _*
         )).as("text/javascript"))
+  }
+
+  def importDataFromFile = localAction(cc.parsers.byteString){req =>
+    val fileName = new String(req.body.toArray)
+    val path = Paths.get(fileName)
+    if ( Files.exists(path) ) {
+      logger.info("Importing " + path.toAbsolutePath.toString )
+      importActor ! ImportDataActor.ImportFile(path)
+      Ok("Import started")
+    } else {
+      BadRequest("Path not found on FS: " + path.toAbsolutePath.toString)
     }
-
-
+  }
   
   def notImplYet = TODO
   

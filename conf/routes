@@ -4,11 +4,6 @@
 # ~~~~
 
 GET     /               controllers.HomeCtrl.index()
-GET     /pager          controllers.HomeCtrl.pager(currentPage:Int ?= 1)
-GET     /informationals controllers.HomeCtrl.informationals()
-GET     /styledInputs   controllers.HomeCtrl.styledInputs()
-GET     /navbar         controllers.HomeCtrl.sampleNavbar()
-GET     /pageTitleRow   controllers.HomeCtrl.pageTitleRow()
 
 GET     /signup                      controllers.UserCtrl.showSignup()
 POST    /signup                      controllers.UserCtrl.doSignup()
@@ -70,6 +65,8 @@ POST    /bkofc/api/users/invitations/:uuid/resend controllers.UserCtrl.apiReInvi
 DELETE  /bkofc/api/users/invitations/:uuid        controllers.UserCtrl.apiDeleteInvitation(uuid)
 
 DELETE  /bkofc/api/businessEntities/:id        controllers.BusinessEntityCtrl.doDeleteEntity(id:Long)
+
+PUT /bkofc/api/importFile controllers.HomeCtrl.importDataFromFile
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

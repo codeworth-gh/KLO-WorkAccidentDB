@@ -1,6 +1,6 @@
 @import views.PaginationInfo
 @import be.objectify.deadbolt.scala.AuthenticatedRequest
-@(ents:Seq[WorkAccident], pi:PaginationInfo)(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
+@(ents:Seq[WorkAccidentSummary], rgns:(Int=>Option[Region]), pi:PaginationInfo)(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
 
 @templates.backEndBase(Messages("workAccidents.title"), views.BackOfficeSections.WorkAccidents) {
   @comps.pageTitleRow(Messages("workAccidents.title")){
@@ -16,7 +16,7 @@
         <a href="@routes.WorkAccidentCtrl.showNew()" class="btn btn-outline-light">@comps.svgAdd() @Messages("add")</a>
       </div>
     }else{
-      <table class="table table-sm table-striped">
+      <table class="table table-sm ">
         <thead>
           <tr>
             <th scope="col">@Messages("workAccidents.dateTime")</th>
@@ -24,15 +24,43 @@
             <th scope="col">@Messages("workAccidents.entrepreneur")</th>
             <th scope="col">@Messages("workAccidents.numInjured")</th>
             <th scope="col">@Messages("workAccidents.numFatalities")</th>
-            <th scope="col">@Messages("workAccidents.details")</th>
           </tr>
         </thead>
         <tbody>
-        @for( ent <- ents ){
+        @for( ent <- ents ){@defining( routes.WorkAccidentCtrl.showEdit(ent.id) ){ lnk=>
           <tr>
-            <td>PLACEHOLDER</td>
+            <td class="d-flex flex-row">
+              <div>
+                @Helpers.format(Helpers.DateFmt.HR_Date, ent.dateTime ) @if(ent.hasTime){@Helpers.format(Helpers.DateFmt.HR_Time, ent.dateTime)}
+              </div>
+              <div class="me-auto">
+                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="UiUtils.toggleViz('detailsRow-@ent.id')">@comps.svgInfoSquare()</button>
+                <a href="@lnk" class="btn btn-sm btn-outline-secondary">@comps.svgEdit() @Messages("edit")</a>
+              </div>
+            </td>
+            <td>
+              @for( rgnId <- ent.regionId ){
+                @rgns(rgnId).map(_.name).getOrElse("")
+              }
+              </td>
+            <td>
+              @for(entName<-ent.entrepreneurName){
+                @entName
+              }
+            </td>
+            <td>
+              @ent.injuredCount
+            </td>
+            <td>
+              @ent.killedCount
+            </td>
           </tr>
-        }
+          @if(ent.details.trim.nonEmpty){
+            <tr class="detailsRow" id="detailsRow-@ent.id" style="display:none">
+              <td colspan="5">@ent.details</td>
+            </tr>
+          }
+        }}
         </tbody>
       </table>
     }

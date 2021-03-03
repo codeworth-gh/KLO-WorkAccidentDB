@@ -1,6 +1,6 @@
 package dataaccess
 
-import models.{BusinessEntity, InjuredWorker, Severity, WorkAccident}
+import models.{BusinessEntity, InjuredWorker, Severity, WorkAccident, WorkAccidentSummary}
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
@@ -18,6 +18,7 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   private val workAccidents = TableQuery[WorkAccidentsTable]
   private val injuredWorkers = TableQuery[InjuredWorkersTable]
   private val businessEntities = TableQuery[BusinessEntityTable]
+  private val workAccidentSummaries = TableQuery[WorkAccidentSummaryTable]
   private val accidentsAndEntrepreneurs = workAccidents.joinLeft(businessEntities).on( (a,b)=> a.entrepreneur_id === b.id )
   private val workersAndEmployers = injuredWorkers.joinLeft(businessEntities).on( (w,e)=>w.employer_id === e.id )
   
@@ -51,11 +52,11 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     }
   }
   
-//  def listAccidents(start:Int, pageSize:Int):Future[Seq[WorkAccident]] = {
-//    db.run(
-//      accidentsAndEntrepreneurs.drop(start).take(pageSize).result
-//    ).map( )
-//  }
+  def listAccidents(start:Int, pageSize:Int):Future[Seq[WorkAccidentSummary]] = {
+    db.run(
+      workAccidentSummaries.drop(start).take(pageSize).sortBy(_.dateTime.desc).result
+    )
+  }
   
   def getInjuredWorker( id:Long ):Future[Option[InjuredWorker]] = {
     for {
@@ -96,7 +97,7 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   
   private def toDto( wa:WorkAccident ) = WorkAccidentRecord(
       wa.id, wa.when, entrepreneurId = wa.entrepreneur.map(_.id),
-      location=wa.location,
+      location = wa.location,
       regionId = wa.region.map(_.id),
       blogPostUrl = wa.blogPostUrl,
       details = wa.details,

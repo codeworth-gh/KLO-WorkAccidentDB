@@ -43,26 +43,26 @@ object BackOfficeSections extends Enumeration {
   */
 object Structure {
   
-  val publicItems:Seq[TopSiteSection[PublicSections.Value]] = Seq(
-    PageSection("navbar.publicHome", PublicSections.Home, routes.HomeCtrl.index()),
-    PageSection("navbar.login", PublicSections.Login, routes.UserCtrl.showLogin()),
-    MultiPageSection("navbar.components", PublicSections.Components,
-      Seq(
-        PageSectionItem("pageTitleRow.title", routes.HomeCtrl.pageTitleRow()),
-        PageSectionItem("pager.title", routes.HomeCtrl.pager(1)),
-        PageSectionItem("informationals.title", routes.HomeCtrl.informationals()),
-        PageSectionItem("styledInputs.title", routes.HomeCtrl.styledInputs()),
-        JsSectionItem("jsSectionItem.title", Html("swal('This can be any JS code')"))
-      )
-    ),
-    MultiPageSection("Other", PublicSections.Others,
-      Seq(
-        PageSectionItem("navbar.login", routes.UserCtrl.showLogin()),
-        SeparatorSectionItem,
-        PageSectionItem("navbar.publicHome", routes.HomeCtrl.index())
-      )
-    )
-  )
+  val publicItems:Seq[TopSiteSection[PublicSections.Value]] = Seq()
+//    PageSection("navbar.publicHome", PublicSections.Home, routes.HomeCtrl.index()),
+//    PageSection("navbar.login", PublicSections.Login, routes.UserCtrl.showLogin()),
+//    MultiPageSection("navbar.components", PublicSections.Components,
+//      Seq(
+//        PageSectionItem("pageTitleRow.title", routes.HomeCtrl.pageTitleRow()),
+//        PageSectionItem("pager.title", routes.HomeCtrl.pager(1)),
+//        PageSectionItem("informationals.title", routes.HomeCtrl.informationals()),
+//        PageSectionItem("styledInputs.title", routes.HomeCtrl.styledInputs()),
+//        JsSectionItem("jsSectionItem.title", Html("swal('This can be any JS code')"))
+//      )
+//    ),
+//    MultiPageSection("Other", PublicSections.Others,
+//      Seq(
+//        PageSectionItem("navbar.login", routes.UserCtrl.showLogin()),
+//        SeparatorSectionItem,
+//        PageSectionItem("navbar.publicHome", routes.HomeCtrl.index())
+//      )
+//    )
+//  )
   
   val backOfficeSections:Seq[TopSiteSection[BackOfficeSections.Value]] = Seq(
     PageSection("navbar.main", BackOfficeSections.Home, routes.UserCtrl.userHome() ),

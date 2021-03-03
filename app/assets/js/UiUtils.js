@@ -178,6 +178,20 @@ const UiUtils = (function () {
         }
     };
 
+    function toggleViz(emtId) {
+        const emt = document.getElementById(emtId);
+        if ( emt ) {
+            if ( emt.style.display==="none" ) {
+                emt.style.display="";
+            } else {
+                emt.style.display="none";
+            }
+        } else {
+            console.warn("Cannot find element with id " + emtId);
+
+        }
+    }
+
     return {
         makeElement: makeElement,
         makeA: makeA,
@@ -201,6 +215,8 @@ const UiUtils = (function () {
         defaultHeight:defaultHeight,
         highlight:highlight,
         onEnter:onEnter,
-        documentReady:documentReady
+        documentReady:documentReady,
+        toggleViz:toggleViz
+
     };
 }());

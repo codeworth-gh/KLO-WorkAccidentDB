@@ -36,20 +36,20 @@ object InjuredWorkerFD {
 }
 
 case class WorkAccidentFD(
-  id:Long,
-  date: LocalDate,
-  time: Option[LocalTime],
-  entrepreneurName:Option[String],
-  locaion: String,
-  region: Option[Int],
-  blogPostUrl: String,
-  details: String,
-  investigation:String,
-  initialSource:String,
-  mediaReports:Seq[String],
-  publicRemarks:String,
-  sensitiveRemarks:String,
-  injured:Seq[InjuredWorkerFD]
+                           id:Long,
+                           date: LocalDate,
+                           time: Option[LocalTime],
+                           entrepreneurName:Option[String],
+                           location: String,
+                           region: Option[Int],
+                           blogPostUrl: String,
+                           details: String,
+                           investigation:String,
+                           initialSource:String,
+                           mediaReports:Seq[String],
+                           publicRemarks:String,
+                           sensitiveRemarks:String,
+                           injured:Seq[InjuredWorkerFD]
 )
 object WorkAccidentFD{
   def make(wa: WorkAccident):WorkAccidentFD = {
@@ -102,7 +102,13 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
   )(WorkAccidentFD.apply)(WorkAccidentFD.unapply))
   
   def backofficeIndex() = deadbolt.SubjectPresent()() { implicit req =>
-    Future(Ok(views.html.backoffice.workAccidentsIndex(Seq(), null)))
+    for {
+      accRows <- accidents.listAccidents(0,10000)
+    } yield {
+      Ok(views.html.backoffice.workAccidentsIndex(accRows,
+        regions.apply _,
+        null))
+    }
   }
   
   def showNew() = deadbolt.SubjectPresent()() { implicit req =>
@@ -166,7 +172,7 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
   private def constructWorkAccident(wafd: WorkAccidentFD, bizEntMap: Map[String, BusinessEntity]):WorkAccident = {
     val waTimeStamp = wafd.date.atTime(wafd.time.getOrElse(LocalTime.of(0,0)))
     WorkAccident( wafd.id, waTimeStamp, wafd.entrepreneurName.map(bizEntMap),
-      wafd.locaion, wafd.region.flatMap( regions.apply ),
+      wafd.location, wafd.region.flatMap( regions.apply ),
       wafd.blogPostUrl, wafd.details, wafd.investigation, wafd.initialSource,
       wafd.mediaReports.toSet, wafd.publicRemarks, wafd.sensitiveRemarks,
       wafd.injured.toSet.map( iwfd=>constructInjuredWorker(iwfd, bizEntMap))

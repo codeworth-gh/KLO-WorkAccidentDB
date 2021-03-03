@@ -1,7 +1,7 @@
 package dataaccess
 
 import java.sql.Timestamp
-import models.{BusinessEntity, Citizenship, Industry, InjuryCause, Invitation, PasswordResetRequest, Region, User}
+import models.{BusinessEntity, Citizenship, Industry, InjuryCause, Invitation, PasswordResetRequest, Region, User, WorkAccidentSummary}
 import slick.lifted.Tag
 import slick.jdbc.PostgresProfile.api._
 
@@ -118,6 +118,22 @@ class InjuredWorkersTable(t:Tag) extends Table[InjuredWorkerRecord](t, "injured_
   def fkBnt = foreignKey("fk_iw_be", employer_id, TableRefs.businessEntities)(_.id.?)
   def fkInd = foreignKey("fk_iw_in", industry_id, TableRefs.industries)(_.id.?)
   def fkICs = foreignKey("fk_iw_ic", injury_cause_id, TableRefs.injuryCauses)(_.id.?)
+}
+
+class WorkAccidentSummaryTable(t:Tag) extends Table[WorkAccidentSummary](t,"work_accident_summary"){
+  def id       = column[Long]("id")
+  def dateTime = column[LocalDateTime]("date_time")
+  def entrepreneurId   = column[Option[Long]]("entrepreneur_id")
+  def entrepreneurName = column[Option[String]]("entrepreneur_name")
+  def regionId = column[Option[Int]]("region_id")
+  def details  = column[String]("details")
+  def investigation = column[String]("investigation")
+  def injuredCount  = column[Int]("injured_count")
+  def killedCount   = column[Int]("killed_count")
+  
+  def * = (id, dateTime, entrepreneurId, entrepreneurName, regionId,
+           details, investigation,
+           injuredCount, killedCount)<>(WorkAccidentSummary.tupled, WorkAccidentSummary.unapply)
 }
 
 object TableRefs {

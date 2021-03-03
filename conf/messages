@@ -121,6 +121,10 @@ workAccidentEditor.sensitiveRemarks.help=הערות אלו תשארנה מוסת
 workAccidentEditor.mediaReports=דיווחים בתקשורת
 workAccidentEditor.mediaReports.help=לינקים לדיווחים על התאונה באתרים של כלי תקשורת
 
+publicIndex.hero=מאגר תאונות עבודה
+publicIndex.sub=פרוייקט תעוד של עמותת קו לעובד
+publicIndex.comingSoon=בקרוב
+
 severity.light=פציעה קלה
 severity.medium=פציעה בינונית
 severity.severe=פציעה קשה
@@ -153,6 +157,7 @@ save=שמירה
 send=שליחה
 severity=חומרת פגיעה
 signUp=הצטרפות
+showDetails=הצגת פרטים
 toggleRemarks=הערות
 update=עידכון
 username=שם משתמשת

@@ -26,9 +26,14 @@ body {
   text-align: right;
 }
 
-.me-auto {
+.ms-auto {
   margin-left: auto !important;
   margin-right: 0 !important;
+}
+
+.me-auto {
+  margin-left: 0 !important;
+  margin-right: auto !important;
 }
 
 .text-end {

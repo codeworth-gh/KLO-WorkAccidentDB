@@ -184,6 +184,11 @@ ul.errors{
   background-color: $KloLightGray;
 }
 
+.bg-klo-blue {
+  background-color: $KloBlue;
+  color: $KloLightGray;
+}
+
 .klo-navbar {
   background-color: $KloLightGray;
 
@@ -203,6 +208,13 @@ ul.errors{
     color: yellow;
     background-color: red;
   }
+}
+
+tr.detailsRow {
+  font-size: 9pt;
+  color: #444;
+  box-shadow: 0 3px 3px rgba(0,0,0,.25) inset;
+  background-color: #EEE;
 }
 
 .klo-navbar-ctnr {

@@ -41,8 +41,14 @@ create table injured_workers(
 );
 
 create index iw_by_ac on injured_workers(accident_id);
+create index iw_by_be on injured_workers(employer_id);
+create index iw_by_sv on injured_workers(injury_severity);
+create index iw_by_cs on injured_workers(injury_cause_id);
 
 # -- !Downs
 drop index iw_by_ac;
+drop index iw_by_be;
+drop index iw_by_sv;
+drop index iw_by_cs;
 drop table injured_workers;
 drop table work_accidents;
