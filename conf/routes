@@ -29,7 +29,7 @@ GET   /bkofc/newUserInvitation/:id controllers.UserCtrl.showNewUserInvitation(id
 POST  /bkofc/newUserInvitation/    controllers.UserCtrl.doNewUserInvitation()
 POST  /bkofc/changePassword        controllers.UserCtrl.doChangePassword()
 GET   /bkofc/helperTables          controllers.HelperTableCtrl.helperTablesIndex()
-GET   /bkofc/businessEntities/     controllers.BusinessEntityCtrl.backofficeIndex(name:Option[String])
+GET   /bkofc/businessEntities/     controllers.BusinessEntityCtrl.backofficeIndex(name:Option[String], sortBy:Option[String], asc:Option[String], start:Option[Int])
 GET   /bkofc/businessEntities/new  controllers.BusinessEntityCtrl.showNew()
 GET   /bkofc/businessEntities/:id  controllers.BusinessEntityCtrl.showEdit(id:Long)
 POST  /bkofc/businessEntities/     controllers.BusinessEntityCtrl.doSaveEntity()

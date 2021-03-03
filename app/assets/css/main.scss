@@ -217,6 +217,17 @@ tr.detailsRow {
   background-color: #EEE;
 }
 
+th.sortingColumnHeader{
+  a {
+    color: $KloBlue;
+    text-decoration: none;
+    display: block;
+    &:hover {
+      background-color: $KloLightGray
+    }
+  }
+}
+
 .klo-navbar-ctnr {
   box-shadow: 0 4px 8px rgba(0,0,0,.25);
   background-color: $KloLightGray;

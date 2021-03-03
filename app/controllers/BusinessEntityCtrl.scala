@@ -15,7 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 object BusinessEntityCtrl {
-  val PAGE_SIZE=40
+  val PAGE_SIZE=30
 }
 
 class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponents,
@@ -24,11 +24,15 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
   
   private val log = Logger(classOf[BusinessEntityCtrl])
   
-  def backofficeIndex(name:Option[String]) = deadbolt.SubjectPresent()() { implicit req =>
+  def backofficeIndex(pName:Option[String], pSortBy:Option[String]=None, pAsc:Option[String]=None, pStart:Option[Int]=None) = deadbolt.SubjectPresent()() { implicit req =>
+    val start = pStart.getOrElse(1)
+    val asc = pAsc.getOrElse("t").trim=="t"
+    val sortBy = BusinessEntityDAO.SortKey.named(pSortBy.getOrElse("Name") ).getOrElse(BusinessEntityDAO.SortKey.Name)
     for {
-      ents <- name.map(businessEntities.listByName).getOrElse(businessEntities.list(0, 1000))
+      ents <- businessEntities.list((start-1)*BusinessEntityCtrl.PAGE_SIZE, BusinessEntityCtrl.PAGE_SIZE, sortBy, asc)
+      count <- businessEntities.countAll
     } yield {
-      Ok( views.html.backoffice.businessEntitiesIndex(ents,PaginationInfo(1,1)) )
+      Ok( views.html.backoffice.businessEntitiesIndex(ents,PaginationInfo(start,Math.ceil(count/BusinessEntityCtrl.PAGE_SIZE.toDouble).toInt ), sortBy, asc) )
     }
   }
   
@@ -69,7 +73,7 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
       bizEnt => {
         val msgs = request2Messages(req)
         businessEntities.store( bizEnt ).map( _ =>
-          Redirect(routes.BusinessEntityCtrl.backofficeIndex(None)
+          Redirect(routes.BusinessEntityCtrl.backofficeIndex(None,None,None,None)
           ).flashing(FlashKeys.MESSAGE->Informational(Informational.Level.Success, msgs("businessEntities.saved", bizEnt.name) ,"").encoded)
         )
       }

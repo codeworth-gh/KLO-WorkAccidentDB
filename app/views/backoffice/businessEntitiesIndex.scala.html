@@ -1,6 +1,7 @@
 @import views.PaginationInfo
 @import be.objectify.deadbolt.scala.AuthenticatedRequest
-@(ents:Seq[BusinessEntity], pi:PaginationInfo)(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
+@import dataaccess.BusinessEntityDAO.SortKey
+@(ents:Seq[BusinessEntity], pi:PaginationInfo, curSort:SortKey.Value, isAsc:Boolean)(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
 
 @templates.backEndBase(Messages("businessEntities.title"), views.BackOfficeSections.BusinessEntities) {
   @comps.pageTitleRow(Messages("businessEntities.title")){
@@ -21,9 +22,15 @@
         <table class="table table-sm table-striped">
           <thead>
             <tr>
-              <th scope="col">@Messages("name")</th>
-              <th scope="col">@Messages("phone")</th>
-              <th scope="col">@Messages("email")</th>
+              @comps.sortingTH(Messages("name"),
+                b=>routes.BusinessEntityCtrl.backofficeIndex(None,Some("Name"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
+                curSort, SortKey.Name, isAsc)
+              @comps.sortingTH(Messages("phone"),
+                b=>routes.BusinessEntityCtrl.backofficeIndex(None,Some("Phone"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
+                curSort, SortKey.Phone, isAsc)
+              @comps.sortingTH(Messages("email"),
+                b=>routes.BusinessEntityCtrl.backofficeIndex(None,Some("Email"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
+                curSort, SortKey.Email, isAsc)
               <th scope="col">@Messages("website")</th>
             </tr>
           </thead>
@@ -44,6 +51,7 @@
             }
           </tbody>
         </table>
+        @comps.pager(pi){i=>@routes.BusinessEntityCtrl.backofficeIndex(None, Some(curSort.toString), Some(if(isAsc)"t" else "f"), Some(i))}
       }
     </div>
   </div>

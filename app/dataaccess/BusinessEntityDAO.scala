@@ -4,10 +4,28 @@ import models.BusinessEntity
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
+import slick.model.Table
 
 import javax.inject.Inject
+import javax.swing.event.RowSorterListener
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
+
+object BusinessEntityDAO {
+  object SortKey extends Enumeration {
+    val Name=Value
+    val Phone=Value
+    val Email=Value
+    
+    def named(name:String):Option[SortKey.Value] = {
+      try {
+        Some(SortKey.withName(name))
+      } catch {
+        case _:Exception => None
+      }
+    }
+  }
+}
 
 class BusinessEntityDAO @Inject() (protected val dbConfigProvider:DatabaseConfigProvider)(implicit ec:ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
   
@@ -35,13 +53,25 @@ class BusinessEntityDAO @Inject() (protected val dbConfigProvider:DatabaseConfig
   )
   
   // list
-  def list(start:Int, pageSize:Int):Future[Seq[BusinessEntity]] = db.run(
-    Entities.drop(start).take(pageSize).sortBy(_.name).result
-  ).map( _.toSeq )
+  def list(start:Int, pageSize:Int,
+           sortBy:BusinessEntityDAO.SortKey.Value=BusinessEntityDAO.SortKey.Name, asc:Boolean=true):Future[Seq[BusinessEntity]] = {
+    import BusinessEntityDAO.SortKey
+    db.run(
+      Entities.sortBy( r => {
+        val f = sortBy match {
+          case SortKey.Name  => r.name.asColumnOf[Option[String]].nullsFirst
+          case SortKey.Phone => if (asc) r.phone.nullsLast else r.phone.nullsFirst
+          case SortKey.Email => if (asc) r.email.nullsLast else r.email.nullsFirst
+        }
+        if ( asc ) f.asc else f.desc
+      }).drop(start).take(pageSize).result).map( _.toSeq )
+  }
   
   def countByName( namePart:String ):Future[Int] = db.run(
     Entities.filter( makeNameFilter(namePart) ).length.result
   )
+  
+  def countAll:Future[Int] = db.run( Entities.length.result )
   
   def listByName(namePart:String):Future[Seq[BusinessEntity]] = db.run(
     Entities.filter( makeNameFilter(namePart) ).sortBy(_.name).result

@@ -1,0 +1,6 @@
+@(title:String, call:Boolean=>Call, sortKey:Any, curSort:Any, curAsc:Boolean)
+<th scope="col" class="sortingColumnHeader">
+  <a href="@call(curSort!=sortKey || !curAsc)">
+    @title @if(curSort==sortKey){ @if(curAsc){@comps.svg.arrowUp()}else{@comps.svg.arrowDown()} }
+  </a>
+</th>
