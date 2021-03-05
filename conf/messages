@@ -58,8 +58,6 @@ users.pendingInvitations=הזמנות ממתינות
 users.signup.title=Sign up
 users.me=אני!
 
-userHome.title=ניהול האתר
-
 userEditor.title=עריכת פרופיל
 userEditor.new.title=משתמשת חדשה
 userEditor.tabs.edit=פרטים
@@ -89,6 +87,16 @@ helperTables.tabs.industries=ענפי תעשייה
 helperTables.tabs.injuryCauses=סיבות פגיעה
 helperTables.tabs.citizenships=אזרחויות
 helperTables.newRow=הוספת מאפיין
+
+userHome.title=ניהול האתר
+userHome.help=מסך זה הוא הכניסה לאזור ניהול האתר. אפשר לראות פה סטטיסטיקות בסיסיות, וכן לבצע פעולות שכיחות.
+userHome.statistics=נתוני תאונות במערכת
+userHome.accidentCount=מספר תאונות
+userHome.injuredCount=מספר נפגעים
+userHome.commonActions=פעולות מהירות
+userHome.editProfile=עריכת פרטי החשבון
+userHome.inviteUser=הזמנת משתמשת חדשה
+userHome.addNewAccident=הוספת תאונה חדשה
 
 workAccidents.title=תאונות עבודה
 workAccidents.noData=לא נמצאו תאונות עבודה
@@ -131,6 +139,7 @@ severity.severe=פציעה קשה
 severity.nearFatal=פציעה אנושה
 severity.fatal=מוות
 
+unknown=לא ידוע
 add=הוספה
 age=גיל
 cancel=ביטול

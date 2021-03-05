@@ -2,11 +2,11 @@ package controllers
 
 import java.sql.Timestamp
 import java.util.UUID
-
 import be.objectify.deadbolt.scala.{AuthenticatedRequest, DeadboltActions}
-import dataaccess.{InvitationDAO, PasswordResetRequestDAO, UsersDAO}
+import dataaccess.{InvitationDAO, PasswordResetRequestDAO, UsersDAO, WorkAccidentDAO}
+
 import javax.inject.Inject
-import models.{Invitation, PasswordResetRequest, User}
+import models.{Invitation, PasswordResetRequest, Severity, User}
 import play.api.{Configuration, Logger, cache}
 import play.api.cache.Cached
 import play.api.data._
@@ -54,6 +54,7 @@ class UserCtrl @Inject()(deadbolt:DeadboltActions, conf:Configuration,
                          users: UsersDAO, invitations:InvitationDAO,
                          forgotPasswords:PasswordResetRequestDAO,
                          mailerClient: MailerClient, langs:Langs,
+                         accidents:WorkAccidentDAO,
                          messagesApi:MessagesApi, localAction:LocalAction)(
                         implicit ec:ExecutionContext
 ) extends InjectedController {
@@ -126,8 +127,13 @@ class UserCtrl @Inject()(deadbolt:DeadboltActions, conf:Configuration,
 
   def userHome = deadbolt.SubjectPresent()(){ implicit req =>
     val user = req.subject.get.asInstanceOf[UserSubject].user
-    
-    Future(Ok( views.html.users.userHome(user) ))
+    for {
+      waCount <- accidents.accidentCount()
+      iwCount <- accidents.injuredWorkerCount()
+    } yield {
+      val severityList = iwCount.toSeq.sortBy(_._1).map(p=>(p._1.map(Severity(_)), p._2) )
+      Ok( views.html.users.userHome(user, waCount, severityList) )
+    }
   }
 
   def apiAddUser = localAction(parse.tolerantJson).async { request =>

@@ -81,11 +81,16 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     case SortKey.Datetime     => (r:WorkAccidentSummaryTable) => if (asc) r.dateTime.asc.nullsLast else r.dateTime.desc.nullsFirst
     case SortKey.Region       => (r:WorkAccidentSummaryTable) => if (asc) r.regionId.asc.nullsLast else r.regionId.desc.nullsFirst
     case SortKey.Entrepreneur => (r:WorkAccidentSummaryTable) => if (asc) r.entrepreneurName.asc.nullsLast else r.entrepreneurName.desc.nullsFirst
-    case SortKey.Injuries      => (r:WorkAccidentSummaryTable) => if (asc) r.injuredCount.asc.nullsLast else r.injuredCount.desc.nullsFirst
-    case SortKey.Fatalities         => (r:WorkAccidentSummaryTable) => if (asc) r.killedCount.asc.nullsLast else r.killedCount.desc.nullsFirst
+    case SortKey.Injuries     => (r:WorkAccidentSummaryTable) => if (asc) r.injuredCount.asc.nullsLast else r.injuredCount.desc.nullsFirst
+    case SortKey.Fatalities   => (r:WorkAccidentSummaryTable) => if (asc) r.killedCount.asc.nullsLast else r.killedCount.desc.nullsFirst
   }
   
-  def countAll():Future[Int] = db.run( workAccidents.length.result )
+  def accidentCount():Future[Int] = db.run( workAccidents.length.result )
+  
+  def injuredWorkerCount():Future[Map[Option[Int], Int]] = db.run(
+    injuredWorkers.groupBy( _.injury_severity )
+        .map{ case (severity, group)=>(severity, group.length)}.result
+  ).map( _.toMap )
   
   def getInjuredWorker( id:Long ):Future[Option[InjuredWorker]] = {
     for {

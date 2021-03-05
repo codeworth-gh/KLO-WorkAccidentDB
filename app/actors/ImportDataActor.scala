@@ -35,6 +35,7 @@ object ImportDataActor {
     val INVESTIGATION=15
     val SOURCE=16
     val REMARKS=17
+    val ENTREPRENEUR=18
   }
 }
 
@@ -108,13 +109,15 @@ class ImportDataActor @Inject() (businessEnts:BusinessEntityDAO, regions:Regions
       val ctzn = canonize(comps(FieldNums.CITIZENSHIP), citizenshipByName)
       val inds = canonize(comps(FieldNums.INDUSTRY), industryByName)
       val incz = canonize(comps(FieldNums.INJURY_CAUSE), injuryCauseByName)
-      val emp = getCreateBusinessEntity(comps(FieldNums.EMPLOYER) )
+      val emp = getCreateBusinessEntity(comps(FieldNums.EMPLOYER))
+      val entrepreneur =  if (comps.length>FieldNums.ENTREPRENEUR) getCreateBusinessEntity(comps(FieldNums.ENTREPRENEUR)) else emp
+      
       val iw = InjuredWorker(0,
         comps(FieldNums.NAME), toInt(comps(FieldNums.AGE)),
         ctzn, inds, emp, comps(FieldNums.FROM), incz, severity(comps(FieldNums.SEVERITY)),
           comps(FieldNums.INJURY_DETAILS), "", s"Imported from $currentFile, line: ${line._2}")
       val wa = WorkAccident(0, dateTime(comps(FieldNums.DATE), comps(FieldNums.TIME)),
-        getCreateBusinessEntity(comps(FieldNums.EMPLOYER)),
+        entrepreneur,
         comps(FieldNums.LOCATION), canonize(comps(FieldNums.REGION), regionByName),
         "", comps(FieldNums.ACCIDENT_DETAILS),comps(FieldNums.INVESTIGATION),
         comps(FieldNums.SOURCE), Set(), comps(FieldNums.REMARKS), "", Set(iw)
