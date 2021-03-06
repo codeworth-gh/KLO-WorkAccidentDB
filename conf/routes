@@ -64,7 +64,8 @@ POST    /bkofc/api/users/                         controllers.UserCtrl.apiAddUse
 POST    /bkofc/api/users/invitations/:uuid/resend controllers.UserCtrl.apiReInviteUser(uuid)
 DELETE  /bkofc/api/users/invitations/:uuid        controllers.UserCtrl.apiDeleteInvitation(uuid)
 
-DELETE  /bkofc/api/businessEntities/:id        controllers.BusinessEntityCtrl.doDeleteEntity(id:Long)
+DELETE  /bkofc/api/businessEntities/:id  controllers.BusinessEntityCtrl.doDeleteEntity(id:Long)
+DELETE  /bkofc/api/workAccidents/:id     controllers.WorkAccidentCtrl.doDeleteEntity(id:Long)
 
 PUT /bkofc/api/importFile controllers.HomeCtrl.importDataFromFile
 

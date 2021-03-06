@@ -33,12 +33,36 @@
       }
       cardEmt.remove();
   }
+
+  const deleteMsg="@Messages("workAccidentEditor.deleteMsg")";
+  const subMsg="@Messages("workAccidentEditor.deleteMsgSub")";
+  function kickoffDeleteEntity(){
+    Informationals.makeYesNo(deleteMsg, subMsg,
+            (res, info)=>{info.dismiss(); if (res){ doDelete();}},
+            null,
+            Informationals.messageTypes.DANGER
+    ).show();
+  }
+
+  function doDelete(){
+    Informationals.loader("@Messages("deleting")");
+    new Playjax(beRoutes).using(c=>c.WorkAccidentCtrl.doDeleteEntity(@frm("id").value.get))
+            .fetch()
+            .then( function(r){
+              if (r.ok) {
+                window.location.href=beRoutes.controllers.WorkAccidentCtrl.backofficeIndex().url;
+              } else {
+                Informationals.loader.dismiss();
+                Informationals.makeDanger("@Messages("workAccidentEditor.deletionFailed")");
+              }
+            });
+  }
 </script>
 }
 
 @templates.backEndBase(Messages("workAccidentEditor.title"), views.BackOfficeSections.WorkAccidents, extraHead) {
   @comps.pageTitleRow(Messages("workAccidentEditor.title")){
-    @if( frm("id").value.getOrElse(0)!="0" ){
+    @if( ! frm("id").value.contains("0") ){
       <button type="button" onclick="kickoffDeleteEntity()" class="btn btn-danger">@comps.svgTrash() @Messages("delete")</button>
       <hr class="vr">
     }

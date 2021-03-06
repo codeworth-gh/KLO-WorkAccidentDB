@@ -194,7 +194,7 @@ class UserCtrl @Inject()(deadbolt:DeadboltActions, conf:Configuration,
   def doSaveNewUser = deadbolt.SubjectPresent()(){ implicit req =>
     userForm.bindFromRequest().fold(
       fwe => Future(BadRequest(views.html.users.userEditor(fwe, routes.UserCtrl.doSaveNewUser(), isNew=true))),
-      fData => processUserForm( fData, routes.UserCtrl.showLogin(), routes.UserCtrl.doSignup(), true)(new AuthenticatedRequest(req, None))
+      fData => processUserForm( fData, routes.UserCtrl.showUserList(), routes.UserCtrl.showUserList(), true)(new AuthenticatedRequest(req, None))
     )
   }
 
@@ -472,7 +472,7 @@ class UserCtrl @Inject()(deadbolt:DeadboltActions, conf:Configuration,
     val user = User(0, form.username, "", form.email.getOrElse(""), users.hashPassword(form.pass1.get.trim))
 
     users.tryAddUser(user).map( {
-      case Success(user) => Redirect(onSuccess).flashing(FlashKeys.MESSAGE->Informational(Informational.Level.Success, messagesProvider.messages("account.created")).encoded)
+      case Success(user) => Redirect(onSuccess).flashing(FlashKeys.MESSAGE->Informational(Informational.Level.Success, messagesProvider.messages("userEditor.accountCreated")).encoded)
       case Failure(exp) => BadRequest( views.html.users.userEditor(userForm.fill(form).withGlobalError(exp.getMessage), onFailure, isNew=true, false))
     } )
   }

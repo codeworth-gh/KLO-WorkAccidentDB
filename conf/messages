@@ -33,12 +33,10 @@ forgotPassword.title=איפוס סיסמא
 forgotPassword.help=הכניסי את כתובת המייל איתה נרשמת לאתר, ונשלח לך לשם מייל לאיפוס סיסמא
 forgotPassword.emailSent=מייל איפוס סיסמא נשלח לכתובת {0}. אם את לא מוצאת אותו, חפשי בתיקיית הספאם.
 
-pager.title=Pager
-pageTitleRow.title=Page Title Row
-informationals.title=Informationals
-styledInputs.title=Styled Inputs
-jsSectionItem.title=JS Code
-navbar.publicHome=Public Home
+inviteUser.title=הזמנת משתמשות
+inviteUser.help=ממסך זה ניתן לשלוח הזמנות למערכת
+inviteUser.sendInvite=שליחת הזמנה
+inviteUser.emailAddress=כתובת מייל
 
 navbar.login=כניסה
 navbar.logout=התנתקות
@@ -67,6 +65,7 @@ userEditor.previousPassword=סיסמא קודמת
 userEditor.newPassword=סיסמא חדשה
 userEditor.newPasswordAgain=סיסמא חדשה (שוב)
 userEditor.email.help=כתובת האימייל הזו תשמש אותנו במקרה שנידרש לאפס את הסיסמא שלך.
+userEditor.accountCreated=המשתמשת נוספה למערכת בהצלחה
 
 businessEntities.title=גורמים עסקיים מעורבים
 businessEntities.help=גורמים עסקיים המעורבים בתאונות, כגון המעסיקים, הקבלנים, ויזמי פרוייקטים
@@ -128,6 +127,9 @@ workAccidentEditor.sensitiveRemarks=הערות רגישות
 workAccidentEditor.sensitiveRemarks.help=הערות אלו תשארנה מוסתרות מהציבור. זה המקום לרשום פרטים רגישים, אם יש כאלו.
 workAccidentEditor.mediaReports=דיווחים בתקשורת
 workAccidentEditor.mediaReports.help=לינקים לדיווחים על התאונה באתרים של כלי תקשורת
+workAccidentEditor.deleteMsg=האם למחוק את תאונה זו מהמאגר?
+workAccidentEditor.deleteMsgSub=לאחר המחיקה לא ניתן יהיה לשחזר את הנתונים
+workAccidentEditor.deletionFailed=המחיקה נכשלה
 
 publicIndex.hero=מאגר תאונות עבודה
 publicIndex.sub=פרוייקט תעוד של עמותת קו לעובד

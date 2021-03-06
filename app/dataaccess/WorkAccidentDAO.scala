@@ -77,6 +77,10 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     )
   }
   
+  def deleteAccident(id:Long):Future[Try[Int]] = db.run(
+    workAccidents.filter( _.id === id ).delete.asTry
+  )
+  
   private def makeSorter( sk:SortKey.Value, asc:Boolean ) = sk match {
     case SortKey.Datetime     => (r:WorkAccidentSummaryTable) => if (asc) r.dateTime.asc.nullsLast else r.dateTime.desc.nullsFirst
     case SortKey.Region       => (r:WorkAccidentSummaryTable) => if (asc) r.regionId.asc.nullsLast else r.regionId.desc.nullsFirst

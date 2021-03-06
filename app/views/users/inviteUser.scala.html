@@ -9,21 +9,22 @@
   <script src="@routes.Assets.versioned("js/inviteUserPage.js")"></script>
 }
 
-@templates.backEndBase("Invite User", views.BackOfficeSections.Users, Html(""), scripts){
-@comps.pageTitleRow(Messages("users.inviteUser")){ }
+@templates.backEndBase(Messages("inviteUser.title"), views.BackOfficeSections.Users, Html(""), scripts){
+@comps.pageTitleRow(Messages("inviteUser.title")){ }
+  @comps.helpRow(Messages("inviteUser.help"))
   <div class="row justify-content-md-center my-3">
     <div class="col col-md-8">
       <form action="@routes.UserCtrl.doInviteUser()" method="POST">
         @helper.CSRF.formField
         <div class="form-group row">
-          <label for="emailInput" class="col-sm-3 col-form-label">Invite a new user</label>
+          <label for="emailInput" class="col-sm-3 col-form-label">@Messages("inviteUser.emailAddress")</label>
         </div>
         <div class="form-group row">
           <div class="col-sm-9">
-            <input type="email" class="form-control" id="emailInput" name="email" value="" placeholder="email address">
+            <input type="email" class="form-control" id="emailInput" name="email" value="" placeholder="someone@@anEmailService.com">
           </div>
           <div class="col-sm-3 text-end">
-            <button type="submit" class="btn btn-primary"><i class="fa fa-paper-plane"></i> Invite User</button>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-paper-plane"></i> @Messages("inviteUser.sendInvite")</button>
           </div>
         </div>
         <input type="hidden" value="" name="protocol_and_host" id="protocol_and_host">

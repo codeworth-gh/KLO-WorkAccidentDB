@@ -14,6 +14,7 @@ import views.{PageSectionItem, PaginationInfo}
 import java.time.{LocalDate, LocalTime, ZoneId}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 case class InjuredWorkerFD (
   id:Long,
@@ -155,6 +156,15 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
         }
       }
     )
+  }
+  
+  def doDeleteEntity(id:Long) = deadbolt.SubjectPresent()() { req =>
+    log.info(s"Deleting work accident $id")
+    accidents.deleteAccident(id).map({
+      case Failure(exception) => log.warn(s"Error while deleting work accident $id", exception)
+        internalServerErrorJson(exception.getMessage)
+      case Success(value) => okJson("deleted");
+    })
   }
   
   private def showEditAccidentForm( aForm:Form[WorkAccidentFD] )(implicit req:AuthenticatedRequest[_], msgs:MessagesProvider) = {
