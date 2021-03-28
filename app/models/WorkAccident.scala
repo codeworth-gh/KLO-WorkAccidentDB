@@ -18,6 +18,7 @@ case class WorkAccident(
                        injured:Set[InjuredWorker]
 ){
   def addWorkers( iws:Set[InjuredWorker] ) = copy(injured=injured++iws)
+  def hasTime = (when.getHour|when.getMinute)>0
 }
 
 case class InjuredWorker(

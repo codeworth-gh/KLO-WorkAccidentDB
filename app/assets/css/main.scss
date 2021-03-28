@@ -232,3 +232,16 @@ th.sortingColumnHeader{
   box-shadow: 0 4px 8px rgba(0,0,0,.25);
   background-color: $KloLightGray;
 }
+
+ul.injuredWorkers {
+  list-style: none;
+  padding: 0;
+
+  li {
+    margin-bottom: 1em;
+
+    .name {
+      font-weight: bold;
+    }
+  }
+}

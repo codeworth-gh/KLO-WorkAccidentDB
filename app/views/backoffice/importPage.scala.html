@@ -1,0 +1,28 @@
+@import be.objectify.deadbolt.scala.AuthenticatedRequest
+@()(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
+
+@templates.backEndBase("Import TSV", views.BackOfficeSections.WorkAccidents) {
+  @comps.pageTitleRow("Import TSV"){ }
+
+  <form action="@routes.WorkAccidentCtrl.doImport()" method="POST">
+    @helper.CSRF.formField
+    @comps.bform.submitRow(routes.UserCtrl.userHome())
+    <div class="row">
+      <div class="col">
+        <label for="fldFileName" class="form-label">Filename</label>
+        <input type="text" class="form-control" name="fileName" id="fldFileName">
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <label for="taContent" class="form-label">Content</label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col"><textarea name="content" id="taContent" cols="30" rows="10" class="form-control"></textarea></div>
+    </div>
+  </form>
+
+}
+
+

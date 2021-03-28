@@ -16,6 +16,7 @@ import scala.util.{Failure, Success, Using}
 object ImportDataActor {
   def props = Props[ImportDataActor]()
   case class ImportFile(path:Path)
+  case class ImportString(fileName:String, content:String)
   
   object FieldNums {
     val DATE=0
@@ -55,51 +56,69 @@ class ImportDataActor @Inject() (businessEnts:BusinessEntityDAO, regions:Regions
   override def receive: Receive = {
     case ImportDataActor.ImportFile(path) => {
       log.info(s"Importing file at $path")
-      
-      citizenshipByName = Await.result(citizenships.list(), D).map( c => c.name.replaceAll(" ","")->c ).toMap
-      injuryCauseByName = Await.result(injuryCauses.list(), D).map( c => c.name.replaceAll(" ","")->c ).toMap
-      industryByName = Await.result(industries.list(), D).map( c => c.name.replaceAll(" ","")->c ).toMap
-      regionByName = Await.result(regions.list(), D).map( c => c.name.replaceAll(" ","")->c ).toMap
       currentFile = path.getFileName.toString
-      
       val importCount = importFile(path)
-      
-      currentFile = null
-      citizenshipByName = null
-      injuryCauseByName = null
-      industryByName = null
-      regionByName = null
-      
       log.info(s"Imported $importCount new accidents")
+    }
+    case ImportDataActor.ImportString(fileName, content) => {
+      log.info("Importing from String")
+      currentFile = fileName
+      setupStructures()
+      val importCount = importStrings(content.split("\n").iterator)
+      log.info(s"Imported $importCount new accidents")
+      cleanupStructures()
     }
   }
   
+  private def setupStructures():Unit = {
+    citizenshipByName = Await.result(citizenships.list(), D).map( c => c.name.replaceAll(" ","")->c ).toMap
+    injuryCauseByName = Await.result(injuryCauses.list(), D).map( c => c.name.replaceAll(" ","")->c ).toMap
+    industryByName = Await.result(industries.list(), D).map( c => c.name.replaceAll(" ","")->c ).toMap
+    regionByName = Await.result(regions.list(), D).map( c => c.name.replaceAll(" ","")->c ).toMap
+  }
+  
+  private def cleanupStructures():Unit = {
+    currentFile = null
+    citizenshipByName = null
+    injuryCauseByName = null
+    industryByName = null
+    regionByName = null
+  }
+  
   private def importFile(inFile:Path):Int = {
-    Using(scala.io.Source.fromFile(inFile.toFile)){ rdr =>
-      rdr.getLines()
-        .zipWithIndex
-        .drop(1) // skip header
-        .filter( _._1.trim.nonEmpty )
-        .flatMap( parseLine ).toSeq
-        .groupBy( wa=>(wa.when.toLocalDate, wa.entrepreneur, wa.location, wa.region) )
-        .map( mergeAccidentRows )
-        .map( wa => {
-          wa.injured.size match {
-            case 0 => log.warn( s"Accident with no workers: ${wa.when}/${wa.region}")
-            case 1 => None // skip
-            case _ => log.info( wa.toString )
-          }
-          wa
-        })
-        .map( wa => Await.result(accidents.store(wa), D) )
-        .size
-    } match {
-      case Success(i) => i
-      case Failure(e) => {
-        log.warn("Import failure: " + e.getMessage, e)
-        -1
+    try {
+      Using(scala.io.Source.fromFile(inFile.toFile, "UTF-8")){ rdr =>
+        setupStructures()
+        importStrings(rdr.getLines())
+      } match {
+        case Success(i) => i
+        case Failure(e) => {
+          log.warn("Import failure: " + e.getMessage, e)
+          -1
+        }
       }
+    } finally {
+      cleanupStructures()
     }
+  }
+  
+  private def importStrings( lines: Iterator[String] ):Int ={
+    lines.zipWithIndex
+      .drop(1) // skip header
+      .filter( _._1.trim.nonEmpty )
+      .flatMap( parseLine ).toSeq
+      .groupBy( wa=>(wa.when.toLocalDate, wa.entrepreneur, wa.location, wa.region) )
+      .map( mergeAccidentRows )
+      .map( wa => {
+        wa.injured.size match {
+          case 0 => log.warn( s"Accident with no workers: ${wa.when}/${wa.region}")
+          case 1 => None // skip
+          case _ => log.info( wa.toString )
+        }
+        wa
+      })
+      .map( wa => Await.result(accidents.store(wa), D) )
+      .size
   }
   
   private def parseLine( line:(String, Int) ):Option[WorkAccident] = {

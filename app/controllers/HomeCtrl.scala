@@ -2,16 +2,13 @@ package controllers
 
 import actors.ImportDataActor
 import akka.actor.ActorRef
-import be.objectify.deadbolt.scala.{AuthenticatedRequest, DeadboltActions}
-
-import javax.inject._
+import be.objectify.deadbolt.scala.DeadboltActions
 import play.api._
-import play.api.i18n.{I18nSupport, Langs, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
+import play.api.i18n.I18nSupport
 import play.api.mvc._
-import views.PaginationInfo
 
 import java.nio.file.{Files, Paths}
+import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
 
@@ -70,22 +67,6 @@ class HomeCtrl @Inject()(deadbolt:DeadboltActions, localAction:LocalAction,
     */
   def index() = Action { implicit request: Request[AnyContent] =>
     Ok(views.html.publicIndex())
-  }
-  
-  def pager( currentPage:Int ) = Action{ implicit req =>
-    Ok( views.html.pagerSample(generateDataPage(currentPage, 10), PaginationInfo(currentPage, 23)) )
-  }
-  
-  def informationals = Action{ implicit req =>
-    Ok( views.html.informationalsSample() )
-  }
-
-  def styledInputs = Action{ implicit req =>
-    Ok( views.html.styledInputsSample() )
-  }
-  
-  def pageTitleRow = Action{ implicit req =>
-    Ok( views.html.pageTitleRow() )
   }
   
   /**

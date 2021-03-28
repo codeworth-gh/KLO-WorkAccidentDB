@@ -122,7 +122,8 @@ class UserCtrl @Inject()(deadbolt:DeadboltActions, conf:Configuration,
   }
 
   def doLogout = Action { implicit req =>
-    Redirect(routes.HomeCtrl.index()).withNewSession.flashing(FlashKeys.MESSAGE->Informational(Informational.Level.Success, Messages("login.logoutMessage"), "").encoded)
+    Redirect(routes.PublicCtrl.main()).withNewSession
+      .flashing(FlashKeys.MESSAGE->Informational(Informational.Level.Success, Messages("login.logoutMessage"), "").encoded)
   }
 
   def userHome = deadbolt.SubjectPresent()(){ implicit req =>

@@ -1,0 +1,77 @@
+@import views.PaginationInfo
+@import dataaccess.WorkAccidentDAO.SortKey
+@(ents:Seq[WorkAccidentSummary], rgns:(Int=>Option[Region]), pi:PaginationInfo, curSort:SortKey.Value, isAsc:Boolean)(implicit request:Request[_], msgs:MessagesProvider)
+
+@templates.frontEndBase(Messages("workAccidents.title"), views.PublicSections.AccidentList) {
+  @comps.pageTitleRow(Messages("workAccidents.title"))(Html(""))
+  <div class="row my-2">
+    <div class="col">
+    @if( ents.isEmpty ){
+      <div class="noData noData-block py-4">
+        <div class="my-4">
+        @Messages("workAccidents.noData")
+        </div>
+      </div>
+    }else{
+      <table class="table table-sm ">
+        <thead>
+          <tr>
+            @comps.sortingTH(Messages("workAccidents.dateTime"),
+              b=>routes.PublicCtrl.accidentIndex(Some("Datetime"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
+              curSort, SortKey.Datetime, isAsc)
+            @comps.sortingTH(Messages("workAccidents.region"),
+              b=>routes.PublicCtrl.accidentIndex(Some("Region"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
+              curSort, SortKey.Region, isAsc)
+            @comps.sortingTH(Messages("workAccidents.entrepreneur"),
+              b=>routes.PublicCtrl.accidentIndex(Some("Entrepreneur"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
+              curSort, SortKey.Entrepreneur, isAsc)
+            @comps.sortingTH(Messages("workAccidents.numInjured"),
+              b=>routes.PublicCtrl.accidentIndex(Some("Injuries"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
+              curSort, SortKey.Injuries, isAsc)
+            @comps.sortingTH(Messages("workAccidents.numFatalities"),
+              b=>routes.PublicCtrl.accidentIndex(Some("Fatalities"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
+              curSort, SortKey.Fatalities, isAsc)
+          </tr>
+        </thead>
+        <tbody>
+        @for( ent <- ents ){@defining( routes.PublicCtrl.accidentDetails(ent.id) ){ lnk=>
+          <tr>
+            <td class="d-flex flex-row">
+              <div>
+                @Helpers.format(Helpers.DateFmt.HR_Date, ent.dateTime ) @if(ent.hasTime){@Helpers.format(Helpers.DateFmt.HR_Time, ent.dateTime)}
+              </div>
+              <div class="me-auto">
+                <a href="@lnk" class="btn btn-sm btn-outline-primary">@comps.svg.zoomIn()</a>
+                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="UiUtils.toggleViz('detailsRow-@ent.id')">@comps.svgInfoSquare()</button>
+              </div>
+            </td>
+            <td>
+            @for( rgnId <- ent.regionId ){
+              @rgns(rgnId).map(_.name).getOrElse("")
+            }
+            </td>
+            <td>
+            @for(entName<-ent.entrepreneurName){
+              @entName
+            }
+            </td>
+            <td>
+            @ent.injuredCount
+            </td>
+            <td>
+            @ent.killedCount
+            </td>
+          </tr>
+          @if(ent.details.trim.nonEmpty){
+            <tr class="detailsRow" id="detailsRow-@ent.id" style="display:none">
+            <td colspan="5">@ent.details</td>
+            </tr>
+          }
+          }}
+        </tbody>
+      </table>
+      @comps.pager(pi){i=>@routes.PublicCtrl.accidentIndex(Some(curSort.toString), Some(if(isAsc)"t" else "f"), Some(i))}
+    }
+    </div>
+  </div>
+}

@@ -53,7 +53,10 @@ object Helpers {
   def ifNotEmpty(s:String)(block:String=>Html):Html = {
     if ( s!=null && s.trim.nonEmpty ) block(s) else Html("")
   }
-  def ifNotEmpty(so:Option[String])(block:String=>Html):Html = so.map(s=>ifNotEmpty(s)(block)).getOrElse(Html(""))
+  def ifSome[T](so:Option[T])(block:T=>Html):Html = so match {
+    case Some(thing) => block(thing)
+    case None => Html("")
+  }
   def ifNotEmpty[T]( col:IterableOnce[T])(block:IterableOnce[T]=>Html):Html = if(col!=null && col.iterator.nonEmpty) block(col) else Html("")
   
   def nonEmptyOrElse(s:String)(nonEmpty:String=>Html)(elseVal:Html):Html = {

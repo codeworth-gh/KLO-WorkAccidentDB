@@ -1,5 +1,7 @@
 package controllers
 
+import actors.ImportDataActor
+import akka.actor.ActorRef
 import be.objectify.deadbolt.scala.{AuthenticatedRequest, DeadboltActions}
 import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, WorkAccidentDAO}
 import models.{BusinessEntity, InjuredWorker, Severity, WorkAccident}
@@ -12,7 +14,7 @@ import dataaccess.WorkAccidentDAO.SortKey
 import views.{PageSectionItem, PaginationInfo}
 
 import java.time.{LocalDate, LocalTime, ZoneId}
-import javax.inject.Inject
+import javax.inject.{Inject, Named}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
@@ -66,7 +68,8 @@ object WorkAccidentFD{
 
 class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponents, conf:Configuration,
                                  accidents:WorkAccidentDAO, regions:RegionsDAO, businesses:BusinessEntityDAO,
-                                 citizenships: CitizenshipsDAO, causes:InjuryCausesDAO, industries:IndustriesDAO
+                                 citizenships: CitizenshipsDAO, causes:InjuryCausesDAO, industries:IndustriesDAO,
+                                 @Named("ImportDataActor")importActor:ActorRef
                                 )(implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport with JsonApiHelper {
   
   private val log = Logger(classOf[WorkAccidentCtrl])
@@ -193,6 +196,24 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
       wafd.mediaReports.toSet, wafd.publicRemarks, wafd.sensitiveRemarks,
       wafd.injured.toSet.map( iwfd=>constructInjuredWorker(iwfd, bizEntMap))
     )
+  }
+  
+  def showImport() = deadbolt.SubjectPresent()() { implicit req =>
+    Future( Ok(views.html.backoffice.importPage()) )
+  }
+  
+  def doImport() = deadbolt.SubjectPresent()() { implicit req =>
+    val formTuple = Form( tuple(
+      "fileName"->text,
+      "content" -> text
+    ))
+    val (fileName, content) = formTuple.bindFromRequest().get
+    log.info(s"Got filename: $fileName")
+    log.info(s"Got ${content.split("\n").size} lines")
+    log.info(s"First line: ${content.split("\n")(0)}")
+    importActor ! ImportDataActor.ImportString(fileName, content)
+    
+    Future(Redirect(routes.WorkAccidentCtrl.showImport()))
   }
   
 }

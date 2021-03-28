@@ -18,16 +18,23 @@ signup.title=Sign up for an account at a PSPS Server
 signup.body=A sign up process at a PSPS server was started for this email address (hopefully by you). To continue, please click the link below.\n{0}
 signup.confirmationMessage=Invitation email sent
 signup.confirmationDetails=To email address {0}
+
 error.email=כתובת אימייל לא תקינה
 error.email.exists=משתמשת עם כתובת אימייל כזו כבר קיימת במערכת
 error.username.exists=שם המשתמש הזה תפוס
 error.invitation.doesNotExist=אין הזמנה כזו. סורי.
 error.password=הסיסמאות חייבות להתאים, ואסור להן להיות ריקות!
 error.password.incorrect=סיסמא שגויה
+error.accidentNotFound=התאונה לא נמצאה
+error.accidentNotFoundExplanation=יכול להיות שהלינק הוקלד לא נכון או לא הועתק בשלמותו.
+
 login.title=מאגר תאונות עבודה בישראל
 login.pleaseLogIn=בשביל לראות את הדף הזה, צריך קודם להזדהות
 login.error.badUsernameEmailOrPassword=שם משתמשת או סיסמא לא נכונים
 login.logoutMessage=התנתקת מהמערכת בהצלחה. תזכירי לנו מי את?
+
+
+accidentDetails.title=פרטי תאונה
 
 forgotPassword.title=איפוס סיסמא
 forgotPassword.help=הכניסי את כתובת המייל איתה נרשמת לאתר, ונשלח לך לשם מייל לאיפוס סיסמא
@@ -48,6 +55,11 @@ navbar.users.invite=הזמנה
 navbar.users.editMyProfile=עריכת פרופיל
 navbar.businessEntities=גורמים מעורבים
 navbar.workAccidents=תאונות
+
+navbar.publicHome=ראשי
+navbar.accidents=תאונות
+navbar.dead=נפטרים
+navbar.datasets=מסדי נתונים
 
 users=משתמשות
 users.inviteUser=הזמנה
@@ -141,12 +153,13 @@ severity.severe=פציעה קשה
 severity.nearFatal=פציעה אנושה
 severity.fatal=מוות
 
-unknown=לא ידוע
 add=הוספה
 age=גיל
 cancel=ביטול
 change=עדכון
 citizenship=אזרחות
+date=תאריך
+dateTime=תאריך ושעה
 delete=מחיקה
 deleting=מוחק
 edit=עריכה
@@ -162,6 +175,7 @@ memo=הערות
 name=שם
 password=סיסמא
 phone=טלפון
+pressRelease=הודעה לעיתונות
 region=אזור
 resetPassword=איפוס סיסמא
 save=שמירה
@@ -170,6 +184,8 @@ severity=חומרת פגיעה
 signUp=הצטרפות
 showDetails=הצגת פרטים
 toggleRemarks=הערות
+unknown=לא ידוע
+unknownName=שם לא ידוע
 update=עידכון
 username=שם משתמשת
 usernameOrEmail=שם משתמשת/אימייל
