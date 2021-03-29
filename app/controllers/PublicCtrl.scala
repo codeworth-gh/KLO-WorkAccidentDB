@@ -62,5 +62,15 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     
   }
   
-  def datasets = TODO
+  def datasets = Action.async{ implicit req =>
+    for {
+      lastUpdate <- accidents.getLastUpdateDate
+    } yield {
+      Ok(views.html.publicside.datasets(lastUpdate))
+    }
+  }
+  
+  // TODO: Cache these.
+  def accidentsDataset = TODO
+  def injuriesDataset = TODO
 }

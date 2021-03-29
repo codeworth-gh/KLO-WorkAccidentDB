@@ -19,6 +19,12 @@ signup.body=A sign up process at a PSPS server was started for this email addres
 signup.confirmationMessage=Invitation email sent
 signup.confirmationDetails=To email address {0}
 
+datasets.title=מסדי נתונים
+datasets.help=בעמוד זה ניתן להוריד קבצי נתונים בנושאי תאונות עבודה. לקבלת פירוטים אחרים, יש לפנות לקו לעובד. הקבצים מוגשים בפורמט ODS, פורמט פתוח של גליונות אלקטרוניים, הנתמך על ידי כל התוכנות הפופולריות מסוג זה.
+datasets.lastUpdate=עודכן לאחרונה בתאריך {0} בשעה {1}.
+datasets.accidentList=רשימת תאונות
+datasets.injuredList=רשימת נפגעים
+
 error.email=כתובת אימייל לא תקינה
 error.email.exists=משתמשת עם כתובת אימייל כזו כבר קיימת במערכת
 error.username.exists=שם המשתמש הזה תפוס
@@ -62,7 +68,7 @@ navbar.workAccidents=תאונות
 
 navbar.publicHome=ראשי
 navbar.accidents=תאונות
-navbar.dead=נפטרים
+navbar.dead=הרוגים
 navbar.datasets=מסדי נתונים
 
 users=משתמשות

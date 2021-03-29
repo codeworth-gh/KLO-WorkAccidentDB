@@ -8,6 +8,8 @@ GET     /accidents/     controllers.PublicCtrl.accidentIndex(sort:Option[String]
 GET     /accidents/:id  controllers.PublicCtrl.accidentDetails(id:Long)
 GET     /fatalities     controllers.PublicCtrl.fatalities(year:Option[Int])
 GET     /datasets       controllers.PublicCtrl.datasets()
+GET     /datasets/accidents       controllers.PublicCtrl.accidentsDataset()
+GET     /datasets/injuries       controllers.PublicCtrl.injuriesDataset()
 
 GET     /signup                      controllers.UserCtrl.showSignup()
 POST    /signup                      controllers.UserCtrl.doSignup()

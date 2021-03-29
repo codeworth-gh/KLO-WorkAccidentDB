@@ -51,11 +51,13 @@ hr.vr {
   display: flex;
   flex-direction: row;
   flex-flow: wrap;
-  margin: 1em 0;
+  margin: 1.5em 0 .5em 0;
 
   h1 {
     flex-grow: 1;
     flex-shrink: 1;
+    color: $KloBlue;
+    font-weight: bold;
   }
 
   hr.vr {
@@ -281,6 +283,24 @@ ul.fatalities {
         background-color: $KloLightGray;
         color: $KloBlue;
       }
+    }
+  }
+}
+
+ul.datasetList {
+  list-style: none;
+  padding: 0;
+
+  li {
+    display: inline-block;
+    a {
+      display: block;
+      text-decoration: none;
+      background-color: $KloLightGray;
+      border: 2px solid $KloDarkGray;
+      color: black;
+      border-radius: .5em;
+      padding: 1em;
     }
   }
 }

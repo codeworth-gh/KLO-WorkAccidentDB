@@ -3,11 +3,12 @@ package dataaccess
 import models.{BusinessEntity, InjuredWorker, Severity, WorkAccident, WorkAccidentSummary}
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import slick.jdbc.JdbcProfile
+import slick.jdbc.{GetResult, JdbcProfile}
 
 import java.time.{LocalDate, LocalDateTime}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.math.Ordering.Implicits.infixOrderingOps
 import scala.util.Try
 
 object WorkAccidentDAO {
@@ -33,7 +34,8 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
                                  industries: IndustriesDAO, injuryCauses: InjuryCausesDAO
                                 )(implicit ec:ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
   
-  import profile.api._
+//  import profile.api._
+  import slick.jdbc.PostgresProfile.api._
   import WorkAccidentDAO.SortKey
   private val workAccidents = TableQuery[WorkAccidentsTable]
   private val injuredWorkers = TableQuery[InjuredWorkersTable]
@@ -145,6 +147,10 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     sql"select distinct date_part('year', date_time) from work_accidents ORDER BY date_part".as[Int]
   )
   
+  def getLastUpdateDate:Future[LocalDateTime] = db.run(
+    sql"select max(date_time) from work_accidents".as[LocalDateTime]
+  ).map( res => res.headOption.getOrElse(LocalDateTime.of(1970,1,1,0,0)))
+  
   private def fromDto(iwRow:InjuredWorkerRecord, employer:Option[BusinessEntity]) = InjuredWorker( iwRow.id, iwRow.name, iwRow.age, iwRow.citizenship.flatMap(citizenships(_)),
     iwRow.industry.flatMap(industries(_)), employer, iwRow.from, iwRow.injuryCause.flatMap(injuryCauses(_)),
     iwRow.injurySeverity.map( Severity.apply ), iwRow.injuryDescription, iwRow.publicRemarks, iwRow.sensitiveRemarks
@@ -184,4 +190,6 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
       sensitiveRemarks= iw.sensitiveRemarks
     )
   
+  implicit final def helpersSlickGetResultLocalDateTime: GetResult[LocalDateTime] =
+    GetResult(r => r.nextTimestamp.toLocalDateTime)
 }

@@ -1,0 +1,25 @@
+@import java.time.LocalDateTime
+@(lastUpdate:LocalDateTime)(implicit request:Request[_], msgs:MessagesProvider)
+
+@templates.frontEndBase(Messages("datasets.title"), views.PublicSections.Datasets) {
+  @comps.pageTitleRow(Messages("datasets.title"))(Html(""))
+  @comps.helpRow(Messages("datasets.help"))
+  @comps.helpRow(Messages("datasets.lastUpdate",
+    lastUpdate.format(Helpers.dateFormats(Helpers.DateFmt.HR_Date)),
+    lastUpdate.format(Helpers.dateFormats(Helpers.DateFmt.HR_Time))
+  ))
+
+  <div class="row">
+    <div class="col">
+      <ul class="datasetList">
+        <li>
+          <a href="">@comps.svg.fileEarmarkSpreadsheet() @Messages("datasets.accidentList")</a>
+        </li>
+        <li>
+          <a href="">@comps.svg.fileEarmarkSpreadsheet() @Messages("datasets.injuredList")</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+}
