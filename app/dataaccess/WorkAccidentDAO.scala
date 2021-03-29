@@ -5,6 +5,7 @@ import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 
+import java.time.{LocalDate, LocalDateTime}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -122,6 +123,27 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     }
     
   }
+  
+  // Want: Worker details, ent details, emp details, accident id
+  // TODO: view for this, then Tableclass and method in this DAO
+  /**
+   *
+   * @param year
+   * @return Seq of (InjuredWorker, WorkAccidentSummary), where ._2 is the accident id
+   */
+  def listKilledWorkers( year:Int ): Future[Seq[(InjuredWorker, Long, LocalDate)]] = {
+    val start = LocalDateTime.of(year,1,1,0,0)
+    val end = start.withYear( year+1 )
+    db.run(
+      workersAndEmployers.join(workAccidents).on((wae,acc)=>wae._1.accident_id === acc.id)
+        .filter( _._2.date_time.between(start, end))
+        .sortBy( _._2.date_time.desc ).result
+    ).map( _.map( r => (fromDto(r._1._1, r._1._2), r._2.id, r._2.when.toLocalDate)) )
+  }
+  
+  def listYearsWithAccidents:Future[Seq[Int]] = db.run(
+    sql"select distinct date_part('year', date_time) from work_accidents ORDER BY date_part".as[Int]
+  )
   
   private def fromDto(iwRow:InjuredWorkerRecord, employer:Option[BusinessEntity]) = InjuredWorker( iwRow.id, iwRow.name, iwRow.age, iwRow.citizenship.flatMap(citizenships(_)),
     iwRow.industry.flatMap(industries(_)), employer, iwRow.from, iwRow.injuryCause.flatMap(injuryCauses(_)),

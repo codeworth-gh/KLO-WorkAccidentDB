@@ -6,7 +6,7 @@
 GET     /               controllers.PublicCtrl.main()
 GET     /accidents/     controllers.PublicCtrl.accidentIndex(sort:Option[String], asc:Option[String], page:Option[Int])
 GET     /accidents/:id  controllers.PublicCtrl.accidentDetails(id:Long)
-GET     /fatalities     controllers.PublicCtrl.fatalities(sort:Option[String], asc:Option[String], page:Option[Int])
+GET     /fatalities     controllers.PublicCtrl.fatalities(year:Option[Int])
 GET     /datasets       controllers.PublicCtrl.datasets()
 
 GET     /signup                      controllers.UserCtrl.showSignup()

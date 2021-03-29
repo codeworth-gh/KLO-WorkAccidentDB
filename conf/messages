@@ -36,6 +36,10 @@ login.logoutMessage=התנתקת מהמערכת בהצלחה. תזכירי לנ�
 
 accidentDetails.title=פרטי תאונה
 
+fatalities.title=הרוגים בתאונות עבודה בשנת {0,number, #}
+fatalities.causeOfDeath=סיבת המוות
+fatalities.count=בשנה זו נהרגו בישראל {0} בני אדם.
+
 forgotPassword.title=איפוס סיסמא
 forgotPassword.help=הכניסי את כתובת המייל איתה נרשמת לאתר, ונשלח לך לשם מייל לאיפוס סיסמא
 forgotPassword.emailSent=מייל איפוס סיסמא נשלח לכתובת {0}. אם את לא מוצאת אותו, חפשי בתיקיית הספאם.

@@ -1,0 +1,50 @@
+@import views.PaginationInfo
+@import dataaccess.WorkAccidentDAO.SortKey
+@import java.time.LocalDate
+@(year:Int, yearsWithAccidents:Seq[Int], workers:Seq[(InjuredWorker, Long, LocalDate)])(implicit request:Request[_], msgs:MessagesProvider)
+
+@templates.frontEndBase(Messages("fatalities.title", year), views.PublicSections.Fatalities) {
+  <div class="row mt-3">
+    @Helpers.ifNotEmpty( yearsWithAccidents.findLast( _ < year) ){ prev => <div class="col text-start"><a href="@routes.PublicCtrl.fatalities(Some(prev))">&rarr; @prev</a></div>}
+    @Helpers.ifNotEmpty( yearsWithAccidents.find( _ > year) ){ next => <div class="col text-end"><a href="@routes.PublicCtrl.fatalities(Some(next))">@next &larr;</a></div>}
+  </div>
+  @comps.pageTitleRow(Messages("fatalities.title", year))(Html(""))
+  <div class="row">
+    <hr>
+    <div class="col text-center">@Messages("fatalities.count",workers.size)</div>
+    <hr>
+  </div>
+  <div class="row my-2">
+    <div class="col">
+    @if( workers.isEmpty ){
+      <div class="noData noData-block py-4">
+        <div class="my-4">
+          @Messages("fatalities.noData")
+        </div>
+      </div>
+    } else {
+      <ul class="fatalities">
+        @for( (wkr,accId,date) <- workers ){
+          <li>
+            <div class="data">
+              @Helpers.nonEmptyOrElse(wkr.name){n=><span class="name">@n</span>}{<span class="noData">@Messages("unknownName")</span>}@Helpers.ifNotEmpty(wkr.age){age =>, @age}.
+              @Helpers.ifNotEmpty(wkr.citizenship){cz=> @cz.name.}
+              @Helpers.ifNotEmpty(wkr.injuryCause){cz=> @Messages("fatalities.causeOfDeath"): @cz.name.}
+              @Helpers.ifNotEmpty(wkr.injuryDescription){d=><span class="description">@d</span>}
+              <a href="@routes.PublicCtrl.accidentDetails(accId)">@comps.svg.arrowLeftCircle()</a>
+            </div>
+            <div class="date">
+              @date.format(Helpers.dateFormats(Helpers.DateFmt.HR_Date))
+            </div>
+          </li>
+        }
+      </ul>
+    }
+    </div>
+  </div>
+  <div class="row my-2">
+    <hr>
+    @Helpers.ifNotEmpty( yearsWithAccidents.findLast( _ < year) ){ prev => <div class="col text-start"><a href="@routes.PublicCtrl.fatalities(Some(prev))">&rarr; @prev</a></div>}
+    @Helpers.ifNotEmpty( yearsWithAccidents.find( _ > year) ){ next => <div class="col text-end"><a href="@routes.PublicCtrl.fatalities(Some(next))">@next &larr;</a></div>}
+  </div>
+}

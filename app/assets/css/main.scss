@@ -245,3 +245,42 @@ ul.injuredWorkers {
     }
   }
 }
+
+ul.fatalities {
+  list-style: none;
+  padding: 0;
+
+  li {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: .5em;
+
+    .name {
+      font-weight: bold;
+    }
+
+    .noData {
+      background: none;
+      color: $KloDarkGray;
+      font-style: italic;
+    }
+    .data {
+      flex-grow: 1;
+    }
+    .description {
+      color: $KloDarkGray;
+    }
+    .date {
+      flex-grow: 0;
+      text-align: left;
+      margin-right: auto;
+    }
+    a {
+      color: $KloDarkGray;
+      &:hover {
+        background-color: $KloLightGray;
+        color: $KloBlue;
+      }
+    }
+  }
+}

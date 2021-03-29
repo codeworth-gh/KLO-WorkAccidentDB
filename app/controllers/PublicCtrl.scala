@@ -5,6 +5,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{AbstractController, ControllerComponents}
 import views.PaginationInfo
 
+import java.time.LocalDate
 import javax.inject.{Inject, Named}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -50,7 +51,16 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     }
   }
   
-  def fatalities(sort:Option[String], asc:Option[String], page:Option[Int]) = TODO
+  def fatalities(year:Option[Int]) = Action.async{ implicit req =>
+    for {
+      yearsWithAccidents <- accidents.listYearsWithAccidents
+      actualYear = year.getOrElse(LocalDate.now().getYear)
+      killed <- accidents.listKilledWorkers(actualYear)
+    } yield {
+      Ok( views.html.publicside.fatalitiesList(actualYear, yearsWithAccidents, killed) )
+    }
+    
+  }
   
   def datasets = TODO
 }
