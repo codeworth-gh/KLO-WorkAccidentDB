@@ -41,7 +41,7 @@
                 @Helpers.format(Helpers.DateFmt.HR_Date, ent.dateTime ) @if(ent.hasTime){@Helpers.format(Helpers.DateFmt.HR_Time, ent.dateTime)}
               </div>
               <div class="me-auto">
-                <a href="@lnk" class="btn btn-sm btn-outline-primary">@comps.svg.zoomIn()</a>
+                <a href="@lnk" class="btn btn-sm btn-outline-primary">@comps.svg.arrowLeftCircle()</a>
                 <button class="btn btn-sm btn-outline-secondary" type="button" onclick="UiUtils.toggleViz('detailsRow-@ent.id')">@comps.svgInfoSquare()</button>
               </div>
             </td>

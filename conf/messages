@@ -44,7 +44,7 @@ accidentDetails.title=פרטי תאונה
 
 fatalities.title=הרוגים בתאונות עבודה בשנת {0,number, #}
 fatalities.causeOfDeath=סיבת המוות
-fatalities.count=בשנה זו נהרגו בישראל {0} בני אדם.
+fatalities.count=בשנה זו נהרגו בתאונות עבודה בישראל {0} בני אדם.
 
 forgotPassword.title=איפוס סיסמא
 forgotPassword.help=הכניסי את כתובת המייל איתה נרשמת לאתר, ונשלח לך לשם מייל לאיפוס סיסמא
@@ -153,15 +153,29 @@ workAccidentEditor.deleteMsg=האם למחוק את תאונה זו מהמאגר
 workAccidentEditor.deleteMsgSub=לאחר המחיקה לא ניתן יהיה לשחזר את הנתונים
 workAccidentEditor.deletionFailed=המחיקה נכשלה
 
-publicIndex.hero=מאגר תאונות עבודה
-publicIndex.sub=פרוייקט תעוד של עמותת קו לעובד
+publicIndex.hero=תאונות עבודה בישראל
+publicIndex.sub=פרוייקט תעוד תאונות עבודה של עמותת קו לעובד
 publicIndex.comingSoon=בקרוב
+publicIndex.links=קישורים
+publicIndex.injuredThisYear=נפגעים בשנה זו
+publicIndex.prevYears=נפגעים בשנים קודמות
+publicIndex.recentInjuries=נפגעים אחרונים
+publicIndex.links.accidentList=רשימת תאונות עבודה
+publicIndex.links.fatalities=רשימת הרוגים
+publicIndex.links.datasets=נתונים להורדה
+publicIndex.links.kloHomepage=עמותת קו-לעובד
+publicIndex.last30.noInjuries=אין דיווחים על נפגעים ב-30 הימים האחרונים. שרק ימשיך ככה.
 
 severity.light=פציעה קלה
 severity.medium=פציעה בינונית
 severity.severe=פציעה קשה
 severity.nearFatal=פציעה אנושה
 severity.fatal=מוות
+severity.s.light=קל
+severity.s.medium=בינוני
+severity.s.severe=קשה
+severity.s.nearFatal=אנוש
+severity.s.fatal=מוות
 
 add=הוספה
 age=גיל
@@ -194,10 +208,13 @@ severity=חומרת פגיעה
 signUp=הצטרפות
 showDetails=הצגת פרטים
 toggleRemarks=הערות
+total=סה״כ
 unknown=לא ידוע
 unknownName=שם לא ידוע
+unknownCitizenship=אזרחות לא ידועה
 update=עידכון
 username=שם משתמשת
 usernameOrEmail=שם משתמשת/אימייל
 website=אתר אינטרנט
 injuredWorkers=נפגעים
+year=שנה

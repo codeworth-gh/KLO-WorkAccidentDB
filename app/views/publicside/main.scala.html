@@ -1,19 +1,127 @@
-@()(implicit request:RequestHeader, msgs:MessagesProvider)
+@(injuredWorkers:Seq[InjuredWorkerRow], thisYearByIndustry:Map[Option[Industry],Map[Option[Severity.Value],Int]],
+        prevYears:Map[Int,Map[Option[Severity.Value],Int]])(implicit request:RequestHeader, msgs:MessagesProvider)
 
 @templates.bsNavbar(Messages("application.title"), views.Structure.publicItems, views.PublicSections.Home ) {
-  <div class="container">
-    <div class="row my-5">
-      <div class="col text-center">
-
-        <h1 class="display-1 mb-3">@Messages("publicIndex.hero")</h1>
-        <h1 class="display-3">@Messages("publicIndex.sub")</h1>
-
-      </div>
+  <div class="row my-3">
+    <div class="col text-center">
+      <h1 class="display-1 mb-2 text-klo-blue">@Messages("publicIndex.hero")</h1>
+      <strong>@Messages("publicIndex.sub")</strong>
+      <hr>
     </div>
-    <div class="row my-3">
-      <div class="col text-center bg-klo-blue">
-        <h1 class="display-5">@Messages("publicIndex.comingSoon")</h1>
-      </div>
+  </div>
+  <div class="row my-3">
+    <div class="col">
+      <h3 class="mb-3">@Messages("publicIndex.recentInjuries")</h3>
+      <ul class="injuredList-main">
+      @for( wkr <- injuredWorkers ){
+        <li>
+          <a href="@routes.PublicCtrl.accidentDetails(wkr.accidentId)">
+          @wkr.accidentDate.format( Helpers.dateFormats(Helpers.DateFmt.HR_Date))
+          @if( wkr.worker.injurySeverity.contains(Severity.fatal) ) {
+            @Helpers.nonEmptyOrElse(wkr.worker.name){n=><em>@n</em>}{<span class="text-muted">@Messages("unknownName")</span>}@Helpers.ifNotEmpty(wkr.worker.citizenship){cz=>, @cz.name}.
+          } else {
+            @wkr.worker.citizenship match {
+              case None=>{<span class="text-muted">@Messages("unknownCitizenship")</span>}
+              case Some(c)=>{ @c.name }
+            }
+          }
+          @Helpers.ifNotEmpty(wkr.worker.age){age => @Messages("age") @age.}
+          @wkr.worker.injurySeverity.map(s=>Messages("severity." + s)+".").getOrElse("")
+          @Helpers.ifNotEmpty(wkr.worker.injuryCause){cz=> @cz.name.}
+          @comps.svg.arrowLeftCircle()
+          </a>
+        </li>
+      }
+      </ul>
+    </div>
+    <div class="col">
+      <h3>@Messages("publicIndex.injuredThisYear")</h3>
+      @defining( Severity.values.toSeq.map(Some(_)) ++ Seq(None) ) { cols =>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>@Messages("industry")</th>
+              @for( so <- cols ) {
+                @so match {
+                  case Some(s) => {<th>@Messages("severity.s."+s)</th>}
+                  case None => {<th class="text-muted">@Messages("unknown")</th>}
+                }
+              }
+              <th>@Messages("total")</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for( row <- thisYearByIndustry ){
+              <tr>
+                @row._1 match {
+                  case None => {<th class="text-muted">@Messages("unknown")</th>}
+                  case Some(ind) => {<th>@ind.name</th>}
+                }
+                @for( s <- cols ) {
+                  <td>@row._2.getOrElse(s,0)</td>
+                }
+                <th>@row._2.values.sum<th>
+              </tr>
+            }
+            <tr>
+              <th>@Messages("total")</th>
+              @for( s <- cols ) {
+                <th>@thisYearByIndustry.values.map(m=>m.getOrElse(s,0)).sum</th>
+              }
+              <th>@thisYearByIndustry.values.flatMap(m=>m.values).sum</th>
+            </tr>
+          </tbody>
+        </table>
+      }
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <h3>@Messages("publicIndex.prevYears")</h3>
+      @defining( Severity.values.toSeq.map(Some(_)) ++ Seq(None) ) { cols =>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>@Messages("year")</th>
+              @for( so <- cols ) {
+                @so match {
+                  case Some(s) => {<th>@Messages("severity.s."+s)</th>}
+                  case None => {<th class="text-muted">@Messages("unknown")</th>}
+                }
+              }
+              <th>@Messages("total")</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for( yearRow <- prevYears.toSeq.sortBy(_._1).reverse ){
+              <tr>
+                <th>@yearRow._1</th>
+                @for( col <- cols ) {
+                  <td>@yearRow._2.getOrElse(col, 0)</td>
+                }
+                <th>@yearRow._2.values.sum</th>
+              </tr>
+            }
+            <tr>
+              <th>@Messages("total")</th>
+              @for( col <- cols ) {
+                <th>@prevYears.values.map( m=>m.getOrElse(col,0) ).sum</th>
+              }
+              <th>@prevYears.values.flatMap( m=>m.values ).sum</th>
+            </tr>
+          </tbody>
+        </table>
+      }
+    </div>
+
+    <div class="col">
+      <h3 class="mb-3">@Messages("publicIndex.links")</h3>
+      <ul class="linkList">
+        <li><a href="@routes.PublicCtrl.accidentIndex(None, None, None)">@Messages("publicIndex.links.accidentList")</a></li>
+        <li><a href="@routes.PublicCtrl.fatalities(None)">@Messages("publicIndex.links.fatalities")</a></li>
+        <li><a href="@routes.PublicCtrl.datasets()">@Messages("publicIndex.links.datasets")</a></li>
+        <li><a href="http://kavlaoved.org.il">@Messages("publicIndex.links.kloHomepage")</a></li>
+      </ul>
     </div>
   </div>
 }

@@ -57,17 +57,6 @@ class HomeCtrl @Inject()(deadbolt:DeadboltActions, localAction:LocalAction,
                         (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport {
   
   private val logger = Logger(classOf[HomeCtrl])
-//  implicit val mApiImplicit = messagesApi
-  /**
-    * Create an Action to render an HTML page.
-    *
-    * The configuration in the `routes` file means that this method
-    * will be called when the application receives a `GET` request with
-    * a path of `/`.
-    */
-  def index() = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.publicIndex())
-  }
   
   /**
     * Routes for the public part

@@ -138,6 +138,10 @@ hr.vr {
   direction: rtl;
 }
 
+.text-klo-blue {
+  color: $KloBlue;
+}
+
 .slideUpPanel{
   background-color: #DDD;
   border-bottom: 1px solid black;
@@ -301,6 +305,52 @@ ul.datasetList {
       color: black;
       border-radius: .5em;
       padding: 1em;
+    }
+  }
+}
+
+ul.linkList {
+  list-style: none;
+  padding: 0;
+
+  li {
+    margin: .5em 0;
+    a {
+      display: block;
+      text-decoration: none;
+      background-color: $KloLightGray;
+      border: 2px solid $KloDarkGray;
+      color: black;
+      border-radius: .5em;
+      padding: .5em;
+      transition: all .3s;
+      &:hover {
+        background-color: $KloBlue;
+        color: #FFF;
+        border-color: #000;
+      }
+    }
+  }
+}
+
+ul.injuredList-main {
+  list-style: none;
+  padding: 0;
+
+  li {
+    margin: .1em 0;
+    a {
+      display: block;
+      text-decoration: none;
+      color: black;
+      transition: all .3s;
+      &:hover {
+        background-color: $KloBlue;
+        color: #FFF;
+        span.text-muted {
+          color: #EEE !important;
+        }
+      }
     }
   }
 }

@@ -3,7 +3,7 @@ package controllers
 import com.github.miachm.sods.{Sheet, SpreadSheet}
 import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, WorkAccidentDAO}
 import models.{InjuredWorker, InjuredWorkerRow, Severity, WorkAccidentSummary}
-import play.api.Logger
+import play.api.{Configuration, Logger}
 import play.api.cache.Cached
 import play.api.i18n.I18nSupport
 import play.api.mvc.{AbstractController, ControllerComponents}
@@ -30,7 +30,7 @@ object PublicCtrl {
 
 class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, regions:RegionsDAO, businesses:BusinessEntityDAO,
                            citizenships: CitizenshipsDAO, causes:InjuryCausesDAO, industries:IndustriesDAO,
-                           cached:Cached)
+                           cached:Cached, conf:Configuration)
                           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport {
   
   import PublicCtrl._
@@ -71,8 +71,14 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     Column("remarks", w=>w.worker.publicRemarks )
   )
   
-  def main = Action {implicit req =>
-    Ok( views.html.publicside.main() )
+  def main = Action.async{implicit req =>
+    for {
+      recentInjuries <- accidents.listRecentInjuredWorkers(conf.get[Int]("klo.main.recentCount"))
+      injuryCounts   <- accidents.injuryCountsByIndustryAndSeverity(LocalDate.now.getYear)
+      prevYears      <- accidents.injuryCountsBySeverityAndYear
+    } yield {
+      Ok( views.html.publicside.main(recentInjuries, injuryCounts, prevYears) )
+    }
   }
   
   def accidentIndex(pSortBy:Option[String]=None, pAsc:Option[String]=None, pPage:Option[Int]=None) = Action.async{ implicit req =>

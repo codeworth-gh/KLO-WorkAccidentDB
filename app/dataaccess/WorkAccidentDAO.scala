@@ -1,6 +1,6 @@
 package dataaccess
 
-import models.{BusinessEntity, InjuredWorker, InjuredWorkerRow, Severity, WorkAccident, WorkAccidentSummary}
+import models.{BusinessEntity, Industry, InjuredWorker, InjuredWorkerRow, Severity, WorkAccident, WorkAccidentSummary}
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.{GetResult, JdbcProfile}
@@ -152,6 +152,48 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
       .sortBy( _._2.date_time.desc ).result
   ).map( _.map( r => InjuredWorkerRow(fromDto(r._1._1, r._1._2), r._2.id, r._2.when.toLocalDate)) )
   
+  def listRecentInjuredWorkers(count:Int): Future[Seq[InjuredWorkerRow]] = db.run(
+    workersAndEmployers.join(workAccidents).on((wae,acc)=>wae._1.accident_id === acc.id)
+      .sortBy( _._2.date_time.desc )
+      .take(count).result
+  ).map( _.map( r => InjuredWorkerRow(fromDto(r._1._1, r._1._2), r._2.id, r._2.when.toLocalDate)) )
+  
+  private def makeSeverityMap(k: Option[Industry], numbers: Seq[(Option[Int], Option[Int], Int)]):Map[Option[Severity.Value], Int] = {
+    val relevantRows = numbers.filter( _._1 == k.map(_.id) )
+    relevantRows.map( row => row._2.map( i => Severity(i))->row._3 ).toMap
+  }
+  
+  def injuryCountsByIndustryAndSeverity(year:Int):Future[Map[Option[Industry],Map[Option[Severity.Value],Int]]] = {
+    val qry = sql"""SELECT industry_id, injury_severity, count(*) as count
+                   |FROM work_accidents wa INNER JOIN injured_workers iw on wa.id = iw.accident_id
+                   |WHERE date_part('year', wa.date_time)=$year
+                   |GROUP BY industry_id, injury_severity;
+                   |""".stripMargin.as[(Option[Int],Option[Int],Int)]
+    for {
+      numbers <- db.run(qry)
+      indList <- industries.list()
+    } yield {
+      val keys = indList.map( Some(_) ) ++ Seq(None)
+      keys.map( k => k->makeSeverityMap(k,numbers) ).toMap
+    }
+  }
+  
+  def injuryCountsBySeverityAndYear:Future[Map[Int,Map[Option[Severity.Value],Int]]] = {
+    val qry = sql"""SELECT date_part('year', wa.date_time) as year, injury_severity, count(*) as count
+                   |FROM work_accidents wa INNER JOIN injured_workers iw on wa.id = iw.accident_id
+                   |GROUP BY year, injury_severity
+                   |ORDER BY year desc;
+                   |""".stripMargin.as[(Int, Option[Int], Int)]
+    for {
+      numbers <- db.run(qry)
+    } yield {
+      val years = numbers.map(_._1).distinct
+      years.map( y => y ->
+                      numbers.filter(_._1==y).map(row=>row._2.map(v=>Severity(v))->row._3).toMap
+      ).toMap
+    }
+  }
+  
   // FIXME: Cache this forever, invalidate on write.
   def listYearsWithAccidents:Future[Seq[Int]] = db.run(
     sql"select distinct date_part('year', date_time) from work_accidents ORDER BY date_part".as[Int]
@@ -201,5 +243,5 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     )
   
   implicit final def helpersSlickGetResultLocalDateTime: GetResult[LocalDateTime] =
-    GetResult(r => r.nextTimestamp.toLocalDateTime)
+    GetResult(r => r.nextTimestamp().toLocalDateTime)
 }
