@@ -1,6 +1,6 @@
 package dataaccess
 
-import models.{BusinessEntity, InjuredWorker, Severity, WorkAccident, WorkAccidentSummary}
+import models.{BusinessEntity, InjuredWorker, InjuredWorkerRow, Severity, WorkAccident, WorkAccidentSummary}
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.{GetResult, JdbcProfile}
@@ -34,7 +34,6 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
                                  industries: IndustriesDAO, injuryCauses: InjuryCausesDAO
                                 )(implicit ec:ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
   
-//  import profile.api._
   import slick.jdbc.PostgresProfile.api._
   import WorkAccidentDAO.SortKey
   private val workAccidents = TableQuery[WorkAccidentsTable]
@@ -79,6 +78,10 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
       workAccidentSummaries.sortBy( makeSorter(sortBy, isAsc) ).drop(start).take(pageSize).result
     )
   }
+  
+  def listAllAccidents():Future[Seq[WorkAccidentSummary]] = db.run(
+    workAccidentSummaries.sortBy( _.dateTime.asc ).result
+  )
   
   def deleteAccident(id:Long):Future[Try[Int]] = db.run(
     workAccidents.filter( _.id === id ).delete.asTry
@@ -139,10 +142,17 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     db.run(
       workersAndEmployers.join(workAccidents).on((wae,acc)=>wae._1.accident_id === acc.id)
         .filter( _._2.date_time.between(start, end))
+        .filter( _._1._1.injury_severity === Severity.fatal.id )
         .sortBy( _._2.date_time.desc ).result
     ).map( _.map( r => (fromDto(r._1._1, r._1._2), r._2.id, r._2.when.toLocalDate)) )
   }
   
+  def listAllInjuredWorkers: Future[Seq[InjuredWorkerRow]] = db.run(
+    workersAndEmployers.join(workAccidents).on((wae,acc)=>wae._1.accident_id === acc.id)
+      .sortBy( _._2.date_time.desc ).result
+  ).map( _.map( r => InjuredWorkerRow(fromDto(r._1._1, r._1._2), r._2.id, r._2.when.toLocalDate)) )
+  
+  // FIXME: Cache this forever, invalidate on write.
   def listYearsWithAccidents:Future[Seq[Int]] = db.run(
     sql"select distinct date_part('year', date_time) from work_accidents ORDER BY date_part".as[Int]
   )

@@ -36,10 +36,12 @@ case class InjuredWorker(
                         sensitiveRemarks:String
                         )
 
+case class InjuredWorkerRow(worker:InjuredWorker, accidentId:Long, accidentDate:LocalDate)
+
 case class WorkAccidentSummary(
   id:Long, dateTime:LocalDateTime,
   entrepreneurId:Option[Long], entrepreneurName:Option[String],
-  regionId: Option[Int],
+  regionId: Option[Int], location:String,
   details:String, investigation:String,
   injuredCount:Int, killedCount:Int
 ){

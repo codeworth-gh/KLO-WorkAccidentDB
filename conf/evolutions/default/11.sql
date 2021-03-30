@@ -7,6 +7,7 @@ CREATE VIEW work_accident_summary AS
         wa.entrepreneur_id,
         be.name entrepreneur_name,
         wa.region_id,
+        wa.location,
         wa.details,
         wa.investigation,
         (SELECT count(*) FROM injured_workers iw WHERE iw.accident_id=wa.id ) injured_count,

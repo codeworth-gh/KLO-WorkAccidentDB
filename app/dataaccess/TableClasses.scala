@@ -126,12 +126,13 @@ class WorkAccidentSummaryTable(t:Tag) extends Table[WorkAccidentSummary](t,"work
   def entrepreneurId   = column[Option[Long]]("entrepreneur_id")
   def entrepreneurName = column[Option[String]]("entrepreneur_name")
   def regionId = column[Option[Int]]("region_id")
+  def location  = column[String]("location")
   def details  = column[String]("details")
   def investigation = column[String]("investigation")
   def injuredCount  = column[Int]("injured_count")
   def killedCount   = column[Int]("killed_count")
   
-  def * = (id, dateTime, entrepreneurId, entrepreneurName, regionId,
+  def * = (id, dateTime, entrepreneurId, entrepreneurName, regionId, location,
            details, investigation,
            injuredCount, killedCount)<>(WorkAccidentSummary.tupled, WorkAccidentSummary.unapply)
 }
