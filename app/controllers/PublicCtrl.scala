@@ -28,8 +28,7 @@ object PublicCtrl {
 
 
 
-class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, regions:RegionsDAO, businesses:BusinessEntityDAO,
-                           citizenships: CitizenshipsDAO, causes:InjuryCausesDAO, industries:IndustriesDAO,
+class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, regions:RegionsDAO,
                            cached:Cached, conf:Configuration)
                           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport {
   
@@ -71,13 +70,16 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     Column("remarks", w=>w.worker.publicRemarks )
   )
   
-  def main = Action.async{implicit req =>
-    for {
-      recentInjuries <- accidents.listRecentInjuredWorkers(conf.get[Int]("klo.main.recentCount"))
-      injuryCounts   <- accidents.injuryCountsByIndustryAndSeverity(LocalDate.now.getYear)
-      prevYears      <- accidents.injuryCountsBySeverityAndYear
-    } yield {
-      Ok( views.html.publicside.main(recentInjuries, injuryCounts, prevYears) )
+  def main = cached("publicMain"){
+    Action.async{implicit req =>
+      logger.warn("public-main actually rendered.")
+      for {
+        recentInjuries <- accidents.listRecentInjuredWorkers(conf.get[Int]("klo.main.recentCount"))
+        injuryCounts   <- accidents.injuryCountsByIndustryAndSeverity(LocalDate.now.getYear)
+        prevYears      <- accidents.injuryCountsBySeverityAndYear
+      } yield {
+        Ok( views.html.publicside.main(recentInjuries, injuryCounts, prevYears) )
+      }
     }
   }
   

@@ -2,6 +2,7 @@ package dataaccess
 
 import models.{BusinessEntity, Industry, InjuredWorker, InjuredWorkerRow, Severity, WorkAccident, WorkAccidentSummary}
 import play.api.Logger
+import play.api.cache.AsyncCacheApi
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.{GetResult, JdbcProfile}
 
@@ -31,7 +32,7 @@ object WorkAccidentDAO {
 
 class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigProvider,
                                  citizenships: CitizenshipsDAO, regions: RegionsDAO,
-                                 industries: IndustriesDAO, injuryCauses: InjuryCausesDAO
+                                 industries: IndustriesDAO, injuryCauses: InjuryCausesDAO, cacheApi:AsyncCacheApi
                                 )(implicit ec:ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
   
   import slick.jdbc.PostgresProfile.api._
@@ -46,12 +47,14 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   private val log = Logger(classOf[WorkAccidentDAO])
   
   def store( iw:InjuredWorker, accidentId:Long ):Future[InjuredWorker] = {
+    cacheApi.remove("publicMain")
     db.run(
       (injuredWorkers returning injuredWorkers.map(_.id)).into((_, newId) => iw.copy(id=newId)).insertOrUpdate( toDto(iw, accidentId) )
     ).map( _.getOrElse(iw) )
   }
   
   def store( wa:WorkAccident ):Future[WorkAccident] = {
+    cacheApi.remove("publicMain")
     val waRow = toDto(wa)
     
     for {
@@ -83,9 +86,12 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     workAccidentSummaries.sortBy( _.dateTime.asc ).result
   )
   
-  def deleteAccident(id:Long):Future[Try[Int]] = db.run(
-    workAccidents.filter( _.id === id ).delete.asTry
-  )
+  def deleteAccident(id:Long):Future[Try[Int]] = {
+    cacheApi.remove("publicMain")
+    db.run(
+      workAccidents.filter( _.id === id ).delete.asTry
+    )
+  }
   
   private def makeSorter( sk:SortKey.Value, asc:Boolean ) = sk match {
     case SortKey.Datetime     => (r:WorkAccidentSummaryTable) => if (asc) r.dateTime.asc.nullsLast else r.dateTime.desc.nullsFirst
@@ -129,8 +135,6 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     
   }
   
-  // Want: Worker details, ent details, emp details, accident id
-  // TODO: view for this, then Tableclass and method in this DAO
   /**
    *
    * @param year
