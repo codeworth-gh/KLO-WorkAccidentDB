@@ -36,82 +36,86 @@
     </div>
     <div class="col">
       <h3>@Messages("publicIndex.injuredThisYear")</h3>
-      @defining( Severity.values.toSeq.map(Some(_)) ++ Seq(None) ) { cols =>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>@Messages("industry")</th>
-              @for( so <- cols ) {
-                @so match {
-                  case Some(s) => {<th>@Messages("severity.s."+s)</th>}
-                  case None => {<th class="text-muted">@Messages("unknown")</th>}
-                }
-              }
-              <th>@Messages("total")</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for( row <- thisYearByIndustry ){
+      <div class="table-responsive">
+        @defining( Severity.values.toSeq.map(Some(_)) ++ Seq(None) ) { cols =>
+          <table class="table">
+            <thead>
               <tr>
-                @row._1 match {
-                  case None => {<th class="text-muted">@Messages("unknown")</th>}
-                  case Some(ind) => {<th>@ind.name</th>}
+                <th>@Messages("industry")</th>
+                @for( so <- cols ) {
+                  @so match {
+                    case Some(s) => {<th>@Messages("severity.s."+s)</th>}
+                    case None => {<th class="text-muted">@Messages("unknown")</th>}
+                  }
                 }
-                @for( s <- cols ) {
-                  <td>@row._2.getOrElse(s,0)</td>
-                }
-                <th>@row._2.values.sum<th>
+                <th>@Messages("total")</th>
               </tr>
-            }
-            <tr>
-              <th>@Messages("total")</th>
-              @for( s <- cols ) {
-                <th>@thisYearByIndustry.values.map(m=>m.getOrElse(s,0)).sum</th>
+            </thead>
+            <tbody>
+              @for( row <- thisYearByIndustry ){
+                <tr>
+                  @row._1 match {
+                    case None => {<th class="text-muted">@Messages("unknown")</th>}
+                    case Some(ind) => {<th>@ind.name</th>}
+                  }
+                  @for( s <- cols ) {
+                    <td>@row._2.getOrElse(s,0)</td>
+                  }
+                  <th>@row._2.values.sum</th>
+                </tr>
               }
-              <th>@thisYearByIndustry.values.flatMap(m=>m.values).sum</th>
-            </tr>
-          </tbody>
-        </table>
-      }
+              <tr>
+                <th>@Messages("total")</th>
+                @for( s <- cols ) {
+                  <th>@thisYearByIndustry.values.map(m=>m.getOrElse(s,0)).sum</th>
+                }
+                <th>@thisYearByIndustry.values.flatMap(m=>m.values).sum</th>
+              </tr>
+            </tbody>
+          </table>
+        }
+      </div>
     </div>
   </div>
   <div class="row">
     <div class="col">
       <h3>@Messages("publicIndex.prevYears")</h3>
-      @defining( Severity.values.toSeq.map(Some(_)) ++ Seq(None) ) { cols =>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>@Messages("year")</th>
-              @for( so <- cols ) {
-                @so match {
-                  case Some(s) => {<th>@Messages("severity.s."+s)</th>}
-                  case None => {<th class="text-muted">@Messages("unknown")</th>}
-                }
-              }
-              <th>@Messages("total")</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for( yearRow <- prevYears.toSeq.sortBy(_._1).reverse ){
+      <div class="table-responsive">
+        @defining( Severity.values.toSeq.map(Some(_)) ++ Seq(None) ) { cols =>
+          <table class="table">
+            <thead>
               <tr>
-                <th>@yearRow._1</th>
-                @for( col <- cols ) {
-                  <td>@yearRow._2.getOrElse(col, 0)</td>
+                <th>@Messages("year")</th>
+                @for( so <- cols ) {
+                  @so match {
+                    case Some(s) => {<th>@Messages("severity.s."+s)</th>}
+                    case None => {<th class="text-muted">@Messages("unknown")</th>}
+                  }
                 }
-                <th>@yearRow._2.values.sum</th>
+                <th>@Messages("total")</th>
               </tr>
-            }
-            <tr>
-              <th>@Messages("total")</th>
-              @for( col <- cols ) {
-                <th>@prevYears.values.map( m=>m.getOrElse(col,0) ).sum</th>
+            </thead>
+            <tbody>
+              @for( yearRow <- prevYears.toSeq.sortBy(_._1).reverse ){
+                <tr>
+                  <th>@yearRow._1</th>
+                  @for( col <- cols ) {
+                    <td>@yearRow._2.getOrElse(col, 0)</td>
+                  }
+                  <th>@yearRow._2.values.sum</th>
+                </tr>
               }
-              <th>@prevYears.values.flatMap( m=>m.values ).sum</th>
-            </tr>
-          </tbody>
-        </table>
-      }
+              <tr>
+                <th>@Messages("total")</th>
+                @for( col <- cols ) {
+                  <th>@prevYears.values.map( m=>m.getOrElse(col,0) ).sum</th>
+                }
+                <th>@prevYears.values.flatMap( m=>m.values ).sum</th>
+              </tr>
+            </tbody>
+          </table>
+        }
+      </div>
     </div>
 
     <div class="col">
