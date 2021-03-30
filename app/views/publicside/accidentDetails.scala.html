@@ -2,22 +2,22 @@
 
 @templates.frontEndBase(Messages("accidentDetails.title"), views.PublicSections.AccidentList) {
   @comps.pageTitleRow(Messages("accidentDetails.title"))(Html(""))
-  <div class="row">
+  <div class="row mb-2">
     @if(acc.hasTime) {
-      <div class="col-sm-2">@Messages("dateTime")</div>
+      <div class="col-sm-2 text-klo-dg">@Messages("dateTime")</div>
       <div class="col">@acc.when.format(Helpers.dateFormats(Helpers.DateFmt.HR_DateTime))</div>
     }else{
-      <div class="col-sm-2">@Messages("date")</div>
+      <div class="col-sm-2 text-klo-dg">@Messages("date")</div>
       <div class="col">@acc.when.format(Helpers.dateFormats(Helpers.DateFmt.HR_Date))</div>
     }
   </div>
   @if( acc.blogPostUrl.trim.nonEmpty ) {
-    <div class="row">
+    <div class="row mb-2">
       <div class="col"><a href="@acc.blogPostUrl" target="_blank">@Messages("pressRelease")</a></div>
     </div>
   }
-  <div class="row">
-    <div class="col-sm-2">@Messages("workAccidentEditor.location")</div>
+  <div class="row mb-2">
+    <div class="col-sm-2 text-klo-dg">@Messages("workAccidentEditor.location")</div>
     <div class="col">
       @if( acc.location.trim.nonEmpty ) {
         @acc.location
@@ -30,32 +30,32 @@
     </div>
   </div>
   @for( ent <- acc.entrepreneur ) {
-    <div class="row">
-      <div class="col-sm-2">@Messages("workAccidentEditor.entrepreneurName")</div>
+    <div class="row mb-2">
+      <div class="col-sm-2 text-klo-dg">@Messages("workAccidentEditor.entrepreneurName")</div>
       <div class="col"> @ent.name </div>
     </div>
   }
   @if( acc.details.trim.nonEmpty ) {
-    <div class="row">
-      <div class="col-sm-2">@Messages("workAccidentEditor.details")</div>
+    <div class="row mb-2">
+      <div class="col-sm-2 text-klo-dg">@Messages("workAccidentEditor.details")</div>
       <div class="col">@acc.details</div>
     </div>
   }
   @if( acc.investigation.trim.nonEmpty ) {
-    <div class="row">
-      <div class="col-sm-2">@Messages("workAccidentEditor.investigation")</div>
+    <div class="row mb-2">
+      <div class="col-sm-2 text-klo-dg">@Messages("workAccidentEditor.investigation")</div>
       <div class="col">@acc.investigation</div>
     </div>
   }
   @if( acc.initialSource.trim.nonEmpty ) {
-    <div class="row">
-      <div class="col-sm-2">@Messages("workAccidentEditor.initialSource")</div>
+    <div class="row mb-2">
+      <div class="col-sm-2 text-klo-dg">@Messages("workAccidentEditor.initialSource")</div>
       <div class="col">@acc.initialSource</div>
     </div>
   }
   @if( acc.mediaReports.filter(_.trim.nonEmpty).nonEmpty ){
-    <div class="row">
-      <div class="col-sm-2">@Messages("workAccidentEditor.mediaReports")</div>
+    <div class="row mb-2">
+      <div class="col-sm-2 text-klo-dg">@Messages("workAccidentEditor.mediaReports")</div>
       <div class="col">
         @if( acc.mediaReports.size == 1 ) {
           <a href="@acc.mediaReports.head">@acc.mediaReports.head</a>
@@ -70,18 +70,18 @@
     </div>
   }
   @if( acc.publicRemarks.trim.nonEmpty ) {
-    <div class="row">
+    <div class="row mb-2">
       <div class="col">@acc.publicRemarks</div>
     </div>
   }
 
-  <div class="row mt-3">
+  <div class="row mt-2">
     <div class="col">
       <h3>@Messages("injuredWorkers")</h3>
     </div>
   </div>
 
-  <div class="row">
+  <div class="row mb-2">
     <div class="col">
       <ul class="injuredWorkers">
         @for( worker <- acc.injured.toSeq.sortBy(ij=>ij.injurySeverity) ) {
@@ -95,8 +95,8 @@
                 @for( age <- worker.age ){ (@Messages("age") @age)}
               }
             </div>
-            <div class="row">
-              <div class="col-sm-2">@Messages("severity")</div>
+            <div class="row mb-2">
+              <div class="col-sm-2 text-klo-dg">@Messages("severity")</div>
               <div class="col">
                 @worker.injurySeverity match {
                   case None => {
@@ -109,26 +109,26 @@
               </div>
             </div>
             @for( ind <- worker.industry ) {
-              <div class="row">
-                <div class="col-sm-2">@Messages("industry")</div>
+              <div class="row mb-2">
+                <div class="col-sm-2 text-klo-dg">@Messages("industry")</div>
                 <div class="col">@ind.name</div>
               </div>
             }
             @for( emp <- worker.employer ) {
-              <div class="row">
-                <div class="col-sm-2">@Messages("employer")</div>
+              <div class="row mb-2">
+                <div class="col-sm-2 text-klo-dg">@Messages("employer")</div>
                 <div class="col">@emp.name</div>
               </div>
             }
             @for( ctz <- worker.citizenship ) {
-              <div class="row">
-                <div class="col-sm-2">@Messages("citizenship")</div>
+              <div class="row mb-2">
+                <div class="col-sm-2 text-klo-dg">@Messages("citizenship")</div>
                 <div class="col">@ctz.name</div>
               </div>
             }
             @Helpers.ifSome( worker.injuryCause ){ cz =>
-              <div class="row">
-                <div class="col-sm-2">@Messages("workAccidentEditor.injuryCause")</div>
+              <div class="row mb-2">
+                <div class="col-sm-2 text-klo-dg">@Messages("workAccidentEditor.injuryCause")</div>
                 <div class="col">@cz.name</div>
               </div>
             }

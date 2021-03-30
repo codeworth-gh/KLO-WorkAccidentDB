@@ -138,10 +138,6 @@ hr.vr {
   direction: rtl;
 }
 
-.text-klo-blue {
-  color: $KloBlue;
-}
-
 .slideUpPanel{
   background-color: #DDD;
   border-bottom: 1px solid black;
@@ -193,6 +189,14 @@ ul.errors{
 .bg-klo-blue {
   background-color: $KloBlue;
   color: $KloLightGray;
+}
+
+.text-klo-blue {
+  color: $KloBlue;
+}
+
+.text-klo-dg {
+  color: $KloDarkGray
 }
 
 .klo-navbar {
