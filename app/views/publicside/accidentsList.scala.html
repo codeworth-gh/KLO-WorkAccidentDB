@@ -41,8 +41,8 @@
                 @Helpers.format(Helpers.DateFmt.HR_Date, ent.dateTime ) @if(ent.hasTime){@Helpers.format(Helpers.DateFmt.HR_Time, ent.dateTime)}
               </div>
               <div class="me-auto">
-                <a href="@lnk" class="btn btn-sm btn-outline-primary">@comps.svg.arrowLeftCircle()</a>
                 <button class="btn btn-sm btn-outline-secondary" type="button" onclick="UiUtils.toggleViz('detailsRow-@ent.id')">@comps.svgInfoSquare()</button>
+                <a href="@lnk" class="btn btn-sm btn-outline-primary">@comps.svg.arrowLeftCircle()</a>
               </div>
             </td>
             <td>
@@ -62,11 +62,17 @@
             @ent.killedCount
             </td>
           </tr>
-          @if(ent.details.trim.nonEmpty){
-            <tr class="detailsRow" id="detailsRow-@ent.id" style="display:none">
-            <td colspan="5">@ent.details</td>
-            </tr>
-          }
+          <tr class="detailsRow" id="detailsRow-@ent.id" style="display:none">
+            <td colspan="5">
+            <span class="text-klo-dg">
+              @for( rgn <- ent.regionId.flatMap(rgns) ){
+                @rgn.name,
+              }
+              @Helpers.ifNotEmpty(ent.location){d => @d, }
+            </span>
+              @ent.details
+            </td>
+          </tr>
           }}
         </tbody>
       </table>

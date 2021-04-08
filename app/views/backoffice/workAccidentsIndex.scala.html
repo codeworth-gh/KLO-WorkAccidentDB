@@ -66,11 +66,17 @@
               @ent.killedCount
             </td>
           </tr>
-          @if(ent.details.trim.nonEmpty){
-            <tr class="detailsRow" id="detailsRow-@ent.id" style="display:none">
-              <td colspan="5">@ent.details</td>
-            </tr>
-          }
+          <tr class="detailsRow" id="detailsRow-@ent.id" style="display:none">
+            <td colspan="5">
+              <span class="text-klo-dg">
+                @for( rgn <- ent.regionId.flatMap(rgns) ){
+                  @rgn.name,
+                }
+                @Helpers.ifNotEmpty(ent.location){d => @d, }
+              </span>
+              @ent.details
+            </td>
+          </tr>
         }}
         </tbody>
       </table>
