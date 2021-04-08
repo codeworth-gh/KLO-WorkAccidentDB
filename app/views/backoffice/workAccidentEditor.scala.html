@@ -75,10 +75,12 @@
       <form action="@routes.WorkAccidentCtrl.doSaveAccident()" method="post" id="workAccidentForm">
         @comps.bform.datalist("bizEnts", bizEnts.values)
         @helper.CSRF.formField
-        @if( frm("id").value.getOrElse(0)!="0" ){
-          @comps.bform.fieldHRow(frm, "id", isReadOnly = true )
-        }else{<input type="hidden" name="id" value="0">}
-        @comps.bform.titleRow(Messages("workAccidentEditor.details")){ }
+        <input type="hidden" name="id" value="@frm("id").value.getOrElse(0)">
+        @comps.bform.titleRow(Messages("workAccidentEditor.details")){
+          @for( accId <- frm("id").value.filter(_ != "0") ) {
+            @Messages("id"): <code>@accId</code>
+          }
+        }
         <div class="row">
           <div class="col-sm-6">
             @comps.bform.fieldHRow(frm, "date", "workAccidentEditor.", inputType="date", isRequired=true)
