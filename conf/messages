@@ -102,11 +102,12 @@ businessEntitiesEditor.deleteMsgSub=לא ניתן יהיה לשחזר את הנ�
 businessEntitiesEditor.deletionFailed=המחיקה נכלשה
 
 helperTables.title=מאפייני תאונות
-helperTables.help=במסך זה ניתן לערוך את רשימות המאפיינים המשמשים בתיאור תאונות ונפגעים.
+helperTables.help=במסך זה ניתן לערוך את רשימות המאפיינים המשמשים בתיאור תאונות, נפגעים, והקשרים ביניהם.
 helperTables.tabs.regions=אזורים
 helperTables.tabs.industries=ענפי תעשייה
 helperTables.tabs.injuryCauses=סיבות פגיעה
 helperTables.tabs.citizenships=אזרחויות
+helperTables.tabs.relationsToAccidents=קשר לתאונה
 helperTables.newRow=הוספת מאפיין
 
 userHome.title=ניהול האתר

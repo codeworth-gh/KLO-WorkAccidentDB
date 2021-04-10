@@ -1,5 +1,6 @@
 @import be.objectify.deadbolt.scala.AuthenticatedRequest
-@(regionsList:Seq[Region], citizenships:Seq[Citizenship], injuryCauses:Seq[InjuryCause], industries:Seq[Industry])(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
+@(regionsList:Seq[Region], citizenships:Seq[Citizenship], injuryCauses:Seq[InjuryCause],
+        industries:Seq[Industry], relationsToAccidents:Seq[RelationToAccident])(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
 
 @extraHead={
   <script src="@routes.Assets.versioned("js/EditableList.js")"></script>
@@ -14,6 +15,7 @@
         @for(r<-citizenships){elCitizenships.addRow({id:@r.id, name:"@r.name"});}
         @for(r<-injuryCauses){elInjuryCauses.addRow({id:@r.id, name:"@r.name"});}
         @for(r<-industries){elIndustries.addRow({id:@r.id, name:"@r.name"});}
+        @for(r<-relationsToAccidents){elRelationsToAccidents.addRow({id:@r.id, name:"@r.name"});}
     });
   </script>
 }
@@ -25,14 +27,14 @@
   <div class="row my-2">
     <div class="col">
       <ul class="nav nav-pills nav-fill" role="tablist" id="topicTabs">
-        @for(t<-Seq("regions","citizenships","injuryCauses","industries").zipWithIndex){
+        @for(t<-Seq("regions","citizenships","injuryCauses","industries","relationsToAccidents").zipWithIndex){
           <li class="nav-item" role="presentation">
             <a class="nav-link@if(t._2==0){ active}" data-bs-toggle="tab" href="#@{t._1}-tab">@Messages(s"helperTables.tabs.${t._1}")</a>
           </li>
         }
       </ul>
       <div class="tab-content py-4">
-      @for(t<-Seq("regions","citizenships","injuryCauses","industries").zipWithIndex){
+      @for(t<-Seq("regions","citizenships","injuryCauses","industries","relationsToAccidents").zipWithIndex){
         <div class="tab-pane@if(t._2==0){ show active}" id="@{t._1}-tab">
           <ul class="editableList" id="el-@{t._1}">
             <li>

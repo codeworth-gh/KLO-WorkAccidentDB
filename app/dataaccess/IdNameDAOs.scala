@@ -1,6 +1,6 @@
 package dataaccess
 
-import models.{Citizenship, Industry, InjuryCause, Region}
+import models.{Citizenship, Industry, InjuryCause, Region, RelationToAccident}
 import play.api.cache.SyncCacheApi
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
@@ -64,4 +64,7 @@ class InjuryCausesDAO @Inject() (dbConfigProvider:DatabaseConfigProvider, sc:Syn
 
 class IndustriesDAO @Inject() (dbConfigProvider:DatabaseConfigProvider, sc:SyncCacheApi)(implicit ec:ExecutionContext)
   extends IdNameDAO[Industry, IndustriesTable](slick.lifted.TableQuery[IndustriesTable], sc, dbConfigProvider)
+
+class RelationToAccidentDAO @Inject() (dbConfigProvider:DatabaseConfigProvider, sc:SyncCacheApi)(implicit ec:ExecutionContext)
+  extends IdNameDAO[RelationToAccident, RelationToAccidentTable](slick.lifted.TableQuery[RelationToAccidentTable], sc, dbConfigProvider)
 

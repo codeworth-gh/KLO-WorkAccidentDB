@@ -39,6 +39,9 @@ object HomeCtrl {
     routes.javascript.HelperTableCtrl.apiAddInjuryCause,
     routes.javascript.HelperTableCtrl.apiEditInjuryCause,
     routes.javascript.HelperTableCtrl.apiDeleteInjuryCause,
+    routes.javascript.HelperTableCtrl.apiAddRelationsToAccidents,
+    routes.javascript.HelperTableCtrl.apiEditRelationsToAccidents,
+    routes.javascript.HelperTableCtrl.apiDeleteRelationsToAccidents,
     routes.javascript.UserCtrl.apiAddUser,
     routes.javascript.UserCtrl.apiReInviteUser,
     routes.javascript.UserCtrl.apiDeleteInvitation,
@@ -94,18 +97,5 @@ class HomeCtrl @Inject()(deadbolt:DeadboltActions, localAction:LocalAction,
   }
   
   def notImplYet = TODO
-  
-  val prefixes   = Seq("","pro","post","pseudo","pre","deep","auto","anti","multi","single","parallel","concurrent")
-  val adjectives = Seq("cyber","related","sym/tech","general","dental","argumental","side-channel-ly","persistent")
-  val nouns      = Seq("blockchain", "neural network", "css", "browser", "jelly","utopia","shared workspace","lunch","machine learning")
-  
-  def generateDataPage( pageNum:Int, perPage:Int):Seq[(Int, String)] = {
-    val startNum = (pageNum-1)*perPage
-    scala.collection.immutable.Range.inclusive(1,perPage).map( i => {
-      val itemNum = startNum+i
-      val item = Seq(prefixes(itemNum%prefixes.size), adjectives(itemNum%adjectives.size), nouns(itemNum%nouns.size)).mkString(" ")
-      (itemNum, item)
-    })
-  }
   
 }

@@ -1,7 +1,7 @@
 package dataaccess
 
 import java.sql.Timestamp
-import models.{BusinessEntity, Citizenship, Industry, InjuryCause, Invitation, PasswordResetRequest, Region, User, WorkAccidentSummary}
+import models.{BusinessEntity, Citizenship, Industry, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, User, WorkAccidentSummary}
 import slick.lifted.Tag
 import slick.jdbc.PostgresProfile.api._
 
@@ -71,6 +71,8 @@ class CitizenshipsTable(tag:Tag) extends IdNameTable[Citizenship](tag, "citizens
 class IndustriesTable(tag:Tag) extends IdNameTable[Industry](tag, "industries", Industry, Industry.unapply)
 
 class InjuryCausesTable(tag:Tag) extends IdNameTable[InjuryCause](tag, "injury_causes", InjuryCause, InjuryCause.unapply)
+
+class RelationToAccidentTable(tag:Tag) extends IdNameTable[RelationToAccident](tag, "bizent_accident_relation_type", RelationToAccident, RelationToAccident.unapply)
 
 class WorkAccidentsTable(t:Tag) extends Table[WorkAccidentRecord](t, "work_accidents") {
   

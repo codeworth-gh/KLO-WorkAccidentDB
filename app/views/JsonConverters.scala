@@ -1,6 +1,6 @@
 package views
 
-import models.{Citizenship, Industry, InjuryCause, Region}
+import models.{Citizenship, Industry, InjuryCause, Region, RelationToAccident}
 import play.api.libs.json.Json
 
 object JsonConverters {
@@ -8,5 +8,6 @@ object JsonConverters {
   implicit val injuryCauseFmt = Json.format[InjuryCause]
   implicit val industryFmt = Json.format[Industry]
   implicit val citizenshipFmt = Json.format[Citizenship]
+  implicit val relationToAccidentsFmt = Json.format[RelationToAccident]
   
 }

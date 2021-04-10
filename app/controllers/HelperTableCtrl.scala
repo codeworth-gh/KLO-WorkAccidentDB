@@ -1,8 +1,8 @@
 package controllers
 
 import be.objectify.deadbolt.scala.DeadboltActions
-import dataaccess.{CitizenshipsDAO, IdNameDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO}
-import models.{Citizenship, Industry, InjuryCause, Region}
+import dataaccess.{CitizenshipsDAO, IdNameDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO}
+import models.{Citizenship, Industry, InjuryCause, Region, RelationToAccident}
 import play.api.Logger
 import play.api.i18n.I18nSupport
 import play.api.libs.json.{Format, JsError, JsSuccess, JsValue, Json, Writes}
@@ -15,7 +15,8 @@ import views.JsonConverters._
 import scala.util.{Failure, Success}
 
 class HelperTableCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponents,
-          regions:RegionsDAO, citizenships:CitizenshipsDAO, injuryCauses: InjuryCausesDAO, industries:IndustriesDAO)
+                                regions:RegionsDAO, citizenships:CitizenshipsDAO, injuryCauses: InjuryCausesDAO,
+                                industries:IndustriesDAO, relationsToAccidents:RelationToAccidentDAO)
                                (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport with JsonApiHelper {
   
   private val log = Logger(classOf[HelperTableCtrl])
@@ -26,8 +27,9 @@ class HelperTableCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponent
       citizenshipList <- citizenships.list()
       injuryCauseList <- injuryCauses.list()
       industryList <- industries.list()
+      relationList <- relationsToAccidents.list()
     } yield {
-      Ok( views.html.backoffice.helperTablesIndex(regionList, citizenshipList, injuryCauseList, industryList) )
+      Ok( views.html.backoffice.helperTablesIndex(regionList, citizenshipList, injuryCauseList, industryList, relationList) )
     }
   }
   
@@ -101,5 +103,12 @@ class HelperTableCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponent
   def apiAddInjuryCause() = Action.async(cc.parsers.tolerantJson){ req => apiAdd(req, injuryCauses ) }
   def apiEditInjuryCause(id:Int) = Action.async(cc.parsers.tolerantJson){ req => apiEdit(id, req, injuryCauses, (r:InjuryCause)=>r.copy(id=id)) }
   def apiDeleteInjuryCause(id:Int) = Action.async{ req => apiDelete(id, injuryCauses) }
+  
+  def apiListRelationsToAccidents = Action.async{ req => apiList(relationsToAccidents) }
+  def apiGetRelationsToAccidents(id:Int) = Action.async{ req => apiGet(relationsToAccidents, id) }
+  def apiAddRelationsToAccidents() = Action.async(cc.parsers.tolerantJson){ req => apiAdd(req, relationsToAccidents ) }
+  def apiEditRelationsToAccidents(id:Int) = Action.async(cc.parsers.tolerantJson){ req => apiEdit(id, req, relationsToAccidents, (r:RelationToAccident)=>r.copy(id=id)) }
+  def apiDeleteRelationsToAccidents(id:Int) = Action.async{ req => apiDelete(id, relationsToAccidents) }
+  
   
 }

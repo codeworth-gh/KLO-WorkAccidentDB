@@ -70,6 +70,10 @@ POST   /api/injuryCause/     controllers.HelperTableCtrl.apiAddInjuryCause()
 PUT    /api/injuryCause/:id  controllers.HelperTableCtrl.apiEditInjuryCause(id:Int)
 DELETE /api/injuryCause/:id  controllers.HelperTableCtrl.apiDeleteInjuryCause(id:Int)
 
+POST   /api/relationsToAccidents/     controllers.HelperTableCtrl.apiAddRelationsToAccidents()
+PUT    /api/relationsToAccidents/:id  controllers.HelperTableCtrl.apiEditRelationsToAccidents(id:Int)
+DELETE /api/relationsToAccidents/:id  controllers.HelperTableCtrl.apiDeleteRelationsToAccidents(id:Int)
+
 POST    /bkofc/api/users/                         controllers.UserCtrl.apiAddUser()
 POST    /bkofc/api/users/invitations/:uuid/resend controllers.UserCtrl.apiReInviteUser(uuid)
 DELETE  /bkofc/api/users/invitations/:uuid        controllers.UserCtrl.apiDeleteInvitation(uuid)
