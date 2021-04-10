@@ -50,6 +50,8 @@ forgotPassword.title=איפוס סיסמא
 forgotPassword.help=הכניסי את כתובת המייל איתה נרשמת לאתר, ונשלח לך לשם מייל לאיפוס סיסמא
 forgotPassword.emailSent=מייל איפוס סיסמא נשלח לכתובת {0}. אם את לא מוצאת אותו, חפשי בתיקיית הספאם.
 
+footer.warning=הנתונים המופיעים באתר לגבי נפגעים המוגדרים כ-"קל" חלקיים, כיוון שפציעות אלו לרוב אינן מדווחות.
+
 inviteUser.title=הזמנת משתמשות
 inviteUser.help=ממסך זה ניתן לשלוח הזמנות למערכת
 inviteUser.sendInvite=שליחת הזמנה
@@ -137,7 +139,7 @@ workAccidentEditor.blogPostUrl.help=אם קו לעובד פרסמה הודעה �
 workAccidentEditor.entrepreneurName=שם היזם
 workAccidentEditor.date=תאריך
 workAccidentEditor.details=פרטי התאונה
-workAccidentEditor.location=מקום התאונה
+workAccidentEditor.location=כתובת התאונה
 workAccidentEditor.time=שעה
 workAccidentEditor.title=עריכת תאונת עבודה
 workAccidentEditor.injuryCause=גורם הפגיעה
@@ -217,5 +219,6 @@ update=עידכון
 username=שם משתמשת
 usernameOrEmail=שם משתמשת/אימייל
 website=אתר אינטרנט
+workplace=מקום עבודה
 injuredWorkers=נפגעים
 year=שנה
