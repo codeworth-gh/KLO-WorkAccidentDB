@@ -1,6 +1,6 @@
 @import be.objectify.deadbolt.scala.AuthenticatedRequest
 @(frm:Form[WorkAccidentFD], regions:Seq[Region], bizEnts:Map[Long,String], industries:Seq[Industry],
-        citizenships: Seq[Citizenship], injuryCauses:Seq[InjuryCause])(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
+        citizenships: Seq[Citizenship], injuryCauses:Seq[InjuryCause], relationTypes:Seq[RelationToAccident])(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
 
 @extraHead={
 <script>
@@ -8,6 +8,12 @@
       const row = document.getElementById("mediaReportRowTemplate").content.firstElementChild.cloneNode(true);
       document.getElementById("mediaReportsList").appendChild(row);
       row.getElementsByTagName("input")[0].focus();
+  }
+
+  function addRelatedEntityRow() {
+    const row = document.getElementById("relatedEntityTemplate").content.firstElementChild.cloneNode(true);
+    document.getElementById("relatedEntitiesList").appendChild(row);
+    row.getElementsByTagName("select")[0].focus();
   }
 
   let newCardIdx=@frm("injured").indexes.size;
@@ -94,6 +100,27 @@
           <div class="col-sm-6">@comps.bform.fieldHRow(frm, "location", "workAccidentEditor.", labelWidth = 3)</div>
         </div>
         @comps.bform.listInputHRow(frm, "entrepreneurName", "bizEnts", "workAccidentEditor.")
+        @comps.bform.formHRow(frm, "relatedBusinessEntities", "workAccidentEditor."){
+          <ul id="relatedEntitiesList" class="list-unstyled p-0 m-0">
+            <li class="d-flex flex-row mb-1">
+              <select class="form-select flex-grow-0 w-auto ms-1" name="relationType[]" id="">
+                @for( rt <- relationTypes ){<option value="@rt.id">@rt.name</option>}
+              </select>
+              <input type="text" class="form-control flex-grow-1 ms-1" list="bizEnts" >
+              <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svgTrash()</button>
+            </li>
+@*          @for( idx <- frm("relatedEntities").indexes ){*@
+@*            <li class="d-flex flex-row mb-1">*@
+@*              *@
+@*              <input type="url" name="mediaReports[]" class="form-control flex-grow-1 flex"*@
+@*              value="@frm("mediaReports")("["+idx+"]").value.getOrElse("")">*@
+@*                &nbsp;*@
+@*              <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svgTrash()</button>*@
+@*            </li>*@
+@*          }*@
+          </ul>
+          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addRelatedEntityRow()">@comps.svgAdd() @Messages("workAccidentEditor.addEntity")</button>
+        }
         @comps.bform.textareaHRow(frm, "details", "workAccidentEditor.", rows=3)
         @comps.bform.textareaHRow(frm, "investigation", "workAccidentEditor.", rows=3)
         @comps.bform.fieldHRow(frm, "initialSource", "workAccidentEditor.")
@@ -160,10 +187,18 @@
       </form>
     </div>
   </div>
+  <template id="relatedEntityTemplate">
+    <li class="d-flex flex-row mb-1">
+    <select class="form-select flex-grow-0 w-auto ms-1" name="relationType[]" id="">
+      @for( rt <- relationTypes ){<option value="@rt.id">@rt.name</option>}
+    </select>
+    <input type="text" class="form-control flex-grow-1 ms-1" list="bizEnts" >
+    <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svgTrash()</button>
+    </li>
+  </template>
   <template id="mediaReportRowTemplate">
     <li class="d-flex flex-row mb-1">
-      <input type="url" name="mediaReports[]" class="form-control flex-grow-1 flex">
-      &nbsp;
+      <input type="url" name="mediaReports[]" class="form-control flex-grow-1 flex ms-1">
       <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svgTrash()</button>
     </li>
   </template>

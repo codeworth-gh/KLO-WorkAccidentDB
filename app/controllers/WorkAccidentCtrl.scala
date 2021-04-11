@@ -3,7 +3,7 @@ package controllers
 import actors.ImportDataActor
 import akka.actor.ActorRef
 import be.objectify.deadbolt.scala.{AuthenticatedRequest, DeadboltActions}
-import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, WorkAccidentDAO}
+import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, WorkAccidentDAO}
 import models.{BusinessEntity, InjuredWorker, Severity, WorkAccident}
 import play.api.{Configuration, Logger}
 import play.api.i18n.{I18nSupport, MessagesProvider}
@@ -69,6 +69,7 @@ object WorkAccidentFD{
 class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponents, conf:Configuration,
                                  accidents:WorkAccidentDAO, regions:RegionsDAO, businesses:BusinessEntityDAO,
                                  citizenships: CitizenshipsDAO, causes:InjuryCausesDAO, industries:IndustriesDAO,
+                                 accidentRelations:RelationToAccidentDAO,
                                  @Named("ImportDataActor")importActor:ActorRef
                                 )(implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport with JsonApiHelper {
   
@@ -177,8 +178,9 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
       inds <- industries.list()
       ctzs <- citizenships.list()
       ijcs <- causes.list()
+      rtac <- accidentRelations.list()
     } yield {
-      Ok(views.html.backoffice.workAccidentEditor(aForm, rgns, bePr, inds, ctzs, ijcs))
+      Ok(views.html.backoffice.workAccidentEditor(aForm, rgns, bePr, inds, ctzs, ijcs, rtac))
     }
   }
   
