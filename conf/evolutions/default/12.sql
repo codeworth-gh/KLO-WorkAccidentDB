@@ -11,6 +11,7 @@ create table bart_accident (
 
     foreign key (accident_id) REFERENCES work_accidents(id) on delete cascade,
     foreign key (business_entity_id) REFERENCES business_entities(id) on delete cascade,
+    foreign key (bart_id) references bizent_accident_relation_type(id) on delete cascade,
     primary key (accident_id, bart_id, business_entity_id)
 );
 

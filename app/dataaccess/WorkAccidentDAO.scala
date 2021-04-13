@@ -1,6 +1,6 @@
 package dataaccess
 
-import models.{BusinessEntity, Industry, InjuredWorker, InjuredWorkerRow, Severity, WorkAccident, WorkAccidentSummary}
+import models.{BusinessEntity, Industry, InjuredWorker, InjuredWorkerRow, RelationToAccident, Severity, WorkAccident, WorkAccidentSummary}
 import play.api.Logger
 import play.api.cache.AsyncCacheApi
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -9,7 +9,6 @@ import slick.jdbc.{GetResult, JdbcProfile}
 import java.time.{LocalDate, LocalDateTime}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import scala.math.Ordering.Implicits.infixOrderingOps
 import scala.util.Try
 
 object WorkAccidentDAO {
@@ -32,7 +31,8 @@ object WorkAccidentDAO {
 
 class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigProvider,
                                  citizenships: CitizenshipsDAO, regions: RegionsDAO,
-                                 industries: IndustriesDAO, injuryCauses: InjuryCausesDAO, cacheApi:AsyncCacheApi
+                                 industries: IndustriesDAO, injuryCauses: InjuryCausesDAO,
+                                 relationTypes:RelationToAccidentDAO,  cacheApi:AsyncCacheApi
                                 )(implicit ec:ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
   
   import slick.jdbc.PostgresProfile.api._
@@ -41,8 +41,9 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   private val injuredWorkers = TableQuery[InjuredWorkersTable]
   private val businessEntities = TableQuery[BusinessEntityTable]
   private val workAccidentSummaries = TableQuery[WorkAccidentSummaryTable]
-  private val accidentsAndEntrepreneurs = workAccidents.joinLeft(businessEntities).on( (a,b)=> a.entrepreneur_id === b.id )
+  private val accidentBizEntRelations = TableQuery[AccidentToBusinessEntityTable]
   private val workersAndEmployers = injuredWorkers.joinLeft(businessEntities).on( (w,e)=>w.employer_id === e.id )
+  private val accidentAndBizEnts = accidentBizEntRelations.join(businessEntities).on( (a,b)=>a.bizEntId === b.id )
   
   private val log = Logger(classOf[WorkAccidentDAO])
   
@@ -56,12 +57,15 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   def store( wa:WorkAccident ):Future[WorkAccident] = {
     cacheApi.remove("publicMain")
     val waRow = toDto(wa)
+    val relateds = toRelationRecords(wa)
     
     for {
       waIn <- db.run((workAccidents returning workAccidents.map(_.id)).into((_, newId)=>waRow.copy(id=newId)).insertOrUpdate(waRow))
       accId = waIn.getOrElse(waRow).id
-      _    <- db.run(injuredWorkers.filter(_.id inSet wa.injured.map(_.id)).delete ) // remove old records
+      _    <- db.run(injuredWorkers.filter(_.id inSet wa.injured.map(_.id)).delete ) // remove old injured workers
+      _    <- db.run(accidentBizEntRelations.filter(_.accidentId===accId).delete )   // remove old related biz ents
       iwIn <- Future.sequence( wa.injured.map( store(_, accId)) ) // easy, as all are new now
+      _    <- db.run( accidentBizEntRelations ++= relateds.toSeq )
     } yield {
       wa.copy( id=accId, injured = iwIn )
     }
@@ -69,10 +73,12 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   
   def getAccident( id:Long ):Future[Option[WorkAccident]] = {
     for {
-      waRowOpt <- db.run( accidentsAndEntrepreneurs.filter(_._1.id===id).result ).map( _.headOption )
-      iwRows <- workersInAccident(id)
+      waRowOpt <- db.run( workAccidents.filter(_.id===id).result ).map( _.headOption )
+      iwRows   <- workersInAccident(id)
+      relateds <- db.run(accidentAndBizEnts.filter( r => r._1.accidentId === id ).result )
+      bizEnts   = relateds.map( r => (r._1.relationTypeId, r._2) ).map( t => (relationTypes(t._1).get, t._2) )
     } yield {
-      waRowOpt.map( row => fromDto(row._1, iwRows.toSet, row._2))
+      waRowOpt.map( row => fromDto(row, iwRows.toSet, bizEnts.toSet))
     }
   }
   
@@ -120,9 +126,13 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     workersAndEmployers.filter( _._1.accident_id === accId ).sortBy(_._1.name).result
   ).map( _.map( p=>fromDto(p._1, p._2)) )
   
-  def deleteWorker( id:Long ):Future[Try[Int]] = db.run(
-    injuredWorkers.filter(_.id===id).delete.asTry
-  )
+  def deleteWorker( id:Long ):Future[Try[Int]] = {
+    val r = db.run(
+      injuredWorkers.filter(_.id===id).delete.asTry
+    )
+    cacheApi.remove("publicMain")
+    r
+  }
   
   def listWorkers():Future[Seq[InjuredWorker]] = {
     for {
@@ -212,13 +222,13 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     iwRow.injurySeverity.map( Severity.apply ), iwRow.injuryDescription, iwRow.publicRemarks, iwRow.sensitiveRemarks
   )
   
-  private def fromDto( waRow:WorkAccidentRecord, iws:Set[InjuredWorker], entrepreneur:Option[BusinessEntity] ) = WorkAccident(
-    waRow.id, waRow.when, entrepreneur, waRow.location, waRow.regionId.flatMap( regions.apply ), waRow.blogPostUrl, waRow.details,
+  private def fromDto( waRow:WorkAccidentRecord, iws:Set[InjuredWorker], relateds:Set[(RelationToAccident, BusinessEntity)] ) = WorkAccident(
+    waRow.id, waRow.when, relateds, waRow.location, waRow.regionId.flatMap( regions.apply ), waRow.blogPostUrl, waRow.details,
     waRow.investigation, waRow.initialSource, waRow.mediaReports.split("\n").toSet, waRow.publicRemarks, waRow.sensitiveRemarks, iws
   )
   
   private def toDto( wa:WorkAccident ) = WorkAccidentRecord(
-      wa.id, wa.when, entrepreneurId = wa.entrepreneur.map(_.id),
+      wa.id, wa.when,
       location = wa.location,
       regionId = wa.region.map(_.id),
       blogPostUrl = wa.blogPostUrl,
@@ -229,6 +239,8 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
       publicRemarks = wa.publicRemarks,
       sensitiveRemarks = wa.sensitiveRemarks
   )
+  
+  private def toRelationRecords( wa:WorkAccident ) = wa.relatedEntities.map( t => RelationToAccidentRecord(wa.id, t._1.id, t._2.id) )
   
   private def toDto( iw:InjuredWorker, accidentId:Long ) = InjuredWorkerRecord(
       id = iw.id,

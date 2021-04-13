@@ -10,10 +10,20 @@
       row.getElementsByTagName("input")[0].focus();
   }
 
+  let nextId=@{frm("relatedEntities").indexes.size};
   function addRelatedEntityRow() {
     const row = document.getElementById("relatedEntityTemplate").content.firstElementChild.cloneNode(true);
+    ["input","select"].forEach( tagName=>{
+      const inputs = row.getElementsByTagName(tagName);
+      for (let i = 0; i < inputs.length; i++) {
+        const inp = inputs[i];
+        inp.name=inp.name.replace("%",String(nextId));
+      }
+    });
+
     document.getElementById("relatedEntitiesList").appendChild(row);
     row.getElementsByTagName("select")[0].focus();
+    nextId++;
   }
 
   let newCardIdx=@frm("injured").indexes.size;
@@ -99,25 +109,25 @@
           <div class="col-sm-6">@comps.bform.selectHRow(frm, "region", options=regions.map(r=>r.id.toString->r.name), labelWidth = 3)</div>
           <div class="col-sm-6">@comps.bform.fieldHRow(frm, "location", "workAccidentEditor.", labelWidth = 3)</div>
         </div>
-        @comps.bform.listInputHRow(frm, "entrepreneurName", "bizEnts", "workAccidentEditor.")
         @comps.bform.formHRow(frm, "relatedBusinessEntities", "workAccidentEditor."){
           <ul id="relatedEntitiesList" class="list-unstyled p-0 m-0">
-            <li class="d-flex flex-row mb-1">
-              <select class="form-select flex-grow-0 w-auto ms-1" name="relationType[]" id="">
-                @for( rt <- relationTypes ){<option value="@rt.id">@rt.name</option>}
-              </select>
-              <input type="text" class="form-control flex-grow-1 ms-1" list="bizEnts" >
-              <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svgTrash()</button>
-            </li>
-@*          @for( idx <- frm("relatedEntities").indexes ){*@
-@*            <li class="d-flex flex-row mb-1">*@
-@*              *@
-@*              <input type="url" name="mediaReports[]" class="form-control flex-grow-1 flex"*@
-@*              value="@frm("mediaReports")("["+idx+"]").value.getOrElse("")">*@
-@*                &nbsp;*@
-@*              <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svgTrash()</button>*@
-@*            </li>*@
-@*          }*@
+            @for( idx <- frm("relatedEntities").indexes ){
+              <li class="d-flex flex-row mb-1">
+                <select class="form-select flex-grow-0 w-auto ms-1" name="relatedEntities[@idx].relationId" autocomplete="off">
+                  @defining( frm(s"relatedEntities[$idx].relationId").value.map( _.toInt).getOrElse(-1) ) { selVal =>
+                    @for(rt <- relationTypes) {
+                      @if(rt.id==selVal) {
+                        <option value="@rt.id" selected="selected">@rt.name</option>
+                      } else {
+                        <option value="@rt.id">@rt.name</option>
+                      }
+                    }
+                  }
+                </select>
+                <input type="text" name="relatedEntities[@idx].businessEntityName" value="@frm(s"relatedEntities[$idx].businessEntityName").value" class="form-control flex-grow-1 ms-1" list="bizEnts" >
+                <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svgTrash()</button>
+              </li>
+            }
           </ul>
           <button type="button" class="btn btn-outline-primary btn-sm" onclick="addRelatedEntityRow()">@comps.svgAdd() @Messages("workAccidentEditor.addEntity")</button>
         }
@@ -189,10 +199,10 @@
   </div>
   <template id="relatedEntityTemplate">
     <li class="d-flex flex-row mb-1">
-    <select class="form-select flex-grow-0 w-auto ms-1" name="relationType[]" id="">
+    <select class="form-select flex-grow-0 w-auto ms-1" name="relatedEntities[%].relationId" id="">
       @for( rt <- relationTypes ){<option value="@rt.id">@rt.name</option>}
     </select>
-    <input type="text" class="form-control flex-grow-1 ms-1" list="bizEnts" >
+    <input type="text" name="relatedEntities[%].businessEntityName" class="form-control flex-grow-1 ms-1" list="bizEnts" >
     <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svgTrash()</button>
     </li>
   </template>

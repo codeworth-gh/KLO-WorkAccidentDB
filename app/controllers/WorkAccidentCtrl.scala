@@ -10,8 +10,7 @@ import play.api.i18n.{I18nSupport, MessagesProvider}
 import play.api.mvc.{AbstractController, ControllerComponents}
 import play.api.data._
 import play.api.data.Forms.{optional, _}
-import dataaccess.WorkAccidentDAO.SortKey
-import views.{PageSectionItem, PaginationInfo}
+import views.PaginationInfo
 
 import java.time.{LocalDate, LocalTime, ZoneId}
 import javax.inject.{Inject, Named}
@@ -43,7 +42,7 @@ case class WorkAccidentFD(
                            id:Long,
                            date: LocalDate,
                            time: Option[LocalTime],
-                           entrepreneurName:Option[String],
+                           relatedEntities:Seq[RelatedEntityFD],
                            location: String,
                            region: Option[Int],
                            blogPostUrl: String,
@@ -59,12 +58,17 @@ object WorkAccidentFD{
   def make(wa: WorkAccident):WorkAccidentFD = {
     val time = wa.when.toLocalTime
     val timeOpt = if ( time.getHour==0 && time.getMinute==0) None else Some(time)
-    WorkAccidentFD(wa.id, wa.when.toLocalDate, timeOpt, wa.entrepreneur.map(_.name), wa.location, wa.region.map(_.id),
+    WorkAccidentFD(wa.id, wa.when.toLocalDate, timeOpt, wa.relatedEntities.map(r=>RelatedEntityFD(r._2.name, r._1.id)).toSeq, wa.location, wa.region.map(_.id),
       wa.blogPostUrl, wa.details, wa.investigation, wa.initialSource, wa.mediaReports.toSeq.sorted, wa.publicRemarks,
       wa.sensitiveRemarks, wa.injured.toSeq.map(InjuredWorkerFD.make)
     )
   }
 }
+
+case class RelatedEntityFD(
+                          entityName:String,
+                          relationId:Int
+                          )
 
 class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponents, conf:Configuration,
                                  accidents:WorkAccidentDAO, regions:RegionsDAO, businesses:BusinessEntityDAO,
@@ -75,6 +79,11 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
   
   private val log = Logger(classOf[WorkAccidentCtrl])
   private val PAGE_SIZE=40
+  
+  private val relatedEntityMapping = mapping(
+    "businessEntityName" -> text,
+    "relationId" -> number
+  )(RelatedEntityFD.apply)(RelatedEntityFD.unapply)
   
   private val injuredWorkerMapping = mapping(
     "id"->longNumber,
@@ -95,7 +104,7 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
     "id"->longNumber,
     "date"->localDate,
     "time"->optional(localTime("HH:mm")),
-    "entrepreneurName"->optional(text),
+    "relatedEntities"->seq(relatedEntityMapping),
     "location"->text,
     "region"->optional(number),
     "blogPostUrl"->text,
@@ -117,7 +126,7 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
       accCount <- accidents.accidentCount()
     } yield {
       Ok(views.html.backoffice.workAccidentsIndex(accRows,
-        regions.apply _,
+        regions.apply,
         PaginationInfo(page, Math.ceil(accCount/PAGE_SIZE.toDouble).toInt), sortBy, asc))
     }
   }
@@ -125,7 +134,7 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
   def showNew() = deadbolt.SubjectPresent()() { implicit req =>
     val wa = WorkAccidentFD(
       0, LocalDate.now(ZoneId.of(conf.get[String]("timeZoneId"))),
-      None, None, "", None, "", "", "", "", Seq(), "","",Seq(
+      None, Seq(), "", None, "", "", "", "", Seq(), "","",Seq(
         InjuredWorkerFD(0, "", None, None, None, None, "", None, None, "", "", "")
       )
     )
@@ -150,8 +159,8 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
       },
       wafd => {
         for {
-          bizEntMap <- businesses.findOrCreateNames( (Seq(wafd.entrepreneurName) ++ wafd.injured.map(_.employerName)).flatten.toSet)
-          wa = constructWorkAccident(wafd, bizEntMap)
+          bizEntMap <- businesses.findOrCreateNames( (wafd.relatedEntities.map(_.entityName) ++ wafd.injured.map(_.employerName).flatten).toSet )
+          wa = constructWorkAccident(wafd, bizEntMap, wafd.relatedEntities)
           dbWa <- accidents.store(wa)
         } yield {
           val msgs = request2Messages(req)
@@ -190,9 +199,11 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
     iwfd.injuryDescription, iwfd.publicRemarks, iwfd.sensitiveRemarks
   )
   
-  private def constructWorkAccident(wafd: WorkAccidentFD, bizEntMap: Map[String, BusinessEntity]):WorkAccident = {
+  private def constructWorkAccident(wafd: WorkAccidentFD, bizEntMap: Map[String, BusinessEntity], relateds:Seq[RelatedEntityFD]):WorkAccident = {
     val waTimeStamp = wafd.date.atTime(wafd.time.getOrElse(LocalTime.of(0,0)))
-    WorkAccident( wafd.id, waTimeStamp, wafd.entrepreneurName.map(bizEntMap),
+    val relatedObj = relateds.map( rec => (accidentRelations(rec.relationId), bizEntMap(rec.entityName)) )
+      .filter( p => p._1.isDefined ).map( p => (p._1.get, p._2))
+    WorkAccident( wafd.id, waTimeStamp, relatedObj.toSet,
       wafd.location, wafd.region.flatMap( regions.apply ),
       wafd.blogPostUrl, wafd.details, wafd.investigation, wafd.initialSource,
       wafd.mediaReports.toSet, wafd.publicRemarks, wafd.sensitiveRemarks,
@@ -211,7 +222,7 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
     ))
     val (fileName, content) = formTuple.bindFromRequest().get
     log.info(s"Got filename: $fileName")
-    log.info(s"Got ${content.split("\n").size} lines")
+    log.info(s"Got ${content.split("\n").length} lines")
     log.info(s"First line: ${content.split("\n")(0)}")
     importActor ! ImportDataActor.ImportString(fileName, content)
     

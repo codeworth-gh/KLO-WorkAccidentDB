@@ -5,7 +5,7 @@ import java.time.{LocalDate, LocalDateTime, LocalTime}
 case class WorkAccident(
                        id: Long,
                        when: LocalDateTime,
-                       entrepreneur:Option[BusinessEntity],
+                       relatedEntities:Set[(RelationToAccident, BusinessEntity)],
                        location: String,
                        region: Option[Region],
                        blogPostUrl: String,

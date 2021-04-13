@@ -6,6 +6,10 @@ body {
   direction: rtl;
 }
 
+ol, ul {
+  padding-right: 1rem;
+}
+
 .form-control {
   unicode-bidi: plaintext;
 }

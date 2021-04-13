@@ -8,7 +8,6 @@ import java.time.LocalDateTime
 case class WorkAccidentRecord(
                          id: Long,
                          when: LocalDateTime,
-                         entrepreneurId:Option[Long],
                          location: String,
                          regionId: Option[Int],
                          blogPostUrl: String,
@@ -36,3 +35,8 @@ case class InjuredWorkerRecord(
                           sensitiveRemarks:String
                         )
 
+case class RelationToAccidentRecord(
+                                   accidentId: Long,
+                                   relationTypeId: Int,
+                                   businessEntityId: Long
+                                   )

@@ -1,5 +1,9 @@
 @(acc:WorkAccident)(implicit request:Request[_], msgs:MessagesProvider)
 
+@relEntLine(rt:RelationToAccident, ent:BusinessEntity)={
+  @ent.name, <span class="text-klo-dg">@rt.name</span>.
+}
+
 @templates.frontEndBase(Messages("accidentDetails.title"), views.PublicSections.AccidentList) {
   @comps.pageTitleRow(Messages("accidentDetails.title"))(Html(""))
   <div class="row mb-2">
@@ -29,11 +33,22 @@
       }
     </div>
   </div>
-  @for( ent <- acc.entrepreneur ) {
+  @Helpers.ifNotEmpty(acc.relatedEntities){ relatedSet => @defining( relatedSet.iterator.toSeq.sortBy(_._1.name) ) { relateds =>
     <div class="row mb-2">
-      <div class="col-sm-2 text-klo-dg">@Messages("workAccidentEditor.entrepreneurName")</div>
-      <div class="col"> @ent.name </div>
+      <div class="col-sm-2 text-klo-dg">@Messages("workAccidentEditor.relatedEntities")</div>
+      <div class="col">
+        @if( relateds.size == 1 ) {
+          @relEntLine( relateds.head._1, relateds.head._2 )
+        } else {
+          <ul>
+            @for( t <- relateds ) {
+             <li>@relEntLine(t._1, t._2)</li>
+            }
+          </ul>
+        }
+      </div>
     </div>
+    }
   }
   @if( acc.details.trim.nonEmpty ) {
     <div class="row mb-2">
@@ -100,7 +115,7 @@
               <div class="col">
                 @worker.injurySeverity match {
                   case None => {
-                    <span class="noData">@Messages("unknown")</span>
+                    <em class="text-klo-dg">@Messages("unknown")</em>
                   }
                   case Some(s) => {
                     @Messages("severity." + s.toString)

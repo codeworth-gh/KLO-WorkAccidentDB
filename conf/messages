@@ -144,6 +144,7 @@ workAccidentEditor.time=שעה
 workAccidentEditor.title=עריכת תאונת עבודה
 workAccidentEditor.relatedBusinessEntities=גורמים קשורים
 workAccidentEditor.addEntity=גורם חדש
+workAccidentEditor.relatedEntities=גורמים מעורבים
 workAccidentEditor.injuryCause=גורם הפגיעה
 workAccidentEditor.injuryDescription=תאור הפגיעה
 workAccidentEditor.initialSource=מקור ראשוני

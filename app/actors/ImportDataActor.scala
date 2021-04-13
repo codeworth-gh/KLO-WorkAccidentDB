@@ -1,8 +1,8 @@
 package actors
 
 import akka.actor.{Actor, Props}
-import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, WorkAccidentDAO}
-import models.{BusinessEntity, Citizenship, Industry, InjuredWorker, InjuryCause, Region, Severity, WorkAccident}
+import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, WorkAccidentDAO}
+import models.{BusinessEntity, Citizenship, Industry, InjuredWorker, InjuryCause, Region, RelationToAccident, Severity, WorkAccident}
 import play.api.Logger
 
 import java.nio.file.Path
@@ -41,7 +41,8 @@ object ImportDataActor {
 }
 
 class ImportDataActor @Inject() (businessEnts:BusinessEntityDAO, regions:RegionsDAO,
-  accidents:WorkAccidentDAO, citizenships:CitizenshipsDAO, injuryCauses: InjuryCausesDAO, industries:IndustriesDAO
+  accidents:WorkAccidentDAO, citizenships:CitizenshipsDAO, injuryCauses: InjuryCausesDAO,
+  industries:IndustriesDAO, relationsToAccs: RelationToAccidentDAO
                                 )(implicit anEc:ExecutionContext) extends Actor {
   private val log = Logger(classOf[ImportDataActor])
   private val D = Duration(5, duration.MINUTES)
@@ -51,7 +52,8 @@ class ImportDataActor @Inject() (businessEnts:BusinessEntityDAO, regions:Regions
   private var injuryCauseByName:Map[String, InjuryCause]=null
   private var industryByName:Map[String, Industry]=null
   private var regionByName:Map[String, Region]=null
-  private var currentFile:String=null;
+  private var currentFile:String=null
+  private var yazamRelation:Option[RelationToAccident]=null
   
   override def receive: Receive = {
     case ImportDataActor.ImportFile(path) => {
@@ -75,6 +77,7 @@ class ImportDataActor @Inject() (businessEnts:BusinessEntityDAO, regions:Regions
     injuryCauseByName = Await.result(injuryCauses.list(), D).map( c => c.name.replaceAll(" ","")->c ).toMap
     industryByName = Await.result(industries.list(), D).map( c => c.name.replaceAll(" ","")->c ).toMap
     regionByName = Await.result(regions.list(), D).map( c => c.name.replaceAll(" ","")->c ).toMap
+    yazamRelation = Await.result(relationsToAccs.list(), D).find( _.name == "יזם" )
   }
   
   private def cleanupStructures():Unit = {
@@ -103,11 +106,12 @@ class ImportDataActor @Inject() (businessEnts:BusinessEntityDAO, regions:Regions
   }
   
   private def importStrings( lines: Iterator[String] ):Int ={
+
     lines.zipWithIndex
       .drop(1) // skip header
       .filter( _._1.trim.nonEmpty )
       .flatMap( parseLine ).toSeq
-      .groupBy( wa=>(wa.when.toLocalDate, wa.entrepreneur, wa.location, wa.region) )
+      .groupBy( wa=>(wa.when.toLocalDate, wa.relatedEntities.headOption.map(_._2.name), wa.location, wa.region) )
       .map( mergeAccidentRows )
       .map( wa => {
         wa.injured.size match {
@@ -129,14 +133,23 @@ class ImportDataActor @Inject() (businessEnts:BusinessEntityDAO, regions:Regions
       val inds = canonize(comps(FieldNums.INDUSTRY), industryByName)
       val incz = canonize(comps(FieldNums.INJURY_CAUSE), injuryCauseByName)
       val emp = getCreateBusinessEntity(comps(FieldNums.EMPLOYER))
-      val entrepreneur =  if (comps.length>FieldNums.ENTREPRENEUR) getCreateBusinessEntity(comps(FieldNums.ENTREPRENEUR)) else emp
+      val relateds = yazamRelation match {
+        case None => Seq()
+        case Some(rel) => {
+          val bizEnt = if (comps.length>FieldNums.ENTREPRENEUR) getCreateBusinessEntity(comps(FieldNums.ENTREPRENEUR)) else emp
+          bizEnt match {
+            case None     => Seq()
+            case Some(be) => Seq( (rel, be) )
+          }
+        }
+      }
       
       val iw = InjuredWorker(0,
         comps(FieldNums.NAME), toInt(comps(FieldNums.AGE)),
         ctzn, inds, emp, comps(FieldNums.FROM), incz, severity(comps(FieldNums.SEVERITY)),
           comps(FieldNums.INJURY_DETAILS), "", s"Imported from $currentFile, line: ${line._2}")
       val wa = WorkAccident(0, dateTime(comps(FieldNums.DATE), comps(FieldNums.TIME)),
-        entrepreneur,
+        relateds.toSet,
         comps(FieldNums.LOCATION), canonize(comps(FieldNums.REGION), regionByName),
         "", comps(FieldNums.ACCIDENT_DETAILS),comps(FieldNums.INVESTIGATION),
         comps(FieldNums.SOURCE), Set(), comps(FieldNums.REMARKS), "", Set(iw)

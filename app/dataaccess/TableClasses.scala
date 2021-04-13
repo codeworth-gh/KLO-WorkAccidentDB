@@ -54,7 +54,7 @@ class BusinessEntityTable(tag:Tag) extends Table[BusinessEntity](tag, "business_
     id, name, phone, email, website, isPrivatePerson, memo
   ) <> (BusinessEntity.tupled, BusinessEntity.unapply)
   
-  def nameIdx = index("business_entities_name", (name))
+  def nameIdx = index("business_entities_name", name)
 }
 
 class IdNameTable[T](tag: Tag, tableName: String, apply: (Int, String) => T, unapply: T => Option[(Int, String)])
@@ -78,7 +78,6 @@ class WorkAccidentsTable(t:Tag) extends Table[WorkAccidentRecord](t, "work_accid
   
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def date_time = column[LocalDateTime]("date_time")
-  def entrepreneur_id = column[Option[Long]]("entrepreneur_id")
   def location = column[String]("location")
   def region_id = column[Option[Int]]("region_id")
   def blog_post_url = column[String]("blog_post_url")
@@ -89,10 +88,9 @@ class WorkAccidentsTable(t:Tag) extends Table[WorkAccidentRecord](t, "work_accid
   def public_remarks = column[String]("public_remarks")
   def sensitive_remarks = column[String]("sensitive_remarks")
   
-  def * = (id, date_time, entrepreneur_id, location, region_id, blog_post_url, details, investigation, initialSource, mediaReports, public_remarks, sensitive_remarks
+  def * = (id, date_time, location, region_id, blog_post_url, details, investigation, initialSource, mediaReports, public_remarks, sensitive_remarks
   )<>(WorkAccidentRecord.tupled, WorkAccidentRecord.unapply)
   
-  def fkEnt = foreignKey("fk_wa_ent", entrepreneur_id, TableRefs.businessEntities)(_.id.?)
   def fkRgn = foreignKey("fk_wa_rgn", region_id, TableRefs.regions)(_.id.?)
 }
 
@@ -139,6 +137,18 @@ class WorkAccidentSummaryTable(t:Tag) extends Table[WorkAccidentSummary](t,"work
            injuredCount, killedCount)<>(WorkAccidentSummary.tupled, WorkAccidentSummary.unapply)
 }
 
+class AccidentToBusinessEntityTable(t:Tag) extends Table[RelationToAccidentRecord](t, "bart_accident"){
+  def accidentId = column[Long]("accident_id")
+  def relationId = column[Int]("bart_id")
+  def bizEntId   = column[Long]("business_entity_id")
+  
+  def * = (accidentId, relationId, bizEntId) <> (RelationToAccidentRecord.tupled, RelationToAccidentRecord.unapply )
+  
+  def fkAcc = foreignKey("bart_accident_accident_id_fkey", accidentId, TableRefs.accidents)(_.id)
+  def fkRel = foreignKey("bart_accident_bart_id_fkey", relationId, TableRefs.relationsToAccidents)(_.id)
+  def fkBiz = foreignKey("bart_accident_business_entity_id_fkey", bizEntId, TableRefs.businessEntities)(_.id)
+}
+
 object TableRefs {
   val businessEntities = TableQuery[BusinessEntityTable]
   val regions = TableQuery[RegionsTable]
@@ -146,4 +156,5 @@ object TableRefs {
   val citizenships = TableQuery[CitizenshipsTable]
   val industries = TableQuery[IndustriesTable]
   val injuryCauses = TableQuery[InjuryCausesTable]
+  val relationsToAccidents = TableQuery[RelationToAccidentTable]
 }
