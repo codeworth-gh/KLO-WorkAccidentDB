@@ -22,9 +22,7 @@
             @comps.sortingTH(Messages("workAccidents.region"),
               b=>routes.PublicCtrl.accidentIndex(Some("Region"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
               curSort, SortKey.Region, isAsc)
-            @comps.sortingTH(Messages("workAccidents.entrepreneur"),
-              b=>routes.PublicCtrl.accidentIndex(Some("Entrepreneur"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
-              curSort, SortKey.Entrepreneur, isAsc)
+            <th>@Messages("workAccidents.relatedEntities")</th>
             @comps.sortingTH(Messages("workAccidents.numInjured"),
               b=>routes.PublicCtrl.accidentIndex(Some("Injuries"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
               curSort, SortKey.Injuries, isAsc)
@@ -51,8 +49,8 @@
             }
             </td>
             <td>
-            @for(entName<-ent.entrepreneurName){
-              @entName
+            @for( rel<-ent.relateds.toSeq.sortBy(_._1.name).zipWithIndex ){
+              @rel._1._2.name (@rel._1._1.name) @if(rel._2<ent.relateds.size-1){, }
             }
             </td>
             <td>

@@ -1,7 +1,7 @@
 package dataaccess
 
 import java.sql.Timestamp
-import models.{BusinessEntity, Citizenship, Industry, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, User, WorkAccidentSummary}
+import models.{BusinessEntity, BusinessEntitySummary, Citizenship, Industry, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, User, WorkAccidentSummary}
 import slick.lifted.Tag
 import slick.jdbc.PostgresProfile.api._
 
@@ -56,6 +56,15 @@ class BusinessEntityTable(tag:Tag) extends Table[BusinessEntity](tag, "business_
   
   def nameIdx = index("business_entities_name", name)
 }
+
+class BusinessEntitySummaryTable(tag:Tag) extends Table[BusinessEntitySummary](tag, "business_entities") {
+  def id = column[Long]("id")
+  def name = column[String]("name")
+  
+  def * = (id, name) <> (BusinessEntitySummary.tupled, BusinessEntitySummary.unapply)
+  
+}
+
 
 class IdNameTable[T](tag: Tag, tableName: String, apply: (Int, String) => T, unapply: T => Option[(Int, String)])
                     (implicit classTag: ClassTag[T]) extends Table[T](tag, tableName) {
@@ -120,21 +129,19 @@ class InjuredWorkersTable(t:Tag) extends Table[InjuredWorkerRecord](t, "injured_
   def fkICs = foreignKey("fk_iw_ic", injury_cause_id, TableRefs.injuryCauses)(_.id.?)
 }
 
-class WorkAccidentSummaryTable(t:Tag) extends Table[WorkAccidentSummary](t,"work_accident_summary"){
+class WorkAccidentSummaryTable(t:Tag) extends Table[WorkAccidentSummaryRecord](t,"work_accident_summary"){
   def id       = column[Long]("id")
   def dateTime = column[LocalDateTime]("date_time")
-  def entrepreneurId   = column[Option[Long]]("entrepreneur_id")
-  def entrepreneurName = column[Option[String]]("entrepreneur_name")
   def regionId = column[Option[Int]]("region_id")
-  def location  = column[String]("location")
+  def location = column[String]("location")
   def details  = column[String]("details")
   def investigation = column[String]("investigation")
   def injuredCount  = column[Int]("injured_count")
   def killedCount   = column[Int]("killed_count")
   
-  def * = (id, dateTime, entrepreneurId, entrepreneurName, regionId, location,
+  def * = (id, dateTime, regionId, location,
            details, investigation,
-           injuredCount, killedCount)<>(WorkAccidentSummary.tupled, WorkAccidentSummary.unapply)
+           injuredCount, killedCount)<>(WorkAccidentSummaryRecord.tupled, WorkAccidentSummaryRecord.unapply)
 }
 
 class AccidentToBusinessEntityTable(t:Tag) extends Table[RelationToAccidentRecord](t, "bart_accident"){

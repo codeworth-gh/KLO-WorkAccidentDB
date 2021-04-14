@@ -38,9 +38,14 @@ case class InjuredWorker(
 
 case class InjuredWorkerRow(worker:InjuredWorker, accidentId:Long, accidentDate:LocalDate)
 
+case class BusinessEntitySummary(
+  id: Long,
+  name: String
+)
+
 case class WorkAccidentSummary(
   id:Long, dateTime:LocalDateTime,
-  entrepreneurId:Option[Long], entrepreneurName:Option[String],
+  relateds:Set[(RelationToAccident, BusinessEntitySummary)],
   regionId: Option[Int], location:String,
   details:String, investigation:String,
   injuredCount:Int, killedCount:Int

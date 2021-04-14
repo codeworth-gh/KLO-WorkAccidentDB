@@ -1,7 +1,9 @@
 package dataaccess
 
 
-import java.time.LocalDateTime
+import models.{BusinessEntitySummary, RelationToAccident, WorkAccidentSummary}
+
+import java.time.{LocalDate, LocalDateTime, LocalTime}
 
 // Data Transfer objects for the DB layer
 
@@ -18,6 +20,17 @@ case class WorkAccidentRecord(
                          publicRemarks:String,
                          sensitiveRemarks:String
                        )
+
+case class WorkAccidentSummaryRecord(
+  id:Long, dateTime:LocalDateTime,
+  regionId: Option[Int], location:String,
+  details:String, investigation:String,
+  injuredCount:Int, killedCount:Int
+) {
+  def toObject( relateds:Set[(RelationToAccident, BusinessEntitySummary)] ):WorkAccidentSummary={
+    WorkAccidentSummary(id,dateTime, relateds, regionId, location, details, investigation, injuredCount, killedCount)
+  }
+}
 
 case class InjuredWorkerRecord(
                           id:Long,

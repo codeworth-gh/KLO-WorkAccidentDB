@@ -15,7 +15,6 @@ object WorkAccidentDAO {
   object SortKey extends Enumeration {
     val Datetime = Value
     val Region   = Value
-    val Entrepreneur = Value
     val Injuries = Value
     val Fatalities    = Value
   
@@ -40,10 +39,12 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   private val workAccidents = TableQuery[WorkAccidentsTable]
   private val injuredWorkers = TableQuery[InjuredWorkersTable]
   private val businessEntities = TableQuery[BusinessEntityTable]
+  private val businessEntitiesSummaries = TableQuery[BusinessEntitySummaryTable]
   private val workAccidentSummaries = TableQuery[WorkAccidentSummaryTable]
   private val accidentBizEntRelations = TableQuery[AccidentToBusinessEntityTable]
   private val workersAndEmployers = injuredWorkers.joinLeft(businessEntities).on( (w,e)=>w.employer_id === e.id )
   private val accidentAndBizEnts = accidentBizEntRelations.join(businessEntities).on( (a,b)=>a.bizEntId === b.id )
+  private val accidentAndBizEntSums = accidentBizEntRelations.join(businessEntitiesSummaries).on( (a,b)=>a.bizEntId === b.id )
   
   private val log = Logger(classOf[WorkAccidentDAO])
   
@@ -83,14 +84,21 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   }
   
   def listAccidents(start:Int, pageSize:Int, sortBy:SortKey.Value=SortKey.Datetime, isAsc:Boolean=false):Future[Seq[WorkAccidentSummary]] = {
-    db.run(
-      workAccidentSummaries.sortBy( makeSorter(sortBy, isAsc) ).drop(start).take(pageSize).result
-    )
+    
+    for {
+      accs <- db.run(workAccidentSummaries.sortBy(makeSorter(sortBy, isAsc)).drop(start).take(pageSize).result)
+      acIds = accs.map( _.id ).toSet
+      bzen <- db.run( accidentAndBizEntSums.filter( r => r._1.accidentId inSet(acIds)).result )
+    } yield {
+      val relatedRaw = bzen.groupBy( _._1.accidentId )
+      val related = relatedRaw.map( kv => kv._1 -> kv._2.map(r=>(relationTypes(r._1.relationTypeId).get, r._2)).toSet )
+      accs.map( rec => rec.toObject(related.get(rec.id).map(_.toSet).getOrElse(Set())))
+    }
   }
   
   def listAllAccidents():Future[Seq[WorkAccidentSummary]] = db.run(
     workAccidentSummaries.sortBy( _.dateTime.asc ).result
-  )
+  ).map( _.map( _.toObject(Set())) )
   
   def deleteAccident(id:Long):Future[Try[Int]] = {
     cacheApi.remove("publicMain")
@@ -102,7 +110,6 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   private def makeSorter( sk:SortKey.Value, asc:Boolean ) = sk match {
     case SortKey.Datetime     => (r:WorkAccidentSummaryTable) => if (asc) r.dateTime.asc.nullsLast else r.dateTime.desc.nullsFirst
     case SortKey.Region       => (r:WorkAccidentSummaryTable) => if (asc) r.regionId.asc.nullsLast else r.regionId.desc.nullsFirst
-    case SortKey.Entrepreneur => (r:WorkAccidentSummaryTable) => if (asc) r.entrepreneurName.asc.nullsLast else r.entrepreneurName.desc.nullsFirst
     case SortKey.Injuries     => (r:WorkAccidentSummaryTable) => if (asc) r.injuredCount.asc.nullsLast else r.injuredCount.desc.nullsFirst
     case SortKey.Fatalities   => (r:WorkAccidentSummaryTable) => if (asc) r.killedCount.asc.nullsLast else r.killedCount.desc.nullsFirst
   }
