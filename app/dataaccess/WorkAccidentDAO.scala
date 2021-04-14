@@ -96,9 +96,15 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     }
   }
   
-  def listAllAccidents():Future[Seq[WorkAccidentSummary]] = db.run(
-    workAccidentSummaries.sortBy( _.dateTime.asc ).result
-  ).map( _.map( _.toObject(Set())) )
+  def listAllAccidents():Future[Seq[WorkAccidentSummary]] = {
+    for {
+      sums <- db.run(workAccidentSummaries.sortBy(_.dateTime.asc).result)
+      rels <- db.run(accidentAndBizEntSums.result)
+      relMapRaw = rels.groupBy( s => s._1.accidentId )
+      relMap = relMapRaw.map( p => p._1 -> p._2.map( t => relationTypes(t._1.relationTypeId).get -> t._2).toSet)
+      unified = sums.map( s => s.toObject(relMap.getOrElse(s.id, Set())))
+    } yield unified
+  }
   
   def deleteAccident(id:Long):Future[Try[Int]] = {
     cacheApi.remove("publicMain")

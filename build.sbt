@@ -32,7 +32,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-slick-evolutions" % "5.0.0",
   "com.typesafe.play" %% "play-mailer" % "8.0.0",
   "com.typesafe.play" %% "play-mailer-guice" % "8.0.0",
-  "com.github.miachm.sods" % "SODS" % "1.3.0",
+  "com.github.jferard"% "fastods"%"0.7.3",
   "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % Test,
   "org.seleniumhq.selenium" % "selenium-java" % "2.35.0" % "test",
 //  "org.scalamock" %% "scalamock" % "4.0.0" % Test,

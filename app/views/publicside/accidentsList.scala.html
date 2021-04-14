@@ -44,20 +44,20 @@
               </div>
             </td>
             <td>
-            @for( rgnId <- ent.regionId ){
-              @rgns(rgnId).map(_.name).getOrElse("")
-            }
+              @for( rgnId <- ent.regionId ){
+                @rgns(rgnId).map(_.name).getOrElse("")
+              }
             </td>
             <td>
-            @for( rel<-ent.relateds.toSeq.sortBy(_._1.name).zipWithIndex ){
-              @rel._1._2.name (@rel._1._1.name) @if(rel._2<ent.relateds.size-1){, }
-            }
+              @for( rel<-ent.relateds.toSeq.sortBy(_._1.name).zipWithIndex ){
+                @rel._1._2.name (@rel._1._1.name) @if(rel._2<ent.relateds.size-1){, }
+              }
             </td>
             <td>
-            @ent.injuredCount
+              @ent.injuredCount
             </td>
             <td>
-            @ent.killedCount
+              @ent.killedCount
             </td>
           </tr>
           <tr class="detailsRow" id="detailsRow-@ent.id" style="display:none">
