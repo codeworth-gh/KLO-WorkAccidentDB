@@ -2,4 +2,16 @@
 @(title:String, currentSection:PublicSections.Value, extraHead: Html=Html(""), extraBottom: Html=Html("")
  )(content:Html
  )(implicit request: RequestHeader, msgs:MessagesProvider)
-@bsNavbar(title, views.Structure.publicItems, currentSection, extraHead, extraBottom, None)(content)
+@eb={
+  @extraBottom
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DJNRSS9XJ9"></script>
+  <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-DJNRSS9XJ9');
+  </script>
+}
+@bsNavbar(title, views.Structure.publicItems, currentSection, extraHead, eb, None)(content)
