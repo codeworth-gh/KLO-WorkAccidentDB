@@ -32,11 +32,11 @@
 @templates.backEndBase(Messages("businessEntitiesEditor.title"), views.BackOfficeSections.BusinessEntities, extraHead) {
   @comps.pageTitleRow(Messages("businessEntitiesEditor.title")){
     @if( frm("id").value.getOrElse(0)!="0" ){
-      <button type="button" onclick="kickoffDeleteEntity()" class="btn btn-danger">@comps.svgTrash() @Messages("delete")</button>
+      <button type="button" onclick="kickoffDeleteEntity()" class="btn btn-danger">@comps.svg.trash() @Messages("delete")</button>
       <hr class="vr">
     }
-    <button type="button" onclick="document.getElementById('bizEntityForm').submit()" class="btn btn-primary">@comps.svgCheck() @Messages("save")</button>
-    <a class="btn btn-outline-danger" href="@routes.BusinessEntityCtrl.backofficeIndex(None, None, None, None)">@comps.svgX() @Messages("cancel")</a>
+    <button type="button" onclick="document.getElementById('bizEntityForm').submit()" class="btn btn-primary">@comps.svg.check() @Messages("save")</button>
+    <a class="btn btn-outline-danger" href="@routes.BusinessEntityCtrl.backofficeIndex(None, None, None, None)">@comps.svg.x() @Messages("cancel")</a>
   }
 
   <div class="row my-2">

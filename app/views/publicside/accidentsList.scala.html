@@ -2,8 +2,13 @@
 @import dataaccess.WorkAccidentDAO.SortKey
 @(ents:Seq[WorkAccidentSummary], rgns:(Int=>Option[Region]), pi:PaginationInfo, curSort:SortKey.Value, isAsc:Boolean)(implicit request:Request[_], msgs:MessagesProvider)
 
-@templates.frontEndBase(Messages("workAccidents.title"), views.PublicSections.AccidentList) {
-  @comps.pageTitleRow(Messages("workAccidents.title"))(Html(""))
+@extraHead={
+  <script src="@routes.Assets.versioned("js/accidentList.js")"></script>
+}
+@templates.frontEndBase(Messages("workAccidents.title"), views.PublicSections.AccidentList, extraHead = extraHead) {
+  @comps.pageTitleRow(Messages("workAccidents.title")){
+    <button class="btn btn-outline-info" onclick="toggleSearchPanel()">@comps.svg.search() @Messages("filterAndSearch")</button>
+  }
   <div class="row my-2">
     <div class="col">
     @if( ents.isEmpty ){
@@ -39,7 +44,7 @@
                 @Helpers.format(Helpers.DateFmt.HR_Date, ent.dateTime ) @if(ent.hasTime){@Helpers.format(Helpers.DateFmt.HR_Time, ent.dateTime)}
               </div>
               <div class="me-auto">
-                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="UiUtils.toggleViz('detailsRow-@ent.id')">@comps.svgInfoSquare()</button>
+                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="UiUtils.toggleViz('detailsRow-@ent.id')">@comps.svg.infoSquare()</button>
                 <a href="@lnk" class="btn btn-sm btn-outline-primary">@comps.svg.arrowLeftCircle()</a>
               </div>
             </td>

@@ -39,13 +39,13 @@
           <ul class="editableList" id="el-@{t._1}">
             <li>
               <input type="text" class="form-control d-inline-block w-50" value="" disabled>
-              <button type="button" data-el-role="editBtn" class="el-readMode btn btn-outline-secondary">@comps.svgEdit()</button>
-              <button type="button" data-el-role="delBtn" class="el-readMode btn btn-outline-danger">@comps.svgTrash()</button>
-              <button type="button" data-el-role="commitBtn" class="el-editMode btn btn-outline-success">@comps.svgCheck()</button>
-              <button type="button" data-el-role="cancelBtn" class="el-editMode btn btn-outline-danger">@comps.svgX()</button>
+              <button type="button" data-el-role="editBtn" class="el-readMode btn btn-outline-secondary">@comps.svg.edit()</button>
+              <button type="button" data-el-role="delBtn" class="el-readMode btn btn-outline-danger">@comps.svg.trash()</button>
+              <button type="button" data-el-role="commitBtn" class="el-editMode btn btn-outline-success">@comps.svg.check()</button>
+              <button type="button" data-el-role="cancelBtn" class="el-editMode btn btn-outline-danger">@comps.svg.x()</button>
             </li>
           </ul>
-          <button type="button" id="el-@{t._1}-add" class="btn btn-outline-primary">@comps.svgAdd() @Messages("helperTables.newRow")</button>
+          <button type="button" id="el-@{t._1}-add" class="btn btn-outline-primary">@comps.svg.add() @Messages("helperTables.newRow")</button>
         </div>
       }
       </div>

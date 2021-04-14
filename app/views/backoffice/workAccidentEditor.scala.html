@@ -79,11 +79,11 @@
 @templates.backEndBase(Messages("workAccidentEditor.title"), views.BackOfficeSections.WorkAccidents, extraHead) {
   @comps.pageTitleRow(Messages("workAccidentEditor.title")){
     @if( ! frm("id").value.contains("0") ){
-      <button type="button" onclick="kickoffDeleteEntity()" class="btn btn-danger">@comps.svgTrash() @Messages("delete")</button>
+      <button type="button" onclick="kickoffDeleteEntity()" class="btn btn-danger">@comps.svg.trash() @Messages("delete")</button>
       <hr class="vr">
     }
-    <button type="button" onclick="document.getElementById('workAccidentForm').submit()" class="btn btn-primary">@comps.svgCheck() @Messages("save")</button>
-    <a class="btn btn-outline-danger" href="@routes.WorkAccidentCtrl.backofficeIndex(None, None, None)">@comps.svgX() @Messages("cancel")</a>
+    <button type="button" onclick="document.getElementById('workAccidentForm').submit()" class="btn btn-primary">@comps.svg.check() @Messages("save")</button>
+    <a class="btn btn-outline-danger" href="@routes.WorkAccidentCtrl.backofficeIndex(None, None, None)">@comps.svg.x() @Messages("cancel")</a>
   }
 
   <div class="row my-2">
@@ -125,11 +125,11 @@
                   }
                 </select>
                 <input type="text" name="relatedEntities[@idx].businessEntityName" value="@frm(s"relatedEntities[$idx].businessEntityName").value" class="form-control flex-grow-1 ms-1" list="bizEnts" >
-                <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svgTrash()</button>
+                <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svg.trash()</button>
               </li>
             }
           </ul>
-          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addRelatedEntityRow()">@comps.svgAdd() @Messages("workAccidentEditor.addEntity")</button>
+          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addRelatedEntityRow()">@comps.svg.add() @Messages("workAccidentEditor.addEntity")</button>
         }
         @comps.bform.textareaHRow(frm, "details", "workAccidentEditor.", rows=3)
         @comps.bform.textareaHRow(frm, "investigation", "workAccidentEditor.", rows=3)
@@ -142,11 +142,11 @@
               <input type="url" name="mediaReports[]" class="form-control flex-grow-1 flex"
                 value="@frm("mediaReports")("["+idx+"]").value.getOrElse("")">
                 &nbsp;
-              <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svgTrash()</button>
+              <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svg.trash()</button>
             </li>
           }
           </ul>
-          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addMediaReportRow()">@comps.svgAdd() @Messages("workAccidentEditor.addMediaReport")</button>
+          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addMediaReportRow()">@comps.svg.add() @Messages("workAccidentEditor.addMediaReport")</button>
         }
         <div class="row mb-3">
           <div class="col"><button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#waRemarksDiv">
@@ -156,7 +156,7 @@
           @comps.bform.textareaHRow(frm, "publicRemarks", "workAccidentEditor.", isShowHelp=true)
           @comps.bform.textareaHRow(frm, "sensitiveRemarks", "workAccidentEditor.", isShowHelp=true)
         </div>
-        @comps.bform.titleRow(Messages("injuredWorkers")){<button type="button" onclick="addInjuredCard()" class="btn btn-sm btn-outline-primary">@comps.svgAdd() @Messages("add")</button>}
+        @comps.bform.titleRow(Messages("injuredWorkers")){<button type="button" onclick="addInjuredCard()" class="btn btn-sm btn-outline-primary">@comps.svg.add() @Messages("add")</button>}
         <div id="injuredCards" class="container-fluid">
           @for( idx<-frm("injured").indexes ){
             @defining( "injured["+idx+"]." ) { baseName =>
@@ -184,7 +184,7 @@
                   @comps.bform.textareaHRow(frm, baseName+"sensitiveRemarks", rows=2, labelWidth=1, labelText=Messages("workAccidentEditor.sensitiveRemarks") )
                   <div class="row">
                     <div class="col">
-                      <button type="button" onclick="removeInjuredCard(this)" class="btn btn-sm btn-outline-danger">@comps.svgTrash() @Messages("delete") </button>
+                      <button type="button" onclick="removeInjuredCard(this)" class="btn btn-sm btn-outline-danger">@comps.svg.trash() @Messages("delete") </button>
                     </div>
                   </div>
                 </div>
@@ -203,13 +203,13 @@
       @for( rt <- relationTypes ){<option value="@rt.id">@rt.name</option>}
     </select>
     <input type="text" name="relatedEntities[%].businessEntityName" class="form-control flex-grow-1 ms-1" list="bizEnts" >
-    <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svgTrash()</button>
+    <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svg.trash()</button>
     </li>
   </template>
   <template id="mediaReportRowTemplate">
     <li class="d-flex flex-row mb-1">
       <input type="url" name="mediaReports[]" class="form-control flex-grow-1 flex ms-1">
-      <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svgTrash()</button>
+      <button type="button" onclick="this.parentElement.remove()" class="btn btn-outline-danger btn-sm">@comps.svg.trash()</button>
     </li>
   </template>
   <template id="injuredWorkerTemplate">
@@ -237,7 +237,7 @@
           @comps.bform.textareaHRow(frm, baseName+"sensitiveRemarks", rows=2, labelWidth=1, labelText=Messages("workAccidentEditor.sensitiveRemarks") )
           <div class="row">
             <div class="col">
-              <button type="button" onclick="removeInjuredCard(this)" class="btn btn-sm btn-outline-danger">@comps.svgTrash() @Messages("delete") </button>
+              <button type="button" onclick="removeInjuredCard(this)" class="btn btn-sm btn-outline-danger">@comps.svg.trash() @Messages("delete") </button>
             </div>
           </div>
         </div>}

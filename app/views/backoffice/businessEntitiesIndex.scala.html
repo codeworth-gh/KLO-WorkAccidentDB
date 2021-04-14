@@ -5,7 +5,7 @@
 
 @templates.backEndBase(Messages("businessEntities.title"), views.BackOfficeSections.BusinessEntities) {
   @comps.pageTitleRow(Messages("businessEntities.title")){
-    <a href="@routes.BusinessEntityCtrl.showNew()" class="btn btn-outline-primary">@comps.svgAdd() @Messages("businessEntities.addNew")</a>
+    <a href="@routes.BusinessEntityCtrl.showNew()" class="btn btn-outline-primary">@comps.svg.add() @Messages("businessEntities.addNew")</a>
   }
   @comps.helpRow(Messages("businessEntities.help"))
 
@@ -16,7 +16,7 @@
           <div class="my-4">
             @Messages("businessEntities.noData")
           </div>
-          <a href="@routes.BusinessEntityCtrl.showNew()" class="btn btn-outline-light">@comps.svgAdd() @Messages("businessEntities.addNew")</a>
+          <a href="@routes.BusinessEntityCtrl.showNew()" class="btn btn-outline-light">@comps.svg.add() @Messages("businessEntities.addNew")</a>
         </div>
       }else{
         <table class="table table-sm table-striped">
@@ -39,7 +39,7 @@
               <tr>
                 <td><a href="@routes.BusinessEntityCtrl.showEdit(ent.id)">@ent.name</a>
                   @if(ent.isPrivatePerson){<span class="badge bg-success">@Messages("businessEntities.isPrivatePerson")</span>}
-                  <a href="@routes.BusinessEntityCtrl.showEdit(ent.id)" class="btn btn-sm btn-outline-secondary">@comps.svgEdit()</a>
+                  <a href="@routes.BusinessEntityCtrl.showEdit(ent.id)" class="btn btn-sm btn-outline-secondary">@comps.svg.edit()</a>
                 </td>
                 <td>@for( p <- ent.phone ){
                   <a href="tel:@p">@p</a>}</td>

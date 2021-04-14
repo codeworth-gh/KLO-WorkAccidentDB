@@ -5,7 +5,7 @@
 
 @templates.backEndBase(Messages("workAccidents.title"), views.BackOfficeSections.WorkAccidents) {
   @comps.pageTitleRow(Messages("workAccidents.title")){
-    <a href="@routes.WorkAccidentCtrl.showNew()" class="btn btn-outline-primary">@comps.svgAdd() @Messages("add")</a>
+    <a href="@routes.WorkAccidentCtrl.showNew()" class="btn btn-outline-primary">@comps.svg.add() @Messages("add")</a>
   }
   <div class="row my-2">
     <div class="col">
@@ -14,7 +14,7 @@
         <div class="my-4">
         @Messages("workAccidents.noData")
         </div>
-        <a href="@routes.WorkAccidentCtrl.showNew()" class="btn btn-outline-light">@comps.svgAdd() @Messages("add")</a>
+        <a href="@routes.WorkAccidentCtrl.showNew()" class="btn btn-outline-light">@comps.svg.add() @Messages("add")</a>
       </div>
     }else{
       <table class="table table-sm ">
@@ -43,8 +43,8 @@
                 @Helpers.format(Helpers.DateFmt.HR_Date, ent.dateTime ) @if(ent.hasTime){@Helpers.format(Helpers.DateFmt.HR_Time, ent.dateTime)}
               </div>
               <div class="me-auto">
-                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="UiUtils.toggleViz('detailsRow-@ent.id')">@comps.svgInfoSquare()</button>
-                <a href="@lnk" class="btn btn-sm btn-outline-secondary">@comps.svgEdit() @Messages("edit")</a>
+                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="UiUtils.toggleViz('detailsRow-@ent.id')">@comps.svg.infoSquare()</button>
+                <a href="@lnk" class="btn btn-sm btn-outline-secondary">@comps.svg.edit() @Messages("edit")</a>
               </div>
             </td>
             <td>
