@@ -45,7 +45,7 @@ object Structure {
   
   val publicItems:Seq[TopSiteSection[PublicSections.Value]] = Seq(
     PageSection("navbar.publicHome", PublicSections.Home, routes.PublicCtrl.main()),
-    PageSection("navbar.accidents", PublicSections.AccidentList, routes.PublicCtrl.accidentIndex(None, None, None)),
+    PageSection("navbar.accidents", PublicSections.AccidentList, routes.PublicCtrl.accidentIndex(None, None, None, None, None, None, None, None)),
     PageSection("navbar.dead", PublicSections.Fatalities, routes.PublicCtrl.fatalities(None)),
     PageSection("navbar.datasets", PublicSections.Datasets, routes.PublicCtrl.datasets())
   )

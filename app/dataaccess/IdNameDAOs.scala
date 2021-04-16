@@ -45,12 +45,14 @@ class IdNameDAO[O:ClassTag,T<:IdNameTable[O]] (table: slick.lifted.TableQuery[T]
     table.sortBy(_.name).result
   ).map( _.toSeq )
   
-  def delete(id:Int):Future[Try[Int]] = db.run(
-    table.filter( _.id === id ).delete.asTry
-  ).map( res => {
-    cache.remove(cacheKey + id)
-    res
-  })
+  def delete(id:Int):Future[Try[Int]] = {
+    db.run(
+      table.filter( _.id === id ).delete.asTry
+    ).map( res => {
+      cache.remove(cacheKey + id)
+      res
+    })
+  }
 }
 
 class CitizenshipsDAO @Inject() (dbConfigProvider:DatabaseConfigProvider, sc:SyncCacheApi)(implicit ec:ExecutionContext)

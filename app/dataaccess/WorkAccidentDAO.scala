@@ -4,7 +4,7 @@ import models.{BusinessEntity, Industry, InjuredWorker, InjuredWorkerRow, Relati
 import play.api.Logger
 import play.api.cache.AsyncCacheApi
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import slick.jdbc.{GetResult, JdbcProfile}
+import slick.jdbc.{GetResult, JdbcProfile, PostgresProfile}
 
 import java.time.{LocalDate, LocalDateTime}
 import javax.inject.Inject
@@ -83,10 +83,16 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     }
   }
   
-  def listAccidents(start:Int, pageSize:Int, sortBy:SortKey.Value=SortKey.Datetime, isAsc:Boolean=false):Future[Seq[WorkAccidentSummary]] = {
-    
+  def listAccidents(fromOpt:Option[LocalDate], toOpt:Option[LocalDate], regionIds:Set[Int],
+    start:Int, pageSize:Int, sortBy:SortKey.Value=SortKey.Datetime, isAsc:Boolean=false):Future[Seq[WorkAccidentSummary]] = {
+    var qry:Query[WorkAccidentSummaryTable, WorkAccidentSummaryTable#TableElementType, Seq] = workAccidentSummaries
+    fromOpt.foreach(d => qry = qry.filter(r => r.dateTime >= d.atStartOfDay()))
+    toOpt.foreach(d => qry = qry.filter(r => r.dateTime < d.plusDays(1).atStartOfDay()))
+    if ( regionIds.nonEmpty ) {
+      qry = qry.filter( _.regionId.inSet(regionIds))
+    }
     for {
-      accs <- db.run(workAccidentSummaries.sortBy(makeSorter(sortBy, isAsc)).drop(start).take(pageSize).result)
+      accs <- db.run(qry.sortBy(makeSorter(sortBy, isAsc)).drop(start).take(pageSize).result)
       acIds = accs.map( _.id ).toSet
       bzen <- db.run( accidentAndBizEntSums.filter( r => r._1.accidentId inSet(acIds)).result )
     } yield {
@@ -120,7 +126,20 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     case SortKey.Fatalities   => (r:WorkAccidentSummaryTable) => if (asc) r.killedCount.asc.nullsLast else r.killedCount.desc.nullsFirst
   }
   
-  def accidentCount():Future[Int] = db.run( workAccidents.length.result )
+  def filteredWorkAccidents(fromOpt:Option[LocalDate], toOpt:Option[LocalDate], regionIds:Set[Int]):Query[WorkAccidentsTable, WorkAccidentRecord, Seq] = {
+    var qry: Query[WorkAccidentsTable, WorkAccidentRecord, Seq] = workAccidents
+    fromOpt.foreach(d => qry = qry.filter(r => r.date_time >= d.atStartOfDay()))
+    toOpt.foreach(d => qry = qry.filter(r => r.date_time < d.plusDays(1).atStartOfDay()))
+    if ( regionIds.nonEmpty ) {
+      qry = qry.filter( _.region_id.inSet(regionIds))
+    }
+    qry
+  }
+  
+  def accidentCount(fromOpt:Option[LocalDate], toOpt:Option[LocalDate], regionIds:Set[Int]):Future[Int] = {
+    val qry = filteredWorkAccidents(fromOpt, toOpt, regionIds)
+    db.run( qry.length.result )
+  }
   
   def injuredWorkerCount():Future[Map[Option[Int], Int]] = db.run(
     injuredWorkers.groupBy( _.injury_severity )

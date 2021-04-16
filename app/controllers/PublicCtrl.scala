@@ -38,7 +38,7 @@ object PublicCtrl {
 
 
 class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, regions:RegionsDAO,
-                           relations:RelationToAccidentDAO,
+                           relations:RelationToAccidentDAO, industries:IndustriesDAO,
                            cached:Cached, conf:Configuration)
                           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport {
   
@@ -124,17 +124,34 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     }
   }
   
-  def accidentIndex(pSortBy:Option[String]=None, pAsc:Option[String]=None, pPage:Option[Int]=None) = Action.async{ implicit req =>
+  def accidentIndex(pRegions:Option[String], pIndustries:Option[String], pSeverities:Option[String],
+                    pFrom:Option[String], pTo:Option[String], pSortBy:Option[String]=None,
+                    pAsc:Option[String]=None, pPage:Option[Int]=None) = Action.async{ implicit req =>
+    val dateFormat = Helpers.dateFormats(Helpers.DateFmt.ISO_Date)
     val page = pPage.getOrElse(1)
     val asc = pAsc.getOrElse("f").trim=="t"
     val sortBy = WorkAccidentDAO.SortKey.named(pSortBy.getOrElse("Datetime") ).getOrElse(WorkAccidentDAO.SortKey.Datetime)
+    val ppFrom = pFrom.map(_.trim).filter(_.nonEmpty).map( s => LocalDate.parse(s, dateFormat) )
+    val ppTo = pTo.map(_.trim).filter(_.nonEmpty).map( s => LocalDate.parse(s, dateFormat))
+    val (start, end) = (ppFrom, ppTo) match {
+        case (Some(f), Some(t)) => if (f.isAfter(t) ) (ppTo, ppFrom) else (ppFrom, ppTo)
+        case _ => (ppFrom, ppTo)
+      }
+    val selRgns = pRegions.map( _.split(",").map(_.trim).filter(_.nonEmpty).map(_.toInt).map(regions(_)).filter(_.isDefined).flatten.toSet ).getOrElse(Set())
+    val selIndustries = pIndustries.map( _.split(",").map(_.trim).filter(_.nonEmpty).map(_.toInt).map(industries(_)).filter(_.isDefined).flatten.toSet ).getOrElse(Set())
+    val selSeverities = pSeverities.map( _.split(",").map(_.trim).filter(_.nonEmpty).map(Severity.withName).toSet ).getOrElse(Set())
+    
     for {
-      accRows <- accidents.listAccidents((page-1)*PAGE_SIZE, PAGE_SIZE, sortBy, asc)
-      accCount <- accidents.accidentCount()
+      regionList <- regions.list()
+      industryList <- industries.list()
+      accCount <- accidents.accidentCount(start, end, selRgns.map(_.id))
+      accRows <- accidents.listAccidents(start, end, selRgns.map(_.id), (page-1)*PAGE_SIZE, PAGE_SIZE, sortBy, asc)
     } yield {
       Ok(views.html.publicside.accidentsList(accRows,
-        regions.apply,
-        PaginationInfo(page, Math.ceil(accCount/PAGE_SIZE.toDouble).toInt), sortBy, asc))
+        regionList, industryList, regions.apply,
+        selRgns, selIndustries, selSeverities,
+        start.map( dateFormat.format ), end.map( dateFormat.format ),
+        accCount, PaginationInfo(page, Math.ceil(accCount/PAGE_SIZE.toDouble).toInt), sortBy, asc))
     }
   }
   

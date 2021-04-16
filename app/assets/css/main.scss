@@ -199,6 +199,27 @@ ul.errors{
   color: $KloDarkGray
 }
 
+.btn-outline-klo-blue {
+  border: 1px solid $KloBlue;
+  color: $KloBlue;
+  background-color: #FFF;
+  &:hover {
+    border-color: $KloBlue;
+    color: #FFF;
+    background-color: $KloBlue;
+  }
+}
+
+.btn-klo-blue {
+  background-color: $KloBlue;
+  color: #FFF;
+  &:hover {
+    background-color: darken($KloBlue, 15);
+    color: #FFF;
+  }
+}
+
+
 .klo-navbar {
   background-color: $KloLightGray;
 
@@ -356,5 +377,20 @@ ul.injuredList-main {
         }
       }
     }
+  }
+}
+
+.controlGrid {
+  display: grid;
+  grid-template-columns: max-content auto;
+  grid-gap: .5em;
+  align-content: center;
+
+  label.form-label {
+    margin-bottom: 0;
+    line-height: 2em;
+  }
+  .buttonLikeGroup {
+    justify-content: start;
   }
 }

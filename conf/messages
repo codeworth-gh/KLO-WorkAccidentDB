@@ -130,6 +130,7 @@ workAccidents.relatedEntities=גורמים מעורבים
 workAccidents.numInjured=נפגעים
 workAccidents.numFatalities=מתוכם הרוגים
 workAccidents.details=פרטים
+workAccidents.foundCount=נמצאו {0} תאונות
 
 workAccident.saved=תאונת העבודה {0} נשמרה
 
@@ -226,3 +227,5 @@ website=אתר אינטרנט
 workplace=מקום עבודה
 injuredWorkers=נפגעים
 year=שנה
+startDate=התחלה
+endDate=סיום

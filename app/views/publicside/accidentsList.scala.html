@@ -1,14 +1,76 @@
 @import views.PaginationInfo
 @import dataaccess.WorkAccidentDAO.SortKey
-@(ents:Seq[WorkAccidentSummary], rgns:(Int=>Option[Region]), pi:PaginationInfo, curSort:SortKey.Value, isAsc:Boolean)(implicit request:Request[_], msgs:MessagesProvider)
+@import java.time.LocalDate
+@(ents:Seq[WorkAccidentSummary],
+  regions:Seq[Region], industries:Seq[Industry], rgns:(Int=>Option[Region]),
+        selRgns:Set[Region], selIndustries:Set[Industry], selSeverities:Set[models.Severity.Value],
+        from:Option[String], to:Option[String],
+        total:Long, pi:PaginationInfo, curSort:SortKey.Value, isAsc:Boolean)(implicit request:Request[_], msgs:MessagesProvider)
 
 @extraHead={
   <script src="@routes.Assets.versioned("js/accidentList.js")"></script>
 }
+
+@th(sort:String, asc:Boolean)=@{
+  routes.PublicCtrl.accidentIndex(Some(selRgns.map(_.id).mkString(",")), Some(selIndustries.map(_.id).mkString(",")), Some(selSeverities.mkString(",")),
+    from, to,
+    Some(sort), Some(if(asc)"t" else "f"), Some(pi.currentPage))
+}
 @templates.frontEndBase(Messages("workAccidents.title"), views.PublicSections.AccidentList, extraHead = extraHead) {
   @comps.pageTitleRow(Messages("workAccidents.title")){
-    <button class="btn btn-outline-info" onclick="toggleSearchPanel()">@comps.svg.search() @Messages("filterAndSearch")</button>
+    <div class="ms-2">
+      @Messages("workAccidents.foundCount", total)
+    </div>
+
+    <button class="btn btn-outline-klo-blue" data-bs-toggle="collapse" data-bs-target="#searchPanel">@comps.svg.search() @Messages("filterAndSearch")</button>
   }
+  <div class="collapse" id="searchPanel">
+      <div class="row flex-row">
+        <div class="col-sm flex-grow-0 controlGrid" style="min-width: 20em">
+          <form action="" method="GET" id="filterForm">
+            <input type="hidden" name="regions" value="@selRgns.map(_.id).mkString(",")">
+            <input type="hidden" name="industries" value="@selIndustries.map(_.id).mkString(",")">
+            <input type="hidden" name="severities" value="@selSeverities.mkString(",")">
+            <label class="form-label" for="fromDate">@Messages("startDate")</label>
+            <input type="date" value="@from" class="form-control" name="from" id="fromDate" autocomplete="off">
+            <label class="form-label" for="toDate">@Messages("endDate")</label>
+            <input type="date" value="@to" class="form-control" name="to" id="toDate" autocomplete="off">
+          </form>
+        </div>
+        <div class="col-sm flex-grow-2 controlGrid">
+          @Messages("region")
+          <div class="buttonLikeGroup">
+            @for(rgn<-regions) {
+              <input type="checkbox" onchange="updateForm('regions')" class="hidden"
+                      name="regionsChk" value="@rgn.id" id="rgnCheck@rgn.id" autocomplete="off" @if(selRgns(rgn)){checked="checked"}>
+              <label class="buttonLike" for="rgnCheck@rgn.id">@rgn.name</label>
+            }
+          </div>
+          @Messages("industry")
+          <div class="buttonLikeGroup">
+            @for(idn<-industries) {
+              <input type="checkbox" class="hidden" onchange="updateForm('industries')" name="industriesChk"
+                value="@idn.id" id="industries@idn.id" autocomplete="off" @if(selIndustries(idn)){checked="checked"}>
+              <label class="buttonLike" for="industries@idn.id">@idn.name</label>
+            }
+          </div>
+          @Messages("severity")
+          <div class="buttonLikeGroup">
+            @for(sev<-models.Severity.values.toSeq) {
+              <input type="checkbox" class="hidden"  onchange="updateForm('severities')" name="severitiesChk"
+                value="@sev" id="sev@sev" autocomplete="off" @if(selSeverities(sev)){checked="checked"}>
+              <label class="buttonLike" for="sev@sev">@Messages("severity." + sev)</label>
+            }
+          </div>
+        </div>
+
+        <div class="col-sm d-grid flex-grow-0">
+          <button type="button" onclick="submitFilter()" class="btn btn-klo-blue">@Messages("update")</button>
+        </div>
+      </div>
+    </form>
+
+  </div>
   <div class="row my-2">
     <div class="col">
     @if( ents.isEmpty ){
@@ -18,68 +80,72 @@
         </div>
       </div>
     }else{
-      <table class="table table-sm ">
-        <thead>
-          <tr>
-            @comps.sortingTH(Messages("workAccidents.dateTime"),
-              b=>routes.PublicCtrl.accidentIndex(Some("Datetime"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
-              curSort, SortKey.Datetime, isAsc)
-            @comps.sortingTH(Messages("workAccidents.region"),
-              b=>routes.PublicCtrl.accidentIndex(Some("Region"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
-              curSort, SortKey.Region, isAsc)
-            <th>@Messages("workAccidents.relatedEntities")</th>
-            @comps.sortingTH(Messages("workAccidents.numInjured"),
-              b=>routes.PublicCtrl.accidentIndex(Some("Injuries"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
-              curSort, SortKey.Injuries, isAsc)
-            @comps.sortingTH(Messages("workAccidents.numFatalities"),
-              b=>routes.PublicCtrl.accidentIndex(Some("Fatalities"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
-              curSort, SortKey.Fatalities, isAsc)
-          </tr>
-        </thead>
-        <tbody>
-        @for( ent <- ents ){@defining( routes.PublicCtrl.accidentDetails(ent.id) ){ lnk=>
-          <tr>
-            <td class="d-flex flex-row">
-              <div>
-                @Helpers.format(Helpers.DateFmt.HR_Date, ent.dateTime ) @if(ent.hasTime){@Helpers.format(Helpers.DateFmt.HR_Time, ent.dateTime)}
-              </div>
-              <div class="me-auto">
-                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="UiUtils.toggleViz('detailsRow-@ent.id')">@comps.svg.infoSquare()</button>
-                <a href="@lnk" class="btn btn-sm btn-outline-primary">@comps.svg.arrowLeftCircle()</a>
-              </div>
-            </td>
-            <td>
-              @for( rgnId <- ent.regionId ){
-                @rgns(rgnId).map(_.name).getOrElse("")
-              }
-            </td>
-            <td>
-              @for( rel<-ent.relateds.toSeq.sortBy(_._1.name).zipWithIndex ){
-                @rel._1._2.name (@rel._1._1.name) @if(rel._2<ent.relateds.size-1){, }
-              }
-            </td>
-            <td>
-              @ent.injuredCount
-            </td>
-            <td>
-              @ent.killedCount
-            </td>
-          </tr>
-          <tr class="detailsRow" id="detailsRow-@ent.id" style="display:none">
-            <td colspan="5">
-            <span class="text-klo-dg">
-              @for( rgn <- ent.regionId.flatMap(rgns) ){
-                @rgn.name,
-              }
-              @Helpers.ifNotEmpty(ent.location){d => @d, }
-            </span>
-              @ent.details
-            </td>
-          </tr>
-          }}
-        </tbody>
-      </table>
-      @comps.pager(pi){i=>@routes.PublicCtrl.accidentIndex(Some(curSort.toString), Some(if(isAsc)"t" else "f"), Some(i))}
+      <div class="table-responsive">
+        <table class="table table-sm ">
+          <thead>
+            <tr>
+              @comps.sortingTH(Messages("workAccidents.dateTime"),
+                b=>th("Datetime", if(b)"t" else "f"),
+                curSort, SortKey.Datetime, isAsc)
+              @comps.sortingTH(Messages("workAccidents.region"),
+                b=>th("Region", if(b)"t" else "f"),
+                curSort, SortKey.Region, isAsc)
+              <th>@Messages("workAccidents.relatedEntities")</th>
+              @comps.sortingTH(Messages("workAccidents.numInjured"),
+                b=>th("Injuries", if(b)"t" else "f"),
+                curSort, SortKey.Injuries, isAsc)
+              @comps.sortingTH(Messages("workAccidents.numFatalities"),
+                b=>th("Fatalities", if(b)"t" else "f"),
+                curSort, SortKey.Fatalities, isAsc)
+            </tr>
+          </thead>
+          <tbody>
+          @for( ent <- ents ){@defining( routes.PublicCtrl.accidentDetails(ent.id) ){ lnk=>
+            <tr>
+              <td class="d-flex flex-row">
+                <div>
+                  @Helpers.format(Helpers.DateFmt.HR_Date, ent.dateTime ) @if(ent.hasTime){@Helpers.format(Helpers.DateFmt.HR_Time, ent.dateTime)}
+                </div>
+                <div class="me-auto">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" onclick="UiUtils.toggleViz('detailsRow-@ent.id')">@comps.svg.infoSquare()</button>
+                  <a href="@lnk" class="btn btn-sm btn-outline-primary">@comps.svg.arrowLeftCircle()</a>
+                </div>
+              </td>
+              <td>
+                @for( rgnId <- ent.regionId ){
+                  @rgns(rgnId).map(_.name).getOrElse("")
+                }
+              </td>
+              <td>
+                @for( rel<-ent.relateds.toSeq.sortBy(_._1.name).zipWithIndex ){
+                  @rel._1._2.name (@rel._1._1.name) @if(rel._2<ent.relateds.size-1){, }
+                }
+              </td>
+              <td>
+                @ent.injuredCount
+              </td>
+              <td>
+                @ent.killedCount
+              </td>
+            </tr>
+            <tr class="detailsRow" id="detailsRow-@ent.id" style="display:none">
+              <td colspan="5">
+              <span class="text-klo-dg">
+                @for( rgn <- ent.regionId.flatMap(rgns) ){
+                  @rgn.name,
+                }
+                @Helpers.ifNotEmpty(ent.location){d => @d, }
+              </span>
+                @ent.details
+              </td>
+            </tr>
+            }}
+          </tbody>
+        </table>
+      </div>
+      @comps.pager(pi){i=>@routes.PublicCtrl.accidentIndex(Some(selRgns.map(_.id).mkString(",")), Some(selIndustries.map(_.id).mkString(",")),
+        Some(selSeverities.mkString(",")), from, to,
+        Some(curSort.toString), Some(if(isAsc)"t" else "f"), Some(i))}
     }
     </div>
   </div>
