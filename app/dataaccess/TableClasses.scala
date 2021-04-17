@@ -88,7 +88,7 @@ class WorkAccidentsTable(t:Tag) extends Table[WorkAccidentRecord](t, "work_accid
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def date_time = column[LocalDateTime]("date_time")
   def location = column[String]("location")
-  def region_id = column[Option[Int]]("region_id")
+  def regionId = column[Option[Int]]("region_id")
   def blog_post_url = column[String]("blog_post_url")
   def details = column[String]("details")
   def investigation = column[String]("investigation")
@@ -97,10 +97,10 @@ class WorkAccidentsTable(t:Tag) extends Table[WorkAccidentRecord](t, "work_accid
   def public_remarks = column[String]("public_remarks")
   def sensitive_remarks = column[String]("sensitive_remarks")
   
-  def * = (id, date_time, location, region_id, blog_post_url, details, investigation, initialSource, mediaReports, public_remarks, sensitive_remarks
+  def * = (id, date_time, location, regionId, blog_post_url, details, investigation, initialSource, mediaReports, public_remarks, sensitive_remarks
   )<>(WorkAccidentRecord.tupled, WorkAccidentRecord.unapply)
   
-  def fkRgn = foreignKey("fk_wa_rgn", region_id, TableRefs.regions)(_.id.?)
+  def fkRgn = foreignKey("fk_wa_rgn", regionId, TableRefs.regions)(_.id.?)
 }
 
 class InjuredWorkersTable(t:Tag) extends Table[InjuredWorkerRecord](t, "injured_workers") {

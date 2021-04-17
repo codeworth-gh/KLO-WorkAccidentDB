@@ -141,11 +141,13 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     val selIndustries = pIndustries.map( _.split(",").map(_.trim).filter(_.nonEmpty).map(_.toInt).map(industries(_)).filter(_.isDefined).flatten.toSet ).getOrElse(Set())
     val selSeverities = pSeverities.map( _.split(",").map(_.trim).filter(_.nonEmpty).map(Severity.withName).toSet ).getOrElse(Set())
     
+    val rgnIds = selRgns.map(_.id)
+    val indIds = selIndustries.map(_.id)
     for {
       regionList <- regions.list()
       industryList <- industries.list()
-      accCount <- accidents.accidentCount(start, end, selRgns.map(_.id))
-      accRows <- accidents.listAccidents(start, end, selRgns.map(_.id), (page-1)*PAGE_SIZE, PAGE_SIZE, sortBy, asc)
+      accCount <- accidents.accidentCount(start, end, rgnIds, indIds, selSeverities)
+      accRows  <- accidents.listAccidents(start, end, rgnIds, indIds, selSeverities, (page-1)*PAGE_SIZE, PAGE_SIZE, sortBy, asc)
     } yield {
       Ok(views.html.publicside.accidentsList(accRows,
         regionList, industryList, regions.apply,

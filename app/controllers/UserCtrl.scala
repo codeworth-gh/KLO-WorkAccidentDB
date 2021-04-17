@@ -129,7 +129,7 @@ class UserCtrl @Inject()(deadbolt:DeadboltActions, conf:Configuration,
   def userHome = deadbolt.SubjectPresent()(){ implicit req =>
     val user = req.subject.get.asInstanceOf[UserSubject].user
     for {
-      waCount <- accidents.accidentCount(None, None, Set())
+      waCount <- accidents.accidentCount(None, None, Set(), Set(), Set())
       iwCount <- accidents.injuredWorkerCount()
     } yield {
       val severityList = iwCount.toSeq.sortBy(_._1).map(p=>(p._1.map(Severity(_)), p._2) )

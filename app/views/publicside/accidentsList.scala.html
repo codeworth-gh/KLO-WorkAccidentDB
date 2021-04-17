@@ -11,11 +11,13 @@
   <script src="@routes.Assets.versioned("js/accidentList.js")"></script>
 }
 
-@th(sort:String, asc:Boolean)=@{
+@th(sort:String, cur:SortKey.Value, key:SortKey.Value, isCurrentlyAsc:Boolean)=@{
+  val asc = (cur==key) && !isCurrentlyAsc
   routes.PublicCtrl.accidentIndex(Some(selRgns.map(_.id).mkString(",")), Some(selIndustries.map(_.id).mkString(",")), Some(selSeverities.mkString(",")),
     from, to,
     Some(sort), Some(if(asc)"t" else "f"), Some(pi.currentPage))
 }
+
 @templates.frontEndBase(Messages("workAccidents.title"), views.PublicSections.AccidentList, extraHead = extraHead) {
   @comps.pageTitleRow(Messages("workAccidents.title")){
     <div class="ms-2">
@@ -85,17 +87,17 @@
           <thead>
             <tr>
               @comps.sortingTH(Messages("workAccidents.dateTime"),
-                b=>th("Datetime", if(b)"t" else "f"),
+                b=>th("Datetime", curSort, SortKey.Datetime, isAsc),
                 curSort, SortKey.Datetime, isAsc)
               @comps.sortingTH(Messages("workAccidents.region"),
-                b=>th("Region", if(b)"t" else "f"),
+                b=>th("Region", curSort, SortKey.Region, isAsc),
                 curSort, SortKey.Region, isAsc)
               <th>@Messages("workAccidents.relatedEntities")</th>
               @comps.sortingTH(Messages("workAccidents.numInjured"),
-                b=>th("Injuries", if(b)"t" else "f"),
+                b=>th("Injuries", curSort, SortKey.Injuries, isAsc),
                 curSort, SortKey.Injuries, isAsc)
               @comps.sortingTH(Messages("workAccidents.numFatalities"),
-                b=>th("Fatalities", if(b)"t" else "f"),
+                b=>th("Fatalities", curSort, SortKey.Fatalities, isAsc),
                 curSort, SortKey.Fatalities, isAsc)
             </tr>
           </thead>
