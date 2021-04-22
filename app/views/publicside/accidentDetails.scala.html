@@ -9,7 +9,7 @@
 @templates.frontEndBase(Messages("accidentDetails.title"), views.PublicSections.AccidentList) {
   @comps.pageTitleRow(Messages("accidentDetails.title")){
     @if( request.subject.isDefined ){
-      <a class="btn btn-outline-klo-blue" href="@routes.WorkAccidentCtrl.showEdit(acc.id)">@comps.svg.edit() @Messages("edit")<a>
+      <a class="btn btn-outline-klo-blue" href="@routes.WorkAccidentCtrl.showEdit(acc.id)">@comps.svg.edit() @Messages("edit")</a>
     }
   }
   <div class="row mb-2">

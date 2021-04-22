@@ -64,7 +64,8 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     for {
       waIn <- db.run((workAccidents returning workAccidents.map(_.id)).into((_, newId)=>waRow.copy(id=newId)).insertOrUpdate(waRow))
       accId = waIn.getOrElse(waRow).id
-      _    <- db.run(injuredWorkers.filter(_.id inSet wa.injured.map(_.id)).delete ) // remove old injured workers
+      _    <- if (!isNew) db.run(injuredWorkers.filter(_.accident_id === accId).delete ) // remove old injured workers
+                else Future(()) // new accident, no need to delete old records
       _    <- if (!isNew) db.run(accidentBizEntRelations.filter(_.accidentId===accId).delete ) // remove old related biz ents
                 else Future(()) // new accident, no need to delete old records
       iwIn <- Future.sequence( wa.injured.map( store(_, accId)) ) // easy, as all are new now
