@@ -1,5 +1,6 @@
 package controllers
 
+import be.objectify.deadbolt.scala.DeadboltActions
 import com.github.jferard.fastods.{AnonymousOdsFileWriter, ObjectToCellValueConverter, OdsFactory, Table, TableCellWalker}
 import com.github.jferard.fastods.style.TableCellStyle
 import com.github.jferard.fastods.attribute.SimpleLength
@@ -14,7 +15,6 @@ import play.api.mvc.{AbstractController, ControllerComponents}
 import views.{Helpers, PaginationInfo}
 
 import java.util.Locale
-
 import java.io.ByteArrayOutputStream
 import java.time.{LocalDate, ZoneOffset}
 import java.util.{Date, Locale}
@@ -38,7 +38,7 @@ object PublicCtrl {
 
 
 class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, regions:RegionsDAO,
-                           relations:RelationToAccidentDAO, industries:IndustriesDAO,
+                           relations:RelationToAccidentDAO, industries:IndustriesDAO, deadbolt:DeadboltActions,
                            cached:Cached, conf:Configuration)
                           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport {
   
@@ -157,7 +157,7 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     }
   }
   
-  def accidentDetails( id:Long ) = Action.async{ implicit req =>
+  def accidentDetails( id:Long ) = deadbolt.WithAuthRequest()(){ implicit req =>
     for {
       accident <- accidents.getAccident(id)
     } yield accident match {

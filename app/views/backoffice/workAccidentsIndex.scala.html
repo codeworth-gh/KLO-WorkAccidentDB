@@ -26,7 +26,7 @@
             @comps.sortingTH(Messages("workAccidents.region"),
               b=>routes.WorkAccidentCtrl.backofficeIndex(Some("Region"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
               curSort, SortKey.Region, isAsc)
-            <th>@Messages("workAccidents.entrepreneur")</th>
+            <th>@Messages("workAccidents.relatedEntities")</th>
             @comps.sortingTH(Messages("workAccidents.numInjured"),
               b=>routes.WorkAccidentCtrl.backofficeIndex(Some("Injuries"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
               curSort, SortKey.Injuries, isAsc)

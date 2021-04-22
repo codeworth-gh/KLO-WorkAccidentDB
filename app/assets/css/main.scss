@@ -271,6 +271,9 @@ ul.injuredWorkers {
   li {
     margin-bottom: 1em;
 
+    p:last-child {
+      margin-bottom: 0;
+    }
     .name {
       font-weight: bold;
     }

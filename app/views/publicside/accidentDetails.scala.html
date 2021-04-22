@@ -1,11 +1,17 @@
-@(acc:WorkAccident)(implicit request:Request[_], msgs:MessagesProvider)
+@import be.objectify.deadbolt.scala.views.html.di.subjectPresent
+@import be.objectify.deadbolt.scala.AuthenticatedRequest
+@(acc:WorkAccident)(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
 
 @relEntLine(rt:RelationToAccident, ent:BusinessEntity)={
   @ent.name, <span class="text-klo-dg">@rt.name</span>.
 }
 
 @templates.frontEndBase(Messages("accidentDetails.title"), views.PublicSections.AccidentList) {
-  @comps.pageTitleRow(Messages("accidentDetails.title"))(Html(""))
+  @comps.pageTitleRow(Messages("accidentDetails.title")){
+    @if( request.subject.isDefined ){
+      <a class="btn btn-outline-klo-blue" href="@routes.WorkAccidentCtrl.showEdit(acc.id)">@comps.svg.edit() @Messages("edit")<a>
+    }
+  }
   <div class="row mb-2">
     @if(acc.hasTime) {
       <div class="col-sm-2 text-klo-dg">@Messages("dateTime")</div>
@@ -90,7 +96,7 @@
     </div>
   }
 
-  <div class="row mt-2">
+  <div class="row mt-4">
     <div class="col">
       <h3>@Messages("injuredWorkers")</h3>
     </div>
@@ -151,7 +157,7 @@
               @if( ps.nonEmpty ){
                 <div class="row">
                   <div class="col">
-                      @for( p <- ps ){ <p>@p</p> }
+                      @for( p <- ps ){ <p>@Html(p.replaceAll("\n","<br>"))</p> }
                   </div>
                 </div>
               }
