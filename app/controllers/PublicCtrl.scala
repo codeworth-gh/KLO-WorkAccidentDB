@@ -6,6 +6,7 @@ import com.github.jferard.fastods.style.TableCellStyle
 import com.github.jferard.fastods.attribute.SimpleLength
 import com.github.jferard.fastods.datastyle.{DataStyle, FloatStyleBuilder}
 import com.github.jferard.fastods.style.TableRowStyle
+import dataaccess.BusinessEntityDAO.StatsSortKey
 import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, WorkAccidentDAO}
 import models.{InjuredWorker, InjuredWorkerRow, Severity, WorkAccidentSummary}
 import play.api.{Configuration, Logger}
@@ -172,7 +173,20 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     }
   }
   
-  def bizEntityDetails( id:Long ) = Action.async{ implicit req =>
+  def bizEntIndex(pPage:Option[Int]=None, pSortBy:Option[String]=None, pAsc:Option[String]=None) = Action.async { implicit req =>
+    val sortBy = pSortBy.flatMap(StatsSortKey.named).getOrElse(BusinessEntityDAO.StatsSortKey.Accidents)
+    val page = pPage.getOrElse(1)
+    val asc = pAsc.getOrElse("f").trim=="t"
+    for {
+      rows <- businessEntities.listStats((page-1)*PAGE_SIZE, PAGE_SIZE, sortBy, asc)
+      statCount <- businessEntities.countStats()
+    } yield {
+      val pi = PaginationInfo(page, Math.ceil(statCount/PAGE_SIZE.toDouble).toInt)
+      Ok( views.html.publicside.bizEntList(rows, statCount, pi, sortBy, asc ) )
+    }
+  }
+  
+  def bizEntDetails(id:Long ) = Action.async{ implicit req =>
     for {
       bizEntOpt <- businessEntities.get(id)
       accidents <- accidents.accidentsForBizEnt(id)
@@ -182,7 +196,7 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
           val msgs = request2Messages(req)
           NotFound(views.html.errorPage(404, msgs("error.businessNotFound"), Some(msgs("error.businessNotFound.explanation")), None, req, msgs) )
         }
-        case Some(bizEnt) => Ok( views.html.publicside.businessEntityDetails(bizEnt, accidents))
+        case Some(bizEnt) => Ok( views.html.publicside.bizEntDetails(bizEnt, accidents))
       }
     }
   }

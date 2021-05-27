@@ -70,8 +70,8 @@
         </div>
       </div>
     </form>
-
   </div>
+
   <div class="row my-2">
     <div class="col">
     @if( ents.isEmpty ){
@@ -122,7 +122,7 @@
               </td>
               <td>
                 @for( rel<-ent.relateds.toSeq.sortBy(_._1.name).zipWithIndex ){
-                  <a href="@routes.PublicCtrl.bizEntityDetails(rel._1._2.id)">@rel._1._2.name</a> (@rel._1._1.name) @if(rel._2<ent.relateds.size-1){, }
+                  <a href="@routes.PublicCtrl.bizEntDetails(rel._1._2.id)">@rel._1._2.name</a> (@rel._1._1.name) @if(rel._2<ent.relateds.size-1){, }
                 }
               </td>
               <td class="d-none d-md-table-cell">

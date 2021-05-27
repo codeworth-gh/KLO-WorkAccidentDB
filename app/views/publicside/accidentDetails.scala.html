@@ -3,7 +3,7 @@
 @(acc:WorkAccident)(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
 
 @relEntLine(rt:RelationToAccident, ent:BusinessEntity)={
-  <a href="@routes.PublicCtrl.bizEntityDetails(ent.id)">@ent.name</a>, <span class="text-klo-dg">@rt.name</span>.
+  <a href="@routes.PublicCtrl.bizEntDetails(ent.id)">@ent.name</a>, <span class="text-klo-dg">@rt.name</span>.
 }
 
 @templates.frontEndBase(Messages("accidentDetails.title"), views.PublicSections.AccidentList) {

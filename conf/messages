@@ -92,6 +92,15 @@ userEditor.newPassword=סיסמא חדשה
 userEditor.newPasswordAgain=סיסמא חדשה (שוב)
 userEditor.email.help=כתובת האימייל הזו תשמש אותנו במקרה שנידרש לאפס את הסיסמא שלך.
 userEditor.accountCreated=המשתמשת נוספה למערכת בהצלחה
+
+bizEntList.title=גורמים מעורבים
+bizEntList.help=מסך זה מציג גורמים עסקיים המעורבים בתאונות, כגון מעסיקים, יזמים, וקבלנים. יכול להיות כי מספר גורמים יהיו מקושרים לאותה תאונה (למשל, יזם וקבלן). בנוסף, גורם אחד יכול להיות מעורב במספר תאונות.
+bizEntList.foundCount=נמצאו {0} גורמים מעורבים
+bizEntList.th.name=שם
+bizEntList.th.accidents=מספר תאונות
+bizEntList.th.injuredCount=כמות נפגעים
+bizEntList.th.killedCount=כמות הרוגים (מתוך הנפגעים)
+
 businessEntities.details=פרטים
 businessEntities.title=גורמים עסקיים מעורבים
 businessEntities.help=גורמים עסקיים המעורבים בתאונות, כגון מעסיקים, קבלנים, ויזמי פרוייקטים

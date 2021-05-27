@@ -1,0 +1,59 @@
+@import dataaccess.BusinessEntityDAO.StatsSortKey
+@import views.PaginationInfo
+@(rows:Seq[BusinessEntityStats], total:Int, pi:PaginationInfo, sortKey:StatsSortKey.Value, isAsc:Boolean)(implicit request:Request[_], msgs:MessagesProvider)
+
+@th(sort:String, cur:StatsSortKey.Value, key:StatsSortKey.Value, isCurrentlyAsc:Boolean)=@{
+  val asc = (cur==key) && !isCurrentlyAsc
+  routes.PublicCtrl.bizEntIndex(Some(pi.currentPage), Some(key.toString), Some(if(asc)"t" else "f") )
+}
+
+@templates.frontEndBase(Messages("bizEntList.title"), views.PublicSections.BizEntList) {
+  @comps.pageTitleRow(Messages("bizEntList.title")){
+    <div class="ms-2">
+    @Messages("bizEntList.foundCount", total)
+    </div>
+  }
+  @comps.helpRow(Messages("bizEntList.help"))
+  <div class="row mt-3">
+    <div class="col">
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              @comps.sortingTH(Messages("bizEntList.th.name"),
+                                b=>th("Name", sortKey, StatsSortKey.Name, isAsc),
+                                sortKey, StatsSortKey.Name, isAsc)
+              @comps.sortingTH(Messages("bizEntList.th.accidents"),
+                                b=>th("AccidentCount", sortKey, StatsSortKey.Accidents, isAsc),
+                                sortKey, StatsSortKey.Accidents, isAsc)
+              @comps.sortingTH(Messages("bizEntList.th.injuredCount"),
+                                b=>th("Injured", sortKey, StatsSortKey.Injured, isAsc),
+                                sortKey, StatsSortKey.Injured, isAsc)
+              @comps.sortingTH(Messages("bizEntList.th.killedCount"),
+                                b=>th("Killed", sortKey, StatsSortKey.Killed, isAsc),
+                                sortKey, StatsSortKey.Killed, isAsc)
+            </tr>
+          </thead>
+          <tbody>
+            @for( bes <- rows ){
+              <tr>
+                <td>
+                  <a href="@routes.PublicCtrl.bizEntDetails(bes.id)">@bes.name</a>
+                </td>
+                <td>@String.format("%,d",bes.accidentCount)</td>
+                <td>@String.format("%,d",bes.injuredCount)</td>
+                <td>@String.format("%,d",bes.killedCount)</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="row my-2">
+        <div class="col">
+        @comps.pager(pi)(i=>Html(routes.PublicCtrl.bizEntIndex(Some(i), Some(sortKey.toString),Some(if(isAsc)"t" else "f")).url))
+        </div>
+      </div>
+    </div>
+  </div>
+
+}

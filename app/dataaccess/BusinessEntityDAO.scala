@@ -1,13 +1,12 @@
 package dataaccess
 
-import models.BusinessEntity
+import dataaccess.BusinessEntityDAO.StatsSortKey
+import models.{BusinessEntity, BusinessEntityStats}
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
-import slick.model.Table
 
 import javax.inject.Inject
-import javax.swing.event.RowSorterListener
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
@@ -25,12 +24,29 @@ object BusinessEntityDAO {
       }
     }
   }
+  
+  object StatsSortKey extends Enumeration {
+    val Name      = Value
+    val Accidents = Value
+    val Killed    = Value
+    val Injured   = Value
+    
+    def named(name:String):Option[StatsSortKey.Value] = {
+      try {
+        Some(withName(name))
+      } catch {
+        case _:Exception => None
+      }
+    }
+  }
 }
 
 class BusinessEntityDAO @Inject() (protected val dbConfigProvider:DatabaseConfigProvider)(implicit ec:ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
   
   import profile.api._
   private val Entities = TableQuery[BusinessEntityTable]
+  private val Stats = TableQuery[BusinessEntityStatsTable]
+  
   private val log = Logger(classOf[BusinessEntityDAO])
   
   def store( bizEnt:BusinessEntity ):Future[BusinessEntity] = {
@@ -88,6 +104,19 @@ class BusinessEntityDAO @Inject() (protected val dbConfigProvider:DatabaseConfig
     } yield {
       (existing++added).map( a => a.name -> a ).toMap
     }
+  }
+  
+  def listStats(start:Int, pageSize:Int, sortBy:StatsSortKey.Value=StatsSortKey.Accidents, isAsc:Boolean=false):Future[Seq[BusinessEntityStats]] = {
+    db.run(Stats.sortBy(makeStatsSorter(sortBy, isAsc)).drop(start).take(pageSize).result)
+  }
+  
+  def countStats():Future[Int] = db.run( Stats.length.result )
+  
+  private def makeStatsSorter( sk:StatsSortKey.Value, asc:Boolean ) = sk match {
+    case StatsSortKey.Name      => (r:BusinessEntityStatsTable) => if (asc) r.name.asc else r.name.desc
+    case StatsSortKey.Accidents => (r:BusinessEntityStatsTable) => if (asc) r.accCnt.asc else r.accCnt.desc
+    case StatsSortKey.Killed    => (r:BusinessEntityStatsTable) => if (asc) r.kldCnt.asc else r.kldCnt.desc
+    case StatsSortKey.Injured   => (r:BusinessEntityStatsTable) => if (asc) r.injCnt.asc else r.injCnt.desc
   }
   
   private def makeNameFilter(namePart: String) = {

@@ -1,7 +1,7 @@
 package dataaccess
 
 import java.sql.Timestamp
-import models.{BusinessEntity, BusinessEntitySummary, Citizenship, Industry, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, User, WorkAccidentSummary}
+import models.{BusinessEntity, BusinessEntityStats, BusinessEntitySummary, Citizenship, Industry, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, User, WorkAccidentSummary}
 import slick.lifted.Tag
 import slick.jdbc.PostgresProfile.api._
 
@@ -55,6 +55,16 @@ class BusinessEntityTable(tag:Tag) extends Table[BusinessEntity](tag, "business_
   ) <> (BusinessEntity.tupled, BusinessEntity.unapply)
   
   def nameIdx = index("business_entities_name", name)
+}
+
+class BusinessEntityStatsTable(tag:Tag) extends Table[BusinessEntityStats](tag, "bizent_accident_stats") {
+  def id = column[Long]("id")
+  def name = column[String]("name")
+  def accCnt = column[Long]("accident_count")
+  def kldCnt = column[Long]("killed_count")
+  def injCnt = column[Long]("injured_count")
+  
+  def * = (id, name, accCnt, kldCnt, injCnt) <> (BusinessEntityStats.tupled, BusinessEntityStats.unapply)
 }
 
 class BusinessEntitySummaryTable(tag:Tag) extends Table[BusinessEntitySummary](tag, "business_entities") {

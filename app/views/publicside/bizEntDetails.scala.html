@@ -1,6 +1,6 @@
 @(bizEnt:BusinessEntity, accidents:Map[WorkAccidentSummary, Set[RelationToAccident]])(implicit request:Request[_], msgs:MessagesProvider)
 
-@templates.frontEndBase(Messages("businessEntities.title") + "-" + bizEnt.name, views.PublicSections.Datasets) {
+@templates.frontEndBase(Messages("businessEntities.title") + "-" + bizEnt.name, views.PublicSections.BizEntList) {
   @comps.pageTitleRow(bizEnt.name)(Html(""))
 
   <div class="row mt-2">

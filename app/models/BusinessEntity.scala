@@ -7,9 +7,17 @@ package models
 case class BusinessEntity(
   id:   Long,
   name: String,
-  phone:  Option[String],
-  email: Option[String],
+  phone:   Option[String],
+  email:   Option[String],
   website: Option[String],
   isPrivatePerson: Boolean,
   memo: Option[String]
+)
+
+case class BusinessEntityStats(
+  id:   Long,
+  name: String,
+  accidentCount: Long,
+  killedCount:   Long,
+  injuredCount:  Long
 )
