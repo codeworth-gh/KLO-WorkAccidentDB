@@ -1,0 +1,12 @@
+@(killedCount:Int, injuredCount:Int)(implicit request:Request[_], msgs:MessagesProvider)
+@(injuredCount, killedCount) match {
+  case (0,0) => {@Messages("injuredCounts.noInjuries")}
+  case (1,0) => {@Messages("injuredCounts.singleWounded")}
+  case (0,1) => {@Messages("injuredCounts.singleKilled")}
+  case (1,1) => {@Messages("injuredCounts.singleKilledSingleWounded")}
+  case (w,0) => {@Messages("injuredCounts.multiWounded",w)}
+  case (0,k) => {@Messages("injuredCounts.multiKilled", k)}
+  case (w,1) => {@Messages("injuredCounts.multiWoundedSingleKilled",w)}
+  case (1,k) => {@Messages("injuredCounts.singleWoundedMultiKilled", k)}
+  case (w,k) => {@Messages("injuredCounts.multiWoundedMultiKilled", w, k)}
+}

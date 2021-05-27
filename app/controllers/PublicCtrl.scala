@@ -39,6 +39,7 @@ object PublicCtrl {
 
 class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, regions:RegionsDAO,
                            relations:RelationToAccidentDAO, industries:IndustriesDAO, deadbolt:DeadboltActions,
+                           businessEntities:BusinessEntityDAO,
                            cached:Cached, conf:Configuration)
                           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport {
   
@@ -167,6 +168,21 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
       }
       case Some(acc) => {
         Ok( views.html.publicside.accidentDetails(acc) )
+      }
+    }
+  }
+  
+  def bizEntityDetails( id:Long ) = Action.async{ implicit req =>
+    for {
+      bizEntOpt <- businessEntities.get(id)
+      accidents <- accidents.accidentsForBizEnt(id)
+    } yield {
+      bizEntOpt match {
+        case None => {
+          val msgs = request2Messages(req)
+          NotFound(views.html.errorPage(404, msgs("error.businessNotFound"), Some(msgs("error.businessNotFound.explanation")), None, req, msgs) )
+        }
+        case Some(bizEnt) => Ok( views.html.publicside.businessEntityDetails(bizEnt, accidents))
       }
     }
   }

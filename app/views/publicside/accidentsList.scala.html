@@ -28,7 +28,7 @@
   }
   <div class="collapse" id="searchPanel">
       <div class="row flex-row">
-        <div class="col-sm flex-grow-0 controlGrid" style="min-width: 20em">
+        <div class="col-md flex-grow-0 controlGrid" style="min-width: 20em">
           <form action="" method="GET" id="filterForm">
             <input type="hidden" name="regions" value="@selRgns.map(_.id).mkString(",")">
             <input type="hidden" name="industries" value="@selIndustries.map(_.id).mkString(",")">
@@ -39,7 +39,7 @@
             <input type="date" value="@to" class="form-control" name="to" id="toDate" autocomplete="off">
           </form>
         </div>
-        <div class="col-sm flex-grow-2 controlGrid">
+        <div class="col-md flex-grow-2 controlGrid">
           @Messages("region")
           <div class="buttonLikeGroup">
             @for(rgn<-regions) {
@@ -65,8 +65,7 @@
             }
           </div>
         </div>
-
-        <div class="col-sm d-grid flex-grow-0">
+        <div class="col-md d-grid flex-grow-0">
           <button type="button" onclick="submitFilter()" class="btn btn-klo-blue">@Messages("update")</button>
         </div>
       </div>
@@ -95,18 +94,21 @@
               <th>@Messages("workAccidents.relatedEntities")</th>
               @comps.sortingTH(Messages("workAccidents.numInjured"),
                 b=>th("Injuries", curSort, SortKey.Injuries, isAsc),
-                curSort, SortKey.Injuries, isAsc)
+                curSort, SortKey.Injuries, isAsc, nonMobile = true)
               @comps.sortingTH(Messages("workAccidents.numFatalities"),
                 b=>th("Fatalities", curSort, SortKey.Fatalities, isAsc),
-                curSort, SortKey.Fatalities, isAsc)
+                curSort, SortKey.Fatalities, isAsc, nonMobile = true)
             </tr>
           </thead>
           <tbody>
           @for( ent <- ents ){@defining( routes.PublicCtrl.accidentDetails(ent.id) ){ lnk=>
             <tr>
-              <td class="d-flex flex-row">
+              <td class="d-md-flex flex-row">
                 <div>
                   @Helpers.format(Helpers.DateFmt.HR_Date, ent.dateTime ) @if(ent.hasTime){@Helpers.format(Helpers.DateFmt.HR_Time, ent.dateTime)}
+                </div>
+                <div class="d-block d-md-none">
+                  @ent.injuredCount @Messages("injuredWorkers") (@ent.killedCount @Messages("killedWorkers"))
                 </div>
                 <div class="me-auto">
                   <button class="btn btn-sm btn-outline-secondary" type="button" onclick="UiUtils.toggleViz('detailsRow-@ent.id')">@comps.svg.infoSquare()</button>
@@ -120,13 +122,13 @@
               </td>
               <td>
                 @for( rel<-ent.relateds.toSeq.sortBy(_._1.name).zipWithIndex ){
-                  @rel._1._2.name (@rel._1._1.name) @if(rel._2<ent.relateds.size-1){, }
+                  <a href="@routes.PublicCtrl.bizEntityDetails(rel._1._2.id)">@rel._1._2.name</a> (@rel._1._1.name) @if(rel._2<ent.relateds.size-1){, }
                 }
               </td>
-              <td>
+              <td class="d-none d-md-table-cell">
                 @ent.injuredCount
               </td>
-              <td>
+              <td class="d-none d-md-table-cell">
                 @ent.killedCount
               </td>
             </tr>

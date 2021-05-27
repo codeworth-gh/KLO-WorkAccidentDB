@@ -133,6 +133,10 @@ hr.vr {
   border-radius: 1em;
   box-shadow: -1px 4px 8px rgba(0,0,0,.5) inset, 1px -4px 8px rgba(255,255,255,.5) inset;
 }
+.noDataLight{
+  color: #776;
+  font-style: italic;
+}
 
 .rtl {
   direction: rtl;
@@ -395,5 +399,13 @@ ul.injuredList-main {
   }
   .buttonLikeGroup {
     justify-content: start;
+  }
+}
+
+@media (max-width: 745px) {
+  .controlGrid {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: .5em;
   }
 }

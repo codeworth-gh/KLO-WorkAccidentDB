@@ -1,0 +1,55 @@
+@(bizEnt:BusinessEntity, accidents:Seq[(RelationToAccident, WorkAccidentSummary)])(implicit request:Request[_], msgs:MessagesProvider)
+
+@templates.frontEndBase(Messages("businessEntities.title"), views.PublicSections.Datasets) {
+  @comps.pageTitleRow(bizEnt.name)(Html(""))
+
+  <div class="row mt-2">
+    <div class="col">
+      <h2>@Messages("businessEntities.details")</h2>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-2">@Messages("businessEntities.name")</div>
+    <div class="col-10">@bizEnt.name</div>
+  </div>
+  <div class="row">
+    <div class="col-2">@Messages("businessEntities.website")</div>
+    <div class="col-10">@Helpers.nonEmptyOrElse(bizEnt.website)(s=> Html(s"<a href='$s'>$s</a>")){ <div class="noDataLight">@Messages("businessEntities.noData")</div> }</div>
+  </div>
+  <div class="row">
+    <div class="col-2">@Messages("businessEntities.email")</div>
+    <div class="col-10">@Helpers.nonEmptyOrElse(bizEnt.email)(s=> Html(s"<a href='mailto:$s'>$s</a>")){ <div class="noDataLight">@Messages("businessEntities.noData")</div> }</div>
+  </div>
+  @if( bizEnt.memo.nonEmpty && bizEnt.memo.get.trim.nonEmpty ) {
+    <div class="row">
+      <div class="col-2">@Messages("businessEntities.memo")></div>
+      <div class="col-10">@bizEnt.memo.get</div>
+    </div>
+  }
+  <div class="row my-2">
+    <div class="col">
+      <h2>@Messages("businessEntities.relatedAccidents")</h2>
+      <p>@defining( accidents.map(a => (a._2.killedCount, a._2.injuredCount) ).fold((0,0))((a,b)=>(a._1+b._1, a._2+b._2)) ){ cnts =>
+        @if(accidents.size==1){@Messages("accidentCount.single")}else{@Messages("accidentCount.multi", accidents.size)},
+        @comps.injuredCounts(cnts._1, cnts._2-cnts._1).
+      }
+      </p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <ul>
+        @for( r <- accidents ) {
+          <li>
+            @r._2.date.format( Helpers.dateFormats(Helpers.DateFmt.HR_Date))
+            <span class="badge bg-klo-blue">@r._1.name</span>
+            <a href="@routes.PublicCtrl.accidentDetails(r._2.id)">
+              @r._2.details
+            </a>
+            <span class="text-klo-dg">@comps.injuredCounts(r._2.killedCount, r._2.injuredCount-r._2.killedCount)</span>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+}

@@ -105,7 +105,7 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     for {
       accs <- db.run(qry.sortBy(makeSorter(sortBy, isAsc)).drop(start).take(pageSize).result)
       acIds = accs.map( _.id ).toSet
-      bzen <- db.run( accidentAndBizEntSums.filter( r => r._1.accidentId inSet(acIds)).result )
+      bzen <- db.run( accidentAndBizEntSums.filter( r => r._1.accidentId.inSet(acIds)).result )
     } yield {
       val relatedRaw = bzen.groupBy( _._1.accidentId )
       val related = relatedRaw.map( kv => kv._1 -> kv._2.map(r=>(relationTypes(r._1.relationTypeId).get, r._2)).toSet )
@@ -121,6 +121,13 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
       relMap = relMapRaw.map( p => p._1 -> p._2.map( t => relationTypes(t._1.relationTypeId).get -> t._2).toSet)
       unified = sums.map( s => s.toObject(relMap.getOrElse(s.id, Set())))
     } yield unified
+  }
+  
+  def accidentsForBizEnt( bizEntId:Long ): Future[Seq[(RelationToAccident, WorkAccidentSummary)]] = {
+    db.run( accidentAndBizEntSums.filter(r => r._2.id === bizEntId)
+        .join(workAccidentSummaries).on( (abe, was) => abe._1.accidentId === was.id )
+        .sortBy(r=>r._2.dateTime.desc.nullsLast).result)
+      .map( rows => rows.map(r => (relationTypes(r._1._1.relationTypeId).get, r._2.toObject(Set()))) )
   }
   
   def deleteAccident(id:Long):Future[Try[Int]] = {

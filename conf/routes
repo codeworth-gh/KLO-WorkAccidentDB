@@ -11,6 +11,8 @@ GET     /datasets/      controllers.PublicCtrl.datasets()
 GET     /datasets/accidents       controllers.PublicCtrl.accidentsDataset()
 GET     /datasets/injuries       controllers.PublicCtrl.injuriesDataset()
 
+GET     /businesses/:id       controllers.PublicCtrl.bizEntityDetails(id:Long)
+
 GET     /signup                      controllers.UserCtrl.showSignup()
 POST    /signup                      controllers.UserCtrl.doSignup()
 

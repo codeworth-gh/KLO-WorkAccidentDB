@@ -63,6 +63,12 @@ object Helpers {
   def nonEmptyOrElse(s:String)(nonEmpty:String=>Html)(elseVal:Html):Html = {
     if ( s!=null && s.trim.nonEmpty ) nonEmpty(s) else elseVal
   }
+  def nonEmptyOrElse(s:Option[String])(nonEmpty:String=>Html)(elseVal:Html):Html = {
+    s match {
+      case None => elseVal
+      case Some(s) => nonEmptyOrElse(s)(nonEmpty)(elseVal)
+    }
+  }
   
   /**
     * Gives a proper css class name based on the field's status. Assumes Bootstrap4.

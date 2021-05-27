@@ -36,7 +36,6 @@
             }
           </script>
         }
-      @for( csrfToken <- play.filters.csrf.CSRF.getToken ){
-      <div id="Playjax_csrfTokenValue" style="display:none">@csrfToken.value</div>}
+      @for( csrfToken <- play.filters.csrf.CSRF.getToken ){<div id="Playjax_csrfTokenValue" style="display:none">@csrfToken.value</div>}
     </body>
 </html>

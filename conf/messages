@@ -33,6 +33,8 @@ error.password=הסיסמאות חייבות להתאים, ואסור להן ל�
 error.password.incorrect=סיסמא שגויה
 error.accidentNotFound=התאונה לא נמצאה
 error.accidentNotFoundExplanation=יכול להיות שהלינק הוקלד לא נכון או לא הועתק בשלמותו.
+error.businessNotFound=הגורם העסקי לא נמצא
+error.businessNotFound.explanation=לא מצאנו גורם עסקי עם מספר הזיהוי הזה. יכול להיות שהלינק הוקלד לא נכון או לא הועתק בשלמותו?
 
 login.title=מאגר תאונות עבודה בישראל
 login.pleaseLogIn=בשביל לראות את הדף הזה, צריך קודם להזדהות
@@ -90,13 +92,19 @@ userEditor.newPassword=סיסמא חדשה
 userEditor.newPasswordAgain=סיסמא חדשה (שוב)
 userEditor.email.help=כתובת האימייל הזו תשמש אותנו במקרה שנידרש לאפס את הסיסמא שלך.
 userEditor.accountCreated=המשתמשת נוספה למערכת בהצלחה
-
+businessEntities.details=פרטים
 businessEntities.title=גורמים עסקיים מעורבים
-businessEntities.help=גורמים עסקיים המעורבים בתאונות, כגון המעסיקים, הקבלנים, ויזמי פרוייקטים
+businessEntities.help=גורמים עסקיים המעורבים בתאונות, כגון מעסיקים, קבלנים, ויזמי פרוייקטים
 businessEntities.addNew=גורם חדש
 businessEntities.noData=לא רשומים במערכת גורמים מעורבים
 businessEntities.isPrivatePerson=אדם פרטי
 businessEntities.saved=הגורם המעורב ״{0}״ נשמר
+businessEntities.name=שם
+businessEntities.noData=אין פרטים
+businessEntities.email=כתובת אימייל
+businessEntities.address=כתובת
+businessEntities.website=אתר
+businessEntities.relatedAccidents=מעורבות בתאונות
 
 businessEntitiesEditor.title=עריכת גורם מעורב
 businessEntitiesEditor.deleteMsg=למחוק את הגורם המעורב?
@@ -111,6 +119,19 @@ helperTables.tabs.injuryCauses=סיבות פגיעה
 helperTables.tabs.citizenships=אזרחויות
 helperTables.tabs.relationsToAccidents=קשר לתאונה
 helperTables.newRow=הוספת מאפיין
+
+injuredCounts.noInjuries=אין נפגעים
+injuredCounts.singleWounded=פצוע
+injuredCounts.singleKilled=הרוג
+injuredCounts.multiWounded={0} פצועים
+injuredCounts.multiKilled={0} הרוגים
+injuredCounts.multiWoundedSingleKilled=הרוג ו-{0} פצועים
+injuredCounts.singleWoundedMultiKilled={0} הרוגים ופצוע
+injuredCounts.multiWoundedMultiKilled={0} פצועים ו-{1} הרוגים
+injuredCounts.singleKilledSingleWounded=הרוג ופצוע
+
+accidentCount.single=תאונה אחת
+accidentCount.multi={0} תאונות
 
 userHome.title=ניהול האתר
 userHome.help=מסך זה הוא הכניסה לאזור ניהול האתר. אפשר לראות פה סטטיסטיקות בסיסיות, וכן לבצע פעולות שכיחות.
@@ -199,6 +220,7 @@ employer=מעסיק
 forgotPassword=שכחתי סיסמא
 id=מספר מזהה
 industry=ענף משקי
+killedWorkers=הרוגים
 livingAddress=כתובת מגורים
 login=כניסה
 mandatoryField=שדה חובה
