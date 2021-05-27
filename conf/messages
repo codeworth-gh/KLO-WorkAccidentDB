@@ -202,6 +202,9 @@ publicIndex.links.fatalities=רשימת הרוגים
 publicIndex.links.datasets=נתונים להורדה
 publicIndex.links.kloHomepage=עמותת קו-לעובד
 publicIndex.last30.noInjuries=אין דיווחים על נפגעים ב-30 הימים האחרונים. שרק ימשיך ככה.
+publicIndex.injuriesBranch=לפי ענף
+publicIndex.injuriesSeverity=לפי חומרה
+publicIndex.injuriesByYear=חומרת פגיעה לפי שנה
 
 severity.light=פציעה קלה
 severity.medium=פציעה בינונית

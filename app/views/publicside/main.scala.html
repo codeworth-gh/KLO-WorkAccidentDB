@@ -1,7 +1,76 @@
 @(injuredWorkers:Seq[InjuredWorkerRow], thisYearByIndustry:Map[Option[Industry],Map[Option[Severity.Value],Int]],
         prevYears:Map[Int,Map[Option[Severity.Value],Int]])(implicit request:RequestHeader, msgs:MessagesProvider)
 
-@templates.bsNavbar(Messages("application.title"), views.Structure.publicItems, views.PublicSections.Home ) {
+@extrahead={
+  <link href="@routes.Assets.versioned("vnd/c3/c3.min.css")" rel="stylesheet">
+  <script src="@routes.Assets.versioned("lib/d3js/d3.min.js")" charset="utf-8"></script>
+  <script src="@routes.Assets.versioned("vnd/c3/c3.min.js")"></script>
+}
+@extraBottom={
+  <script>
+  UiUtils.documentReady(function() {
+    c3.generate({
+      data: {
+        columns: [
+          @for(indOpt <- thisYearByIndustry.map( p => p._1 -> p._2.toSeq.map(_._2).sum).toSeq.sortBy(_._1.map(_.name).getOrElse(""))) {
+            ['@indOpt._1.map(_.name).getOrElse(Messages("unknown"))', @indOpt._2],
+          }
+        ],
+        type: 'donut',
+      },
+      bindto: '#injuriesThisYearBranch',
+      donut: {
+        title: "@Messages("publicIndex.injuriesBranch")"
+      },
+      tooltip: {
+        format: {
+          value: function (value, ratio, id, index) { return value; }
+        }
+      }
+    });
+    c3.generate({
+      data: {
+        columns: [
+          @for( sevOpt <- thisYearByIndustry.toSeq.flatMap( p => p._2.toSeq ).groupBy(_._1).map(p=>p._1->p._2.map(_._2).sum).toSeq.sortBy(_._1.map(_.id).getOrElse(-1))) {
+            ['@sevOpt._1.map(s=>Messages("severity.s."+s.toString)).getOrElse(Messages("unknown"))', @sevOpt._2],}
+        ],
+        type: 'donut',
+      },
+      bindto: '#injuriesThisYearSeverity',
+      donut: {
+        title: "@Messages("publicIndex.injuriesSeverity")"
+      },
+      tooltip: {
+        format: {
+          value: function (value, ratio, id, index) { return value; }
+        }
+      }
+    });
+    c3.generate({
+      bindto:'#injuriesByYear',
+      data: {
+          x:'x',
+        columns: [
+            ['x', @Html(prevYears.toSeq.map(_._1).map(_.toString).mkString("'","','","'"))],
+            @for( r <- prevYears.toSeq.flatMap(p=>p._2.toSeq.map(m=>(m._1, p._1, m._2))).groupBy(_._1).map(p=>p._1->p._2.map(_._3)).toSeq.sortBy(_._1.map(_.id).getOrElse(-1)) ){
+                ['@r._1.map(s=>Messages("severity.s."+s.toString)).getOrElse(Messages("unknown"))', @r._2.mkString(",")],}
+        ],
+        type: 'bar',
+        groups: [
+          ['@Messages("unknown")', @Html(Severity.values.map(s=>Messages("severity.s."+s.toString)).mkString("'","','","'"))]
+        ]
+      },
+      grid: {
+        y: {
+          show: 'true'
+        }
+      }
+    });
+  });
+  </script>
+}
+
+@templates.bsNavbar(Messages("application.title"), views.Structure.publicItems, views.PublicSections.Home, extrahead, extraBottom) {
   <div class="row my-3">
     <div class="col text-center">
       <h1 class="display-1 mb-2 text-klo-blue">@Messages("publicIndex.hero")</h1>
@@ -9,8 +78,9 @@
       <hr>
     </div>
   </div>
-  <div class="row my-3">
-    <div class="col">
+
+  <div class="row row-cols-1 row-cols-md-2 my-3">
+    <div class="col mt-3">
       <h3 class="mb-3">@Messages("publicIndex.recentInjuries")</h3>
       <ul class="injuredList-main">
       @for( wkr <- injuredWorkers ){
@@ -34,7 +104,7 @@
       }
       </ul>
     </div>
-    <div class="col">
+    <div class="col mt-3">
       <h3>@Messages("publicIndex.injuredThisYear")</h3>
       <div class="table-responsive">
         @defining( Severity.values.toSeq.map(Some(_)) ++ Seq(None) ) { cols =>
@@ -76,9 +146,16 @@
         }
       </div>
     </div>
-  </div>
-  <div class="row">
-    <div class="col">
+    <div class="col mt-3">
+      <h3>@Messages("publicIndex.injuredThisYear") (@Messages("publicIndex.injuriesBranch"))</h3>
+      <div id="injuriesThisYearBranch" style="direction:ltr"></div>
+    </div>
+    <div class="col mt-3">
+      <h3>@Messages("publicIndex.injuredThisYear") (@Messages("publicIndex.injuriesSeverity"))</h3>
+      <div id="injuriesThisYearSeverity" style="direction:ltr"></div>
+    </div>
+
+    <div class="col mt-3">
       <h3>@Messages("publicIndex.prevYears")</h3>
       <div class="table-responsive">
         @defining( Severity.values.toSeq.map(Some(_)) ++ Seq(None) ) { cols =>
@@ -118,7 +195,12 @@
       </div>
     </div>
 
-    <div class="col">
+    <div class="col mt-3">
+      <h3>@Messages("publicIndex.injuriesByYear")</h3>
+      <div id="injuriesByYear" style="direction:ltr"></div>
+    </div>
+
+    <div class="col mt-3">
       <h3 class="mb-3">@Messages("publicIndex.links")</h3>
       <ul class="linkList">
         <li><a href="@routes.PublicCtrl.accidentIndex(None, None, None, None, None, None, None, None)">@Messages("publicIndex.links.accidentList")</a></li>
