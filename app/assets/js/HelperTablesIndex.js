@@ -59,6 +59,7 @@ function setup(){
                 .then( r => r.json() );
         },
         deleteRow:(id)=>{
+            if ( id > 1023 ) return;
             return pj.using( c => c.HelperTableCtrl.apiDeleteRelationsToAccidents(Number(id)) )
                 .fetch()
                 .then( r => r.json() );

@@ -70,3 +70,6 @@ class IndustriesDAO @Inject() (dbConfigProvider:DatabaseConfigProvider, sc:SyncC
 class RelationToAccidentDAO @Inject() (dbConfigProvider:DatabaseConfigProvider, sc:SyncCacheApi)(implicit ec:ExecutionContext)
   extends IdNameDAO[RelationToAccident, RelationToAccidentTable](slick.lifted.TableQuery[RelationToAccidentTable], sc, dbConfigProvider)
 
+object RelationToAccidentDAO {
+  val DIRECT_EMPLOYMENT_ID = 1024
+}

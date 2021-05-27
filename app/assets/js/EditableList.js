@@ -39,16 +39,21 @@ function EditableList(ulId, addBtnId, callbacks) {
     }
 
     function deleteRow(rowEmt){
-        swal("Delete value " + rowEmt.dataset.name + "?", {
-            dangerMode: true,
-            buttons: true,
-        }).then( value=>{
-            if ( value ) {
-                callbacks.deleteRow(rowEmt.dataset.id).then( res=>{
-                    rowEmt.remove();
-                });
-            }
-        });
+        if ( rowEmt.dataset.id > 1023 ) {
+            swal("This is a protected item that cannot be deleted");
+            return;
+        } else {
+            swal("Delete value " + rowEmt.dataset.name + "?", {
+                dangerMode: true,
+                buttons: true,
+            }).then( value=>{
+                if ( value ) {
+                    callbacks.deleteRow(rowEmt.dataset.id).then( res=>{
+                        rowEmt.remove();
+                    });
+                }
+            });
+        }
     }
 
     function addRow( data, goIntoEditMode ) {
@@ -57,6 +62,13 @@ function EditableList(ulId, addBtnId, callbacks) {
         newRow.dataset.name=data.name;
         const f = newRow.getElementsByTagName("input")[0];
         const buttons = newRow.getElementsByTagName("button");
+        if ( data.id > 1023 ) {
+            for (let b of buttons) {
+                if ( b.dataset.elRole === "delBtn" ) {
+                    b.remove();
+                }
+            }
+        }
         const role2func = {
             editBtn: ()=>startEdit(newRow),
             delBtn:  ()=>deleteRow(newRow),

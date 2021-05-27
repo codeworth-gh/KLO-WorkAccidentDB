@@ -58,7 +58,9 @@ object WorkAccidentFD{
   def make(wa: WorkAccident):WorkAccidentFD = {
     val time = wa.when.toLocalTime
     val timeOpt = if ( time.getHour==0 && time.getMinute==0) None else Some(time)
-    WorkAccidentFD(wa.id, wa.when.toLocalDate, timeOpt, wa.relatedEntities.map(r=>RelatedEntityFD(r._2.name, r._1.id)).toSeq, wa.location, wa.region.map(_.id),
+    WorkAccidentFD(wa.id, wa.when.toLocalDate, timeOpt,
+      wa.relatedEntities.filter(_._1.id < RelationToAccidentDAO.DIRECT_EMPLOYMENT_ID).map(r=>RelatedEntityFD(r._2.name, r._1.id)).toSeq,
+      wa.location, wa.region.map(_.id),
       wa.blogPostUrl, wa.details, wa.investigation, wa.initialSource, wa.mediaReports.toSeq.sorted, wa.publicRemarks,
       wa.sensitiveRemarks, wa.injured.toSeq.map(InjuredWorkerFD.make)
     )
@@ -189,7 +191,8 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
       ijcs <- causes.list()
       rtac <- accidentRelations.list()
     } yield {
-      Ok(views.html.backoffice.workAccidentEditor(aForm, rgns, bePr, inds, ctzs, ijcs, rtac))
+      val editableRtac = rtac.filter(_.id < RelationToAccidentDAO.DIRECT_EMPLOYMENT_ID )
+      Ok(views.html.backoffice.workAccidentEditor(aForm, rgns, bePr, inds, ctzs, ijcs, editableRtac))
     }
   }
   

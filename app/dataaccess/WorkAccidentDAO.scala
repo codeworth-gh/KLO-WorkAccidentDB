@@ -123,11 +123,14 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     } yield unified
   }
   
-  def accidentsForBizEnt( bizEntId:Long ): Future[Seq[(RelationToAccident, WorkAccidentSummary)]] = {
+  def accidentsForBizEnt( bizEntId:Long ): Future[Map[WorkAccidentSummary, Set[RelationToAccident]]] = {
     db.run( accidentAndBizEntSums.filter(r => r._2.id === bizEntId)
         .join(workAccidentSummaries).on( (abe, was) => abe._1.accidentId === was.id )
         .sortBy(r=>r._2.dateTime.desc.nullsLast).result)
-      .map( rows => rows.map(r => (relationTypes(r._1._1.relationTypeId).get, r._2.toObject(Set()))) )
+      .map( rows => rows.map(r => (r._2, relationTypes(r._1._1.relationTypeId).get) )
+        .groupBy(_._1).map( kv => kv._1 -> kv._2.map(_._2).toSet)
+        .map( p => p._1.toObject(Set()) -> p._2 )
+      )
   }
   
   def deleteAccident(id:Long):Future[Try[Int]] = {
@@ -298,7 +301,12 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
       sensitiveRemarks = wa.sensitiveRemarks
   )
   
-  private def toRelationRecords( wa:WorkAccident ) = wa.relatedEntities.map( t => RelationToAccidentRecord(wa.id, t._1.id, t._2.id) )
+  private def toRelationRecords( wa:WorkAccident ) = {
+    wa.relatedEntities.map( t => RelationToAccidentRecord(wa.id, t._1.id, t._2.id) ) ++
+    wa.injured.filter( _.employer.nonEmpty )
+        .map( inj => RelationToAccidentRecord(wa.id, RelationToAccidentDAO.DIRECT_EMPLOYMENT_ID, inj.employer.get.id))
+  }
+  
   
   private def toDto( iw:InjuredWorker, accidentId:Long ) = InjuredWorkerRecord(
       id = iw.id,

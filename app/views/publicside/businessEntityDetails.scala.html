@@ -1,6 +1,6 @@
-@(bizEnt:BusinessEntity, accidents:Seq[(RelationToAccident, WorkAccidentSummary)])(implicit request:Request[_], msgs:MessagesProvider)
+@(bizEnt:BusinessEntity, accidents:Map[WorkAccidentSummary, Set[RelationToAccident]])(implicit request:Request[_], msgs:MessagesProvider)
 
-@templates.frontEndBase(Messages("businessEntities.title"), views.PublicSections.Datasets) {
+@templates.frontEndBase(Messages("businessEntities.title") + "-" + bizEnt.name, views.PublicSections.Datasets) {
   @comps.pageTitleRow(bizEnt.name)(Html(""))
 
   <div class="row mt-2">
@@ -26,10 +26,10 @@
       <div class="col-10">@bizEnt.memo.get</div>
     </div>
   }
-  <div class="row my-2">
+  <div class="row mt-3">
     <div class="col">
       <h2>@Messages("businessEntities.relatedAccidents")</h2>
-      <p>@defining( accidents.map(a => (a._2.killedCount, a._2.injuredCount) ).fold((0,0))((a,b)=>(a._1+b._1, a._2+b._2)) ){ cnts =>
+      <p>@defining( accidents.keys.toSeq.map(a => (a.killedCount, a.injuredCount) ).fold((0,0))((a,b)=>(a._1+b._1, a._2+b._2)) ){ cnts =>
         @if(accidents.size==1){@Messages("accidentCount.single")}else{@Messages("accidentCount.multi", accidents.size)},
         @comps.injuredCounts(cnts._1, cnts._2-cnts._1).
       }
@@ -39,14 +39,14 @@
   <div class="row">
     <div class="col">
       <ul>
-        @for( r <- accidents ) {
+        @for( (acc, rels) <- accidents.toSeq.sortBy(_._1.dateTime).reverse ) {
           <li>
-            @r._2.date.format( Helpers.dateFormats(Helpers.DateFmt.HR_Date))
-            <span class="badge bg-klo-blue">@r._1.name</span>
-            <a href="@routes.PublicCtrl.accidentDetails(r._2.id)">
-              @r._2.details
+            @acc.date.format( Helpers.dateFormats(Helpers.DateFmt.HR_Date))
+            <a href="@routes.PublicCtrl.accidentDetails(acc.id)">
+              @acc.details
             </a>
-            <span class="text-klo-dg">@comps.injuredCounts(r._2.killedCount, r._2.injuredCount-r._2.killedCount)</span>
+            @for(rel<-rels.toSeq.sortBy(_.name)){<span class="badge bg-klo-blue me-1">@rel.name</span>}
+            <span class="text-klo-dg">@comps.injuredCounts(acc.killedCount, acc.injuredCount-acc.killedCount)</span>
           </li>
         }
       </ul>

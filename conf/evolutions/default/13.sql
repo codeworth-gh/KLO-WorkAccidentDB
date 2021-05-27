@@ -10,5 +10,3 @@ where entrepreneur_id is not null;
 -- !Downs
 
 delete from bart_accident;
-
-
