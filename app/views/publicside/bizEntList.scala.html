@@ -1,16 +1,23 @@
 @import dataaccess.BusinessEntityDAO.StatsSortKey
 @import views.PaginationInfo
-@(rows:Seq[BusinessEntityStats], total:Int, pi:PaginationInfo, sortKey:StatsSortKey.Value, isAsc:Boolean)(implicit request:Request[_], msgs:MessagesProvider)
+@(rows:Seq[BusinessEntityStats], total:Int, pi:PaginationInfo, sortKey:StatsSortKey.Value, isAsc:Boolean, searchStr:String)(implicit request:Request[_], msgs:MessagesProvider)
 
 @th(sort:String, cur:StatsSortKey.Value, key:StatsSortKey.Value, isCurrentlyAsc:Boolean)=@{
   val asc = (cur==key) && !isCurrentlyAsc
-  routes.PublicCtrl.bizEntIndex(Some(pi.currentPage), Some(key.toString), Some(if(asc)"t" else "f") )
+  routes.PublicCtrl.bizEntIndex(Some(pi.currentPage), Some(key.toString), Some(if(asc)"t" else "f"), searchStr )
 }
 
 @templates.frontEndBase(Messages("bizEntList.title"), views.PublicSections.BizEntList) {
   @comps.pageTitleRow(Messages("bizEntList.title")){
     <div class="ms-2">
-    @Messages("bizEntList.foundCount", total)
+      @Messages("bizEntList.foundCount", total)
+      <form action="@routes.PublicCtrl.bizEntIndex(None, None, None)" class="d-inline-block" method="GET">
+        <input type="hidden" name="pSortBy" value="@sortKey.toString">
+        <div class="input-group">
+          <input type="text" placeholder="@Messages("name")" class="form-control" name="searchStr" value="@searchStr">
+          <button class="btn btn-outline-klo-blue">@Messages("search")</button>
+        </div>
+      </form>
     </div>
   }
   @comps.helpRow(Messages("bizEntList.help"))
@@ -50,7 +57,7 @@
       </div>
       <div class="row my-2">
         <div class="col">
-        @comps.pager(pi)(i=>Html(routes.PublicCtrl.bizEntIndex(Some(i), Some(sortKey.toString),Some(if(isAsc)"t" else "f")).url))
+        @comps.pager(pi)(i=>Html(routes.PublicCtrl.bizEntIndex(Some(i), Some(sortKey.toString),Some(if(isAsc)"t" else "f"), searchStr).url))
         </div>
       </div>
     </div>

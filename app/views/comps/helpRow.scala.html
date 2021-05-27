@@ -1,8 +1,11 @@
 @(text:String)
 <div class="row my-2">
   <div class="col">
-    <div class="alert alert-info">
-      @svg.infoSquare() @text
+    <div class="alert alert-info d-flex flex-row align-items-center">
+      <div class="ms-3">
+        @svg.infoSquare()
+      </div>
+      <div>@text</div>
     </div>
   </div>
 </div>

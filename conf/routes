@@ -10,7 +10,7 @@ GET     /fatalities     controllers.PublicCtrl.fatalities(year:Option[Int])
 GET     /datasets/      controllers.PublicCtrl.datasets()
 GET     /datasets/accidents       controllers.PublicCtrl.accidentsDataset()
 GET     /datasets/injuries       controllers.PublicCtrl.injuriesDataset()
-GET     /businesses/      controllers.PublicCtrl.bizEntIndex(pPage:Option[Int], pSortBy:Option[String], pAsc:Option[String])
+GET     /businesses/      controllers.PublicCtrl.bizEntIndex(pPage:Option[Int], pSortBy:Option[String], pAsc:Option[String], searchStr?="")
 GET     /businesses/:id   controllers.PublicCtrl.bizEntDetails(id:Long)
 
 GET     /signup                      controllers.UserCtrl.showSignup()

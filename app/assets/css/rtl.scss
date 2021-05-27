@@ -82,7 +82,6 @@ $inputGroupBorderRadius: 0.25rem;
   }
 }
 
-
 .buttonLikeGroup {
   label.buttonLike {
     &:first-of-type {
@@ -92,4 +91,14 @@ $inputGroupBorderRadius: 0.25rem;
       border-radius: 0.5em 0 0 0.5em !important;
     }
   }
+}
+
+input-group:not(.has-validation) > .dropdown-toggle:nth-last-child(n+3),
+.input-group:not(.has-validation) > :not(:last-child):not(.dropdown-toggle):not(.dropdown-menu) {
+  border-radius: 0 3px 3px 0;
+}
+
+.input-group > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
+  margin-left: -1px;
+  border-radius: 3px 0 0 3px;
 }
