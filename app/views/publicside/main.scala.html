@@ -57,7 +57,7 @@
         ],
         type: 'bar',
         groups: [
-          [@Html(Severity.values.toSeq.sortBy(_.id).reverse.map(s=>Messages("severity.s."+s.toString)).mkString("'","','","'")), '@Messages("unknown")']
+          [@Html(Severity.values.toSeq.sortBy(_.id).map(s=>Messages("severity.s."+s.toString)).mkString("'","','","'")), '@Messages("unknown")']
         ]
       },
       grid: {

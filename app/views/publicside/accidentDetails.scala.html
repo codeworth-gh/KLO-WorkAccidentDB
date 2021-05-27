@@ -2,8 +2,9 @@
 @import be.objectify.deadbolt.scala.AuthenticatedRequest
 @(acc:WorkAccident)(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
 
-@relEntLine(rt:RelationToAccident, ent:BusinessEntity)={
-  <a href="@routes.PublicCtrl.bizEntDetails(ent.id)">@ent.name</a>, <span class="text-klo-dg">@rt.name</span>.
+@relEntLine(ent:BusinessEntity, rts:Set[RelationToAccident])={
+  <a href="@routes.PublicCtrl.bizEntDetails(ent.id)">@ent.name</a>
+  @for(rt<-rts.toSeq.sortBy(_.name)){<span class="badge bg-klo-blue me-1">@rt.name</span>}
 }
 
 @templates.frontEndBase(Messages("accidentDetails.title"), views.PublicSections.AccidentList) {
@@ -39,7 +40,7 @@
       }
     </div>
   </div>
-  @Helpers.ifNotEmpty(acc.relatedEntities){ relatedSet => @defining( relatedSet.iterator.toSeq.sortBy(_._1.name) ) { relateds =>
+  @Helpers.ifNotEmpty(acc.relatedEntities){ relatedSet => @defining( relatedSet.iterator.toSeq.groupBy(_._2).map(p=>p._1->p._2.map(_._1).toSet).toSeq.sortBy(_._1.name) ) { relateds =>
     <div class="row mb-2">
       <div class="col-sm-2 text-klo-dg">@Messages("workAccidentEditor.relatedEntities")</div>
       <div class="col">
