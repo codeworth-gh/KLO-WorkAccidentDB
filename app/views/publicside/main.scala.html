@@ -107,7 +107,7 @@
     <div class="col mt-3">
       <h3>@Messages("publicIndex.injuredThisYear")</h3>
       <div class="table-responsive">
-        @defining( Severity.values.toSeq.map(Some(_)) ++ Seq(None) ) { cols =>
+        @defining( Severity.values.toSeq.sortBy(_.id).map(Some(_)) ++ Seq(None) ) { cols =>
           <table class="table">
             <thead>
               <tr>
@@ -122,7 +122,7 @@
               </tr>
             </thead>
             <tbody>
-              @for( row <- thisYearByIndustry ){
+              @for( row <- thisYearByIndustry.toSeq.sortBy(_._1.map(_.name).getOrElse("תתתתתת")) ){
                 <tr>
                   @row._1 match {
                     case None => {<th class="text-muted">@Messages("unknown")</th>}
