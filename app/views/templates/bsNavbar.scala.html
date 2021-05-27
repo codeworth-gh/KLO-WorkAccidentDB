@@ -63,14 +63,21 @@
     <div class="container">
       <div class="row">
         <div class="col text-center">
-          <div class="warning text-warning mb-2">
+          <div class="warning text-warning mb-3">
             @Messages("footer.warning")
           </div>
           <a href="https://kavlaoved.org.il"><img height="50" src="@routes.Assets.versioned("images/logo-footer.png")"></a>
         </div>
       </div>
+      <div class="row py-2">
+        <div class="col miniIcons">
+          <a href="http://codeworth.io" target="_blank"><img alt="codeworth.io's logo" height="10" src="@routes.Assets.versioned("images/cowoMini.png")"></a>
+          <a href="https://github.com/codeworth-gh/KLO-WorkAccidentDB" target="_blank">@views.html.comps.svg.github()</a>
+          <a href="https://github.com/codeworth-gh/PSPS" target="_blank"><strong>PSPS</strong> fwk</a>
+        </div>
+      </div>
     </div>
-    <a style="margin:1em 0 0 0; text-align:left; display:block; width:48px" href="http://codeworth.io" target="_blank"><img height="10" src="@routes.Assets.versioned("images/cowoMini.png")"></a>
+
   </div>
 </footer>
 }
