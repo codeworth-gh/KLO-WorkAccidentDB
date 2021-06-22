@@ -82,7 +82,7 @@
       </div>
     }else{
       <div class="table-responsive">
-        <table class="table table-sm ">
+        <table class="table table-sm">
           <thead>
             <tr>
               @comps.sortingTH(Messages("workAccidents.dateTime"),
@@ -103,16 +103,18 @@
           <tbody>
           @for( ent <- ents ){@defining( routes.PublicCtrl.accidentDetails(ent.id) ){ lnk=>
             <tr>
-              <td class="d-md-flex flex-row">
-                <div>
-                  @Helpers.format(Helpers.DateFmt.HR_Date, ent.dateTime ) @if(ent.hasTime){@Helpers.format(Helpers.DateFmt.HR_Time, ent.dateTime)}
+              <td>
+                <div class="d-flex flex-column flex-md-row">
+                  <div>
+                    @Helpers.format(Helpers.DateFmt.HR_Date, ent.dateTime )
+                  </div>
+                  <div class="flex-grow-1 d-flex flex-row align-items-center">
+                    <button class="btn btn-sm" type="button" onclick="UiUtils.toggleViz('detailsRow-@ent.id')">@comps.svg.infoCircle()</button>
+                    <a href="@lnk">@comps.svg.arrowLeftCircle()</a>
+                  </div>
                 </div>
                 <div class="d-block d-md-none">
-                  @ent.injuredCount @Messages("injuredWorkers") (@ent.killedCount @Messages("killedWorkers"))
-                </div>
-                <div class="me-auto">
-                  <button class="btn btn-sm btn-outline-secondary" type="button" onclick="UiUtils.toggleViz('detailsRow-@ent.id')">@comps.svg.infoSquare()</button>
-                  <a href="@lnk" class="btn btn-sm btn-outline-primary">@comps.svg.arrowLeftCircle()</a>
+                  @comps.injuredCounts(ent.killedCount, ent.injuredCount)
                 </div>
               </td>
               <td>

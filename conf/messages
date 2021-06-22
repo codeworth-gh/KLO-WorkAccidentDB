@@ -154,7 +154,7 @@ userHome.inviteUser=הזמנת משתמשת חדשה
 userHome.addNewAccident=הוספת תאונה חדשה
 
 workAccidents.title=תאונות עבודה
-workAccidents.noData=לא נמצאו תאונות עבודה
+workAccidents.noData=לא נמצאו תאונות עבודה העונות לתיאור
 workAccidents.dateTime=תאריך ושעה
 workAccidents.region=אזור
 workAccidents.relatedEntities=גורמים מעורבים
