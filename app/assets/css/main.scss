@@ -1,9 +1,13 @@
 @import "colors";
+@import url(http://fonts.googleapis.com/earlyaccess/alefhebrew.css);
 
 body {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
+
+  font-family: "Alef Hebrew", “Helvetica Neue”, Helvetica, Arial, sans-serif;
+
 }
 
 footer {
@@ -24,6 +28,8 @@ footer {
       }
     }
     .miniIcons {
+      display: flex;
+      flex-direction: row;
       direction: ltr;
       text-align: center;
       font-size: 9pt;
@@ -34,15 +40,30 @@ footer {
         color: black;
         display: inline-block;
         text-decoration: none;
+        flex-grow: 0;
+        margin: 0;
+        padding-left: 1em;
+        &:hover {
+          background-color: transparent;
+          color: #FFFFAA;
+        }
+        &.bkgHover {
+          padding: 1px;
+          &:hover {
+            background-color: #FFFFAA;
+          }
+        }
+
       }
     }
   }
 
   .disclaimer {
     margin-top: 1em;
-    border-top: 1px solid rgba(255,255,255,.2);
+    padding: 1em;
+    border: 1px solid rgba(255,210,200,.5);
     font-size: 9pt;
-    color: #aca478;
+    color: rgb(255,210,200);
     font-weight: lighter;
   }
 }
