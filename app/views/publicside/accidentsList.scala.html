@@ -3,7 +3,8 @@
 @import java.time.LocalDate
 @(ents:Seq[WorkAccidentSummary],
   regions:Seq[Region], industries:Seq[Industry], rgns:(Int=>Option[Region]),
-        selRgns:Set[Region], selIndustries:Set[Industry], selSeverities:Set[models.Severity.Value],
+        selRgns:Set[Int], selIndustries:Set[Int],
+        selSeverities:Set[models.Severity.Value], includeNullSeverity:Boolean, selSeveritiesStr:String,
         from:Option[String], to:Option[String],
         total:Long, pi:PaginationInfo, curSort:SortKey.Value, isAsc:Boolean)(implicit request:Request[_], msgs:MessagesProvider)
 
@@ -13,7 +14,7 @@
 
 @th(sort:String, cur:SortKey.Value, key:SortKey.Value, isCurrentlyAsc:Boolean)=@{
   val asc = (cur==key) && !isCurrentlyAsc
-  routes.PublicCtrl.accidentIndex(Some(selRgns.map(_.id).mkString(",")), Some(selIndustries.map(_.id).mkString(",")), Some(selSeverities.mkString(",")),
+  routes.PublicCtrl.accidentIndex(Some(selRgns.mkString(",")), Some(selIndustries.mkString(",")), Some(selSeveritiesStr),
     from, to,
     Some(sort), Some(if(asc)"t" else "f"), Some(pi.currentPage))
 }
@@ -21,17 +22,18 @@
 @templates.frontEndBase(Messages("workAccidents.title"), views.PublicSections.AccidentList, extraHead = extraHead) {
   @comps.pageTitleRow(Messages("workAccidents.title")){
     <div class="ms-2">
-      @Messages("workAccidents.foundCount", total)
+      @comps.accidentCount(total)
     </div>
-
-    <button class="btn btn-outline-klo-blue" data-bs-toggle="collapse" data-bs-target="#searchPanel">@comps.svg.search() @Messages("filterAndSearch")</button>
+    @defining(selRgns.nonEmpty || selIndustries.nonEmpty || selSeveritiesStr.nonEmpty || from.nonEmpty || to.nonEmpty ) { hasFilter =>
+      <button class="btn btn-outline-klo-blue @if(hasFilter){btnActive}" data-bs-toggle="collapse" data-bs-target="#searchPanel">@comps.svg.search() @Messages("filterAndSearch")</button>
+    }
   }
   <div class="collapse" id="searchPanel">
       <div class="row flex-row">
         <div class="col-md flex-grow-0 controlGrid" style="min-width: 20em">
           <form action="" method="GET" id="filterForm">
-            <input type="hidden" name="regions" value="@selRgns.map(_.id).mkString(",")">
-            <input type="hidden" name="industries" value="@selIndustries.map(_.id).mkString(",")">
+            <input type="hidden" name="regions" value="@selRgns.mkString(",")">
+            <input type="hidden" name="industries" value="@selIndustries.mkString(",")">
             <input type="hidden" name="severities" value="@selSeverities.mkString(",")">
             <label class="form-label" for="fromDate">@Messages("startDate")</label>
             <input type="date" value="@from" class="form-control" name="from" id="fromDate" autocomplete="off">
@@ -44,17 +46,23 @@
           <div class="buttonLikeGroup">
             @for(rgn<-regions) {
               <input type="checkbox" onchange="updateForm('regions')" class="hidden"
-                      name="regionsChk" value="@rgn.id" id="rgnCheck@rgn.id" autocomplete="off" @if(selRgns(rgn)){checked="checked"}>
+                      name="regionsChk" value="@rgn.id" id="rgnCheck@rgn.id" autocomplete="off" @if(selRgns(rgn.id)){checked="checked"}>
               <label class="buttonLike" for="rgnCheck@rgn.id">@rgn.name</label>
             }
+            <input type="checkbox" onchange="updateForm('regions')" class="hidden"
+                    name="regionsChk" value="-1" id="rgnCheckUnknown" autocomplete="off" @if(selRgns(-1)){checked="checked"}>
+            <label class="buttonLike btnUnknown" for="rgnCheckUnknown">@Messages("unknown")</label>
           </div>
           @Messages("industry")
           <div class="buttonLikeGroup">
             @for(idn<-industries) {
               <input type="checkbox" class="hidden" onchange="updateForm('industries')" name="industriesChk"
-                value="@idn.id" id="industries@idn.id" autocomplete="off" @if(selIndustries(idn)){checked="checked"}>
+                value="@idn.id" id="industries@idn.id" autocomplete="off" @if(selIndustries(idn.id)){checked="checked"}>
               <label class="buttonLike" for="industries@idn.id">@idn.name</label>
             }
+            <input type="checkbox" class="hidden" onchange="updateForm('industries')" name="industriesChk"
+              value="-1" id="industriesUnknown" autocomplete="off" @if(selIndustries(-1)){checked="checked"}>
+            <label class="buttonLike btnUnknown" for="industriesUnknown">@Messages("unknown")</label>
           </div>
           @Messages("severity")
           <div class="buttonLikeGroup">
@@ -63,6 +71,9 @@
                 value="@sev" id="sev@sev" autocomplete="off" @if(selSeverities(sev)){checked="checked"}>
               <label class="buttonLike" for="sev@sev">@Messages("severity." + sev)</label>
             }
+            <input type="checkbox" class="hidden" onchange="updateForm('severities')" name="severitiesChk"
+              value="-1" id="sevUnknown" autocomplete="off" @if(includeNullSeverity){checked="checked"}>
+            <label class="buttonLike btnUnknown" for="sevUnknown">@Messages("unknown")</label>
           </div>
         </div>
         <div class="col-md d-grid flex-grow-0">
@@ -149,8 +160,8 @@
           </tbody>
         </table>
       </div>
-      @comps.pager(pi){i=>@routes.PublicCtrl.accidentIndex(Some(selRgns.map(_.id).mkString(",")), Some(selIndustries.map(_.id).mkString(",")),
-        Some(selSeverities.mkString(",")), from, to,
+      @comps.pager(pi){i=>@routes.PublicCtrl.accidentIndex(Some(selRgns.mkString(",")), Some(selIndustries.mkString(",")),
+        Some(selSeveritiesStr), from, to,
         Some(curSort.toString), Some(if(isAsc)"t" else "f"), Some(i))}
     }
     </div>

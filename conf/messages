@@ -162,6 +162,8 @@ workAccidents.numInjured=נפגעים
 workAccidents.numFatalities=מתוכם הרוגים
 workAccidents.details=פרטים
 workAccidents.foundCount=נמצאו {0} תאונות
+workAccidents.foundOne=נמצאה תאונה אחת
+workAccidents.foundNone=לא נמצאו תאונות
 
 workAccident.saved=תאונת העבודה {0} נשמרה
 

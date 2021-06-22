@@ -1,0 +1,6 @@
+@(accidentCount:Long)(implicit request:Request[_], msgs:MessagesProvider)
+@accidentCount match {
+  case 0 => {@Messages("workAccidents.foundNone")}
+  case 1 => {@Messages("workAccidents.foundOne")}
+  case n => {@Messages("workAccidents.foundCount", n)}
+}

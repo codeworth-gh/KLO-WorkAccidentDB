@@ -12,6 +12,6 @@ function updateForm(fieldName){
 }
 
 function submitFilter() {
-    console.log("Submitting");
+    // console.log("Submitting");
     document.forms.filterForm.submit();
 }

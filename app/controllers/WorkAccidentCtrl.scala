@@ -124,8 +124,8 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
     val asc = pAsc.getOrElse("f").trim=="t"
     val sortBy = WorkAccidentDAO.SortKey.named(pSortBy.getOrElse("Datetime") ).getOrElse(WorkAccidentDAO.SortKey.Datetime)
     for {
-      accRows <- accidents.listAccidents(None, None, Set(), Set(), Set(), (page-1)*PAGE_SIZE, PAGE_SIZE, sortBy, asc)
-      accCount <- accidents.accidentCount(None, None, Set(), Set(), Set())
+      accRows <- accidents.listAccidents(None, None, Set(), Set(), Set(), false, (page-1)*PAGE_SIZE, PAGE_SIZE, sortBy, asc)
+      accCount <- accidents.accidentCount(None, None, Set(), Set(), Set(), false)
     } yield {
       Ok(views.html.backoffice.workAccidentsIndex(accRows,
         regions.apply,

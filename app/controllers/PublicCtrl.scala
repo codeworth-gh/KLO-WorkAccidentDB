@@ -142,19 +142,23 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
       }
     val selRgns = pRegions.map( _.split(",").map(_.trim).filter(_.nonEmpty).map(_.toInt).map(regions(_)).filter(_.isDefined).flatten.toSet ).getOrElse(Set())
     val selIndustries = pIndustries.map( _.split(",").map(_.trim).filter(_.nonEmpty).map(_.toInt).map(industries(_)).filter(_.isDefined).flatten.toSet ).getOrElse(Set())
-    val selSeverities = pSeverities.map( _.split(",").map(_.trim).filter(_.nonEmpty).map(Severity.withName).toSet ).getOrElse(Set())
+    val selSeverities = pSeverities.map( _.split(",").map(_.trim).filter(_.nonEmpty).filter(_ != "-1").map(Severity.withName).toSet ).getOrElse(Set())
+    val includeNullSevs = pSeverities.exists(_.contains("-1"))
+    val rgnIds = selRgns.map(_.id) ++ pRegions.filter(_.contains("-1")).map(_ => -1)
+    val indIds = selIndustries.map(_.id) ++ pIndustries.filter(_.contains("-1")).map(_ => -1)
     
-    val rgnIds = selRgns.map(_.id)
-    val indIds = selIndustries.map(_.id)
     for {
       regionList <- regions.list()
       industryList <- industries.list()
-      accCount <- accidents.accidentCount(start, end, rgnIds, indIds, selSeverities)
-      accRows  <- accidents.listAccidents(start, end, rgnIds, indIds, selSeverities, (page-1)*PAGE_SIZE, PAGE_SIZE, sortBy, asc)
+      accCount <- accidents.accidentCount(start, end, rgnIds, indIds, selSeverities, includeNullSevs)
+      accRows  <- accidents.listAccidents(start, end, rgnIds, indIds, selSeverities, includeNullSevs, (page-1)*PAGE_SIZE, PAGE_SIZE, sortBy, asc)
     } yield {
+      val selSeveritiesStr = selSeverities.toSeq.map(_.toString) ++ Seq(includeNullSevs).filter( identity ).map(_ => "-1")
+      
       Ok(views.html.publicside.accidentsList(accRows,
         regionList, industryList, regions.apply,
-        selRgns, selIndustries, selSeverities,
+        rgnIds, indIds,
+        selSeverities, includeNullSevs, selSeveritiesStr.mkString(","),
         start.map( dateFormat.format ), end.map( dateFormat.format ),
         accCount, PaginationInfo(page, Math.ceil(accCount/PAGE_SIZE.toDouble).toInt), sortBy, asc))
     }
