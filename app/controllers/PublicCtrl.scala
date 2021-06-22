@@ -32,6 +32,7 @@ object Column {
 
 object PublicCtrl {
   val PAGE_SIZE = 50
+  val INDEX_PAGE_CACHE_KEY = "PublicCtrl::publicMain"
   val integerDataStyle = new FloatStyleBuilder("int", Locale.US).decimalPlaces(0).groupThousands(false).build()
   val rowStyle = TableRowStyle.builder("okRow").rowHeight(SimpleLength.pt(16.0)).build()
 }
@@ -113,7 +114,7 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     w.setDateValue(jd)
   }
   
-  def main = cached("publicMain"){
+  def main = cached(PublicCtrl.INDEX_PAGE_CACHE_KEY){
     Action.async{implicit req =>
       logger.warn("public-main actually rendered.")
       for {

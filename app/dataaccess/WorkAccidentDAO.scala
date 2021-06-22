@@ -1,5 +1,6 @@
 package dataaccess
 
+import controllers.PublicCtrl
 import models.{BusinessEntity, Industry, InjuredWorker, InjuredWorkerRow, RelationToAccident, Severity, WorkAccident, WorkAccidentSummary}
 import play.api.Logger
 import play.api.cache.AsyncCacheApi
@@ -49,14 +50,14 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   private val log = Logger(classOf[WorkAccidentDAO])
   
   def store( iw:InjuredWorker, accidentId:Long ):Future[InjuredWorker] = {
-    cacheApi.remove("publicMain")
+    cacheApi.remove(PublicCtrl.INDEX_PAGE_CACHE_KEY)
     db.run(
       (injuredWorkers returning injuredWorkers.map(_.id)).into((_, newId) => iw.copy(id=newId)).insertOrUpdate( toDto(iw, accidentId) )
     ).map( _.getOrElse(iw) )
   }
   
   def store( wa:WorkAccident ):Future[WorkAccident] = {
-    cacheApi.remove("publicMain")
+    cacheApi.remove(PublicCtrl.INDEX_PAGE_CACHE_KEY)
     val waRow = toDto(wa)
     val relateds = toRelationRecords(wa)
     val isNew = waRow.id == 0
@@ -134,7 +135,7 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   }
   
   def deleteAccident(id:Long):Future[Try[Int]] = {
-    cacheApi.remove("publicMain")
+    cacheApi.remove(PublicCtrl.INDEX_PAGE_CACHE_KEY)
     db.run(
       workAccidents.filter( _.id === id ).delete.asTry
     )
@@ -191,7 +192,7 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     val r = db.run(
       injuredWorkers.filter(_.id===id).delete.asTry
     )
-    cacheApi.remove("publicMain")
+    cacheApi.remove(PublicCtrl.INDEX_PAGE_CACHE_KEY)
     r
   }
   

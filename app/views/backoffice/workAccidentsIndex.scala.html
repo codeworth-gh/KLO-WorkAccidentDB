@@ -38,13 +38,11 @@
         <tbody>
         @for( ent <- ents ){@defining( routes.WorkAccidentCtrl.showEdit(ent.id) ){ lnk=>
           <tr>
-            <td class="d-flex flex-row">
-              <div>
+            <td>
+              <div class="d-flex flex-row">
                 @Helpers.format(Helpers.DateFmt.HR_Date, ent.dateTime ) @if(ent.hasTime){@Helpers.format(Helpers.DateFmt.HR_Time, ent.dateTime)}
-              </div>
-              <div class="me-auto">
-                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="UiUtils.toggleViz('detailsRow-@ent.id')">@comps.svg.infoSquare()</button>
-                <a href="@lnk" class="btn btn-sm btn-outline-secondary">@comps.svg.edit() @Messages("edit")</a>
+                <button class="btn btn-sm btn-outline-secondary me-auto" type="button" onclick="UiUtils.toggleViz('detailsRow-@ent.id')">@comps.svg.infoSquare()</button>
+                <a href="@lnk" class="btn btn-sm btn-outline-secondary">@comps.svg.edit()</a>
               </div>
             </td>
             <td>
