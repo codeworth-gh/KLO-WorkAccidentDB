@@ -63,10 +63,11 @@
     <div class="container">
       <div class="row">
         <div class="col text-center">
-          <div class="warning text-warning mb-3">
-            @Messages("footer.warning")
-          </div>
           <a href="https://kavlaoved.org.il"><img height="50" src="@routes.Assets.versioned("images/logo-footer.png")"></a>
+          <div class="disclaimer">
+            @Messages("footer.warning")
+            @Messages("footer.disclaimer")
+          </div>
         </div>
       </div>
       <div class="row py-2">
