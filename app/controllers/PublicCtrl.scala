@@ -114,7 +114,7 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     w.setDateValue(jd)
   }
   
-  def main = cached(PublicCtrl.INDEX_PAGE_CACHE_KEY){
+  def main = cached(_=>PublicCtrl.INDEX_PAGE_CACHE_KEY, 60){
     Action.async{implicit req =>
       logger.warn("public-main actually rendered.")
       for {
