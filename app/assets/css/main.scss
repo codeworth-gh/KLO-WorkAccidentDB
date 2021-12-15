@@ -35,7 +35,7 @@ footer {
       font-size: 9pt;
       border-top: 1px solid rgba(255,255,255,.1);
       margin-top: 2em;
-      padding: 1em 0 2em 0;
+      padding: 1em 1em 2em 1em;
       a {
         color: black;
         display: inline-block;
@@ -463,6 +463,10 @@ ul.injuredList-main {
 
 .btnActive {
   background-color: #FFFFAA;
+}
+
+a.mediaReport {
+  overflow-wrap: break-word;
 }
 
 #searchPanel {

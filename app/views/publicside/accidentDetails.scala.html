@@ -80,11 +80,11 @@
       <div class="col-sm-2 text-klo-dg">@Messages("workAccidentEditor.mediaReports")</div>
       <div class="col">
         @if( acc.mediaReports.size == 1 ) {
-          <a href="@acc.mediaReports.head">@acc.mediaReports.head</a>
+          <a href="@acc.mediaReports.head" class="mediaReport">@acc.mediaReports.head</a>
         } else {
           <ul>
             @for( mr <- acc.mediaReports.filter(_.trim.nonEmpty) ) {
-              <li><a href="@mr">@mr</a></li>
+              <li><a href="@mr" class="mediaReport">@mr</a></li>
             }
           </ul>
         }
