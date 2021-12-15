@@ -1,10 +1,10 @@
 @import views.PaginationInfo
 @import dataaccess.WorkAccidentDAO.SortKey
 @import be.objectify.deadbolt.scala.AuthenticatedRequest
-@(ents:Seq[WorkAccidentSummary], rgns:(Int=>Option[Region]), pi:PaginationInfo, curSort:SortKey.Value, isAsc:Boolean)(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
+@(ents:Seq[WorkAccidentSummary], rgns:(Int=>Option[Region]))(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
 
-@templates.backEndBase(Messages("workAccidents.title"), views.BackOfficeSections.WorkAccidents) {
-  @comps.pageTitleRow(Messages("workAccidents.title")){
+@templates.backEndBase(Messages("workAccidentsReqUp.title"), views.BackOfficeSections.WorkAccidents) {
+  @comps.pageTitleRow(Messages("workAccidentsReqUp.title")){
     <a href="@routes.WorkAccidentCtrl.showNew()" class="btn btn-outline-primary">@comps.svg.add() @Messages("add")</a>
   }
   <div class="row my-2">
@@ -20,19 +20,11 @@
       <table class="table table-sm ">
         <thead>
           <tr>
-            @comps.sortingTH(Messages("workAccidents.dateTime"),
-              b=>routes.WorkAccidentCtrl.backofficeIndex(Some("Datetime"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
-              curSort, SortKey.Datetime, isAsc)
-            @comps.sortingTH(Messages("workAccidents.region"),
-              b=>routes.WorkAccidentCtrl.backofficeIndex(Some("Region"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
-              curSort, SortKey.Region, isAsc)
+            <th>@Messages("workAccidents.dateTime")</th>
+            <th>@Messages("workAccidents.region")</th>
             <th>@Messages("workAccidents.relatedEntities")</th>
-            @comps.sortingTH(Messages("workAccidents.numInjured"),
-              b=>routes.WorkAccidentCtrl.backofficeIndex(Some("Injuries"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
-              curSort, SortKey.Injuries, isAsc)
-            @comps.sortingTH(Messages("workAccidents.numFatalities"),
-              b=>routes.WorkAccidentCtrl.backofficeIndex(Some("Fatalities"), Some(if(b)"t" else "f"),Some(pi.currentPage)),
-              curSort, SortKey.Fatalities, isAsc)
+            <th>@Messages("workAccidents.numInjured")</th>
+            <th>@Messages("workAccidents.numFatalities")</th>
           </tr>
         </thead>
         <tbody>
@@ -76,7 +68,6 @@
         }}
         </tbody>
       </table>
-      @comps.pager(pi){i=>@routes.WorkAccidentCtrl.backofficeIndex(Some(curSort.toString), Some(if(isAsc)"t" else "f"), Some(i))}
     }
     </div>
   </div>

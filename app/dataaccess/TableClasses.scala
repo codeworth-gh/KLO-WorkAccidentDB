@@ -99,15 +99,18 @@ class WorkAccidentsTable(t:Tag) extends Table[WorkAccidentRecord](t, "work_accid
   def date_time = column[LocalDateTime]("date_time")
   def location = column[String]("location")
   def regionId = column[Option[Int]]("region_id")
-  def blog_post_url = column[String]("blog_post_url")
+  def blogPostUrl = column[String]("blog_post_url")
   def details = column[String]("details")
   def investigation = column[String]("investigation")
   def initialSource = column[String]("initial_source")
   def mediaReports = column[String]("media_reports")
-  def public_remarks = column[String]("public_remarks")
-  def sensitive_remarks = column[String]("sensitive_remarks")
+  def publicRemarks = column[String]("public_remarks")
+  def sensitiveRemarks = column[String]("sensitive_remarks")
+  def requiresUpdate = column[Boolean]("requires_update")
   
-  def * = (id, date_time, location, regionId, blog_post_url, details, investigation, initialSource, mediaReports, public_remarks, sensitive_remarks
+  def * = (id, date_time, location, regionId, blogPostUrl,
+    details, investigation, initialSource, mediaReports, publicRemarks,
+    sensitiveRemarks, requiresUpdate
   )<>(WorkAccidentRecord.tupled, WorkAccidentRecord.unapply)
   
   def fkRgn = foreignKey("fk_wa_rgn", regionId, TableRefs.regions)(_.id.?)
@@ -139,7 +142,7 @@ class InjuredWorkersTable(t:Tag) extends Table[InjuredWorkerRecord](t, "injured_
   def fkICs = foreignKey("fk_iw_ic", injury_cause_id, TableRefs.injuryCauses)(_.id.?)
 }
 
-class WorkAccidentSummaryTable(t:Tag) extends Table[WorkAccidentSummaryRecord](t,"work_accident_summary"){
+class WorkAccidentSummaryTable(t:Tag) extends Table[WorkAccidentSummaryRecord](t,"work_accident_summary2"){
   def id       = column[Long]("id")
   def dateTime = column[LocalDateTime]("date_time")
   def regionId = column[Option[Int]]("region_id")
@@ -148,10 +151,11 @@ class WorkAccidentSummaryTable(t:Tag) extends Table[WorkAccidentSummaryRecord](t
   def investigation = column[String]("investigation")
   def injuredCount  = column[Int]("injured_count")
   def killedCount   = column[Int]("killed_count")
+  def requiresUpdate = column[Boolean]("requires_update")
   
   def * = (id, dateTime, regionId, location,
-           details, investigation,
-           injuredCount, killedCount)<>(WorkAccidentSummaryRecord.tupled, WorkAccidentSummaryRecord.unapply)
+           details, investigation, injuredCount,
+            killedCount, requiresUpdate)<>(WorkAccidentSummaryRecord.tupled, WorkAccidentSummaryRecord.unapply)
 }
 
 class AccidentToBusinessEntityTable(t:Tag) extends Table[RelationToAccidentRecord](t, "bart_accident"){

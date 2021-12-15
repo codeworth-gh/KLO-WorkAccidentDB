@@ -70,7 +70,8 @@ navbar.users.invite=הזמנה
 navbar.users.editMyProfile=עריכת פרופיל
 navbar.businessEntities=גורמים מעורבים
 navbar.workAccidents=תאונות
-
+navbar.allAccidents=כל התאונות
+navbar.accidentsFollowup=תאונות בטיפול
 navbar.publicHome=ראשי
 navbar.accidents=תאונות
 navbar.dead=הרוגים
@@ -167,6 +168,8 @@ workAccidents.foundNone=לא נמצאו תאונות
 
 workAccident.saved=תאונת העבודה {0} נשמרה
 
+workAccidentsReqUp.title=תאונות עבודה בטיפול
+
 workAccidentEditor.addMediaReport=דיווח חדש
 workAccidentEditor.blogPostUrl=הודעה לעיתונות
 workAccidentEditor.blogPostUrl.help=אם קו לעובד פרסמה הודעה לעיתונות בנושא תאונה זו, אפשר לשים את הלינק להודעה כאן.
@@ -179,6 +182,7 @@ workAccidentEditor.title=עריכת תאונת עבודה
 workAccidentEditor.relatedBusinessEntities=גורמים קשורים
 workAccidentEditor.addEntity=גורם חדש
 workAccidentEditor.relatedEntities=גורמים מעורבים
+workAccidentEditor.requiresUpdate=סמן להמשך טיפול
 workAccidentEditor.injuryCause=גורם הפגיעה
 workAccidentEditor.injuryDescription=תאור הפגיעה
 workAccidentEditor.initialSource=מקור ראשוני

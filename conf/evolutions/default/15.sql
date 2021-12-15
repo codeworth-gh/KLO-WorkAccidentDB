@@ -13,5 +13,6 @@ GROUP BY b.id, b.name
 HAVING count(wa.id)>0;
 
 -- !Downs
+-- Note drop order.
 drop view bizent_accident_stats;
 drop view bizent_accident;

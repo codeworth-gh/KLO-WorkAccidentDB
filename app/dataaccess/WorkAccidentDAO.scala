@@ -101,6 +101,18 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     }
   }
   
+  def listAccidentsRequiringUpdate():Future[Seq[WorkAccidentSummary]] = {
+    for {
+      wa  <- db.run( workAccidentSummaries.filter(_.requiresUpdate).sortBy(_.dateTime.desc).result )
+      ids = wa.map( _.id ).toSet
+      biz <- db.run( accidentAndBizEntSums.filter( r => r._1.accidentId.inSet(ids)).result )
+    } yield {
+      val relatedRaw = biz.groupBy( _._1.accidentId )
+      val related = relatedRaw.map( kv => kv._1 -> kv._2.map(r=>(relationTypes(r._1.relationTypeId).get, r._2)).toSet )
+      wa.map( rec => rec.toObject(related.get(rec.id).map(_.toSet).getOrElse(Set())))
+    }
+  }
+  
   def listAccidents(fromOpt:Option[LocalDate], toOpt:Option[LocalDate], regionIds:Set[Int],
                     industryIds:Set[Int], severities:Set[Severity.Value], includeNullSeverities:Boolean,
     start:Int, pageSize:Int, sortBy:SortKey.Value=SortKey.Datetime, isAsc:Boolean=false):Future[Seq[WorkAccidentSummary]] = {
@@ -336,8 +348,10 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   )
   
   private def fromDto( waRow:WorkAccidentRecord, iws:Set[InjuredWorker], relateds:Set[(RelationToAccident, BusinessEntity)] ) = WorkAccident(
-    waRow.id, waRow.when, relateds, waRow.location, waRow.regionId.flatMap( regions.apply ), waRow.blogPostUrl, waRow.details,
-    waRow.investigation, waRow.initialSource, waRow.mediaReports.split("\n").toSet, waRow.publicRemarks, waRow.sensitiveRemarks, iws
+    waRow.id, waRow.when, relateds, waRow.location, waRow.regionId.flatMap( regions.apply ),
+    waRow.blogPostUrl, waRow.details, waRow.investigation, waRow.initialSource,
+    waRow.mediaReports.split("\n").toSet, waRow.publicRemarks, waRow.sensitiveRemarks,
+    iws, waRow.requiresUpdate
   )
   
   private def toDto( wa:WorkAccident ) = WorkAccidentRecord(
@@ -350,7 +364,8 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
       initialSource = wa.initialSource,
       mediaReports = wa.mediaReports.mkString("\n"),
       publicRemarks = wa.publicRemarks,
-      sensitiveRemarks = wa.sensitiveRemarks
+      sensitiveRemarks = wa.sensitiveRemarks,
+      requiresUpdate = wa.requiresUpdate
   )
   
   private def toRelationRecords( wa:WorkAccident ) = {

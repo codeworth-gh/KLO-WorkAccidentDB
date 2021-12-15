@@ -152,7 +152,7 @@ class ImportDataActor @Inject() (businessEnts:BusinessEntityDAO, regions:Regions
         relateds.toSet,
         comps(FieldNums.LOCATION), canonize(comps(FieldNums.REGION), regionByName),
         "", comps(FieldNums.ACCIDENT_DETAILS),comps(FieldNums.INVESTIGATION),
-        comps(FieldNums.SOURCE), Set(), comps(FieldNums.REMARKS), "", Set(iw)
+        comps(FieldNums.SOURCE), Set(), comps(FieldNums.REMARKS), "", Set(iw), requiresUpdate=false
       )
       return Some(wa)
       

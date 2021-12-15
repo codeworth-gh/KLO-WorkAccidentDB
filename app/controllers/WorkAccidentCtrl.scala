@@ -52,7 +52,8 @@ case class WorkAccidentFD(
                            mediaReports:Seq[String],
                            publicRemarks:String,
                            sensitiveRemarks:String,
-                           injured:Seq[InjuredWorkerFD]
+                           injured:Seq[InjuredWorkerFD],
+                           requiresUpdate:Boolean
 )
 object WorkAccidentFD{
   def make(wa: WorkAccident):WorkAccidentFD = {
@@ -62,7 +63,7 @@ object WorkAccidentFD{
       wa.relatedEntities.filter(_._1.id < RelationToAccidentDAO.DIRECT_EMPLOYMENT_ID).map(r=>RelatedEntityFD(r._2.name, r._1.id)).toSeq,
       wa.location, wa.region.map(_.id),
       wa.blogPostUrl, wa.details, wa.investigation, wa.initialSource, wa.mediaReports.toSeq.sorted, wa.publicRemarks,
-      wa.sensitiveRemarks, wa.injured.toSeq.map(InjuredWorkerFD.make)
+      wa.sensitiveRemarks, wa.injured.toSeq.map(InjuredWorkerFD.make), wa.requiresUpdate
     )
   }
 }
@@ -116,7 +117,8 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
     "mediaReports"->seq(text),
     "publicRemarks"->text,
     "sensitiveRemarks"->text,
-    "injured"->seq(injuredWorkerMapping)
+    "injured"->seq(injuredWorkerMapping),
+    "requiresUpdate"->boolean
   )(WorkAccidentFD.apply)(WorkAccidentFD.unapply))
   
   def backofficeIndex(pSortBy:Option[String]=None, pAsc:Option[String]=None, pPage:Option[Int]=None ) = deadbolt.SubjectPresent()() { implicit req =>
@@ -133,12 +135,21 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
     }
   }
   
+  def listAccidentsRequiringUpdate() = deadbolt.SubjectPresent()(){ implicit req =>
+    for {
+      accRows <- accidents.listAccidentsRequiringUpdate()
+    } yield {
+      Ok(views.html.backoffice.workAccidentsRequiringUpdates(accRows, regions.apply))
+    }
+  }
+  
   def showNew() = deadbolt.SubjectPresent()() { implicit req =>
     val wa = WorkAccidentFD(
       0, LocalDate.now(ZoneId.of(conf.get[String]("timeZoneId"))),
       None, Seq(), "", None, "", "", "", "", Seq(), "","",Seq(
         InjuredWorkerFD(0, "", None, None, None, None, "", None, None, "", "", "")
-      )
+      ),
+      requiresUpdate = false
     )
     showEditAccidentForm(workAccidentForm.fill(wa))
   }
@@ -166,8 +177,11 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
           dbWa <- accidents.store(wa)
         } yield {
           val msgs = request2Messages(req)
-          Redirect(routes.WorkAccidentCtrl.backofficeIndex(None, None, None)
-          ).flashing(FlashKeys.MESSAGE->Informational(Informational.Level.Success, msgs("workAccident.saved", dbWa.id) ,"").encoded)
+          Redirect(
+            routes.WorkAccidentCtrl.backofficeIndex(None, None, None)
+          ).flashing(
+            FlashKeys.MESSAGE->Informational(Informational.Level.Success, msgs("workAccident.saved", dbWa.id) ,"").encoded
+          )
         }
       }
     )
@@ -210,7 +224,7 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
       wafd.location, wafd.region.flatMap( regions.apply ),
       wafd.blogPostUrl, wafd.details, wafd.investigation, wafd.initialSource,
       wafd.mediaReports.toSet, wafd.publicRemarks, wafd.sensitiveRemarks,
-      wafd.injured.toSet.map( iwfd=>constructInjuredWorker(iwfd, bizEntMap))
+      wafd.injured.toSet.map( iwfd=>constructInjuredWorker(iwfd, bizEntMap)), requiresUpdate=wafd.requiresUpdate
     )
   }
   

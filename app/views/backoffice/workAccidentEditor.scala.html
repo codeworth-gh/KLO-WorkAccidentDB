@@ -98,16 +98,25 @@
           }
         }
         <div class="row">
-          <div class="col-sm-6">
-            @comps.bform.fieldHRow(frm, "date", "workAccidentEditor.",labelWidth = 3, inputType="date", isRequired=true)
+          <div class="col-sm-4">
+            @comps.bform.fieldHRow(frm, "date", "workAccidentEditor.", inputType="date", isRequired=true, labelWidth=3)
           </div>
-          <div class="col-sm-6">
-            @comps.bform.fieldHRow(frm, "time", "workAccidentEditor.", labelWidth=3, inputType="time")
+          <div class="col-sm-4">
+            @comps.bform.fieldHRow(frm, "time", "workAccidentEditor.", inputType="time")
+          </div>
+          <div class="col-sm-4">
+            @comps.bform.selectHRow(frm, "region", options=regions.map(r=>r.id.toString->r.name))
           </div>
         </div>
         <div class="row">
-          <div class="col-sm-6">@comps.bform.selectHRow(frm, "region", options=regions.map(r=>r.id.toString->r.name), labelWidth = 3)</div>
-          <div class="col-sm-6">@comps.bform.fieldHRow(frm, "location", "workAccidentEditor.", labelWidth = 3)</div>
+          <div class="col-sm-8">@comps.bform.fieldHRow(frm, "location", "workAccidentEditor.")</div>
+          <div class="col-sm-4">
+            <div class="form-check form-switch" style="margin-top: 0.5em">
+              <input class="form-check-input" name="requiresUpdate" value="true" autocomplete="off"
+                      @if( frm("requiresUpdate").value.contains("true")){checked="checked"} type="checkbox" role="switch" id="cbRequiresUpdate">
+              <label class="form-check-label" for="cbRequiresUpdate">@Messages("workAccidentEditor.requiresUpdate")</label>
+            </div>
+          </div>
         </div>
         @comps.bform.formHRow(frm, "relatedBusinessEntities", "workAccidentEditor."){
           <ul id="relatedEntitiesList" class="list-unstyled p-0 m-0">

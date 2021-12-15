@@ -54,7 +54,10 @@ object Structure {
   
   val backOfficeSections:Seq[TopSiteSection[BackOfficeSections.Value]] = Seq(
     PageSection("navbar.main", BackOfficeSections.Home, routes.UserCtrl.userHome() ),
-    PageSection("navbar.workAccidents", BackOfficeSections.WorkAccidents, routes.WorkAccidentCtrl.backofficeIndex(None, None, None) ),
+    MultiPageSection("navbar.workAccidents", BackOfficeSections.WorkAccidents, Seq(
+      PageSectionItem("navbar.allAccidents", routes.WorkAccidentCtrl.backofficeIndex(None, None, None)),
+      PageSectionItem("navbar.accidentsFollowup", routes.WorkAccidentCtrl.listAccidentsRequiringUpdate()))
+    ),
     PageSection("navbar.businessEntities", BackOfficeSections.BusinessEntities, routes.BusinessEntityCtrl.backofficeIndex(None,None,None,None) ),
     PageSection("navbar.helperTables", BackOfficeSections.HelperTables, routes.HelperTableCtrl.helperTablesIndex() ),
     MultiPageSection("navbar.users", BackOfficeSections.Users, Seq(
