@@ -139,7 +139,7 @@
             @for( emp <- worker.employer ) {
               <div class="row mb-2">
                 <div class="col-sm-2 text-klo-dg">@Messages("workplace")</div>
-                <div class="col">@emp.name</div>
+                <div class="col"><a href="@routes.PublicCtrl.bizEntDetails(emp.id)">@emp.name</a></div>
               </div>
             }
             @for( ctz <- worker.citizenship ) {
