@@ -1,7 +1,9 @@
 @( errorCode:Int, message:String, explanation:Option[String]=None, incidentCode:Option[String]=None, request:RequestHeader, msgs:MessagesProvider)
-
 @templates.bsBase("Error " + errorCode, null, null){
-  <div class="container">
+  <div class="text-center py-5 mb-5 bg-klo-dGray">
+    <img alt="KavLaoved's logo" height="100" src="@routes.Assets.versioned("images/logo-footer.png")">
+  </div>
+  <div class="container" style="direction:rtl">
     <div class="row mt-5">
       <div class="col">
         <div class="errorMessage">
@@ -22,4 +24,23 @@
       </div>
     </div>
   </div>
+  <footer>
+    <div class="footer-body">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col col-sm-8 text-center">
+            <a href="https://kavlaoved.org.il"><img alt="KavLaoved's logo" height="50" src="@routes.Assets.versioned("images/logo-footer.png")"></a>
+          </div>
+        </div>
+        <div class="row py-2">
+          <div class="col miniIcons">
+            <a href="http://codeworth.io" target="_blank" class="me-auto p-0 bkgHover"><img alt="codeworth.io's logo" height="10" src="@routes.Assets.versioned("images/cowoMini.png")"></a>
+            <a class="ms-auto" href="https://github.com/codeworth-gh/KLO-WorkAccidentDB" target="_blank">@views.html.comps.svg.github()</a>
+            <a href="https://github.com/codeworth-gh/PSPS" target="_blank"><strong>PSPS</strong> fwk</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </footer>
 }(request, msgs)

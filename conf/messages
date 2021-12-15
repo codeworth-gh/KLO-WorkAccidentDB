@@ -32,7 +32,7 @@ error.invitation.doesNotExist=אין הזמנה כזו. סורי.
 error.password=הסיסמאות חייבות להתאים, ואסור להן להיות ריקות!
 error.password.incorrect=סיסמא שגויה
 error.accidentNotFound=התאונה לא נמצאה
-error.accidentNotFoundExplanation=יכול להיות שהלינק הוקלד לא נכון או לא הועתק בשלמותו.
+error.accidentNotFound.explanation=יכול להיות שהלינק הוקלד לא נכון או לא הועתק בשלמותו.
 error.businessNotFound=הגורם העסקי לא נמצא
 error.businessNotFound.explanation=לא מצאנו גורם עסקי עם מספר הזיהוי הזה. יכול להיות שהלינק הוקלד לא נכון או לא הועתק בשלמותו?
 
