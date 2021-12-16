@@ -7,7 +7,7 @@ import com.github.jferard.fastods.attribute.SimpleLength
 import com.github.jferard.fastods.datastyle.{DataStyle, FloatStyleBuilder}
 import com.github.jferard.fastods.style.TableRowStyle
 import dataaccess.BusinessEntityDAO.StatsSortKey
-import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, WorkAccidentDAO}
+import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, TableRefs, WorkAccidentDAO}
 import models.{InjuredWorker, InjuredWorkerRow, Severity, WorkAccidentSummary}
 import play.api.{Configuration, Logger}
 import play.api.cache.Cached
@@ -41,7 +41,7 @@ object PublicCtrl {
 
 class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, regions:RegionsDAO,
                            relations:RelationToAccidentDAO, industries:IndustriesDAO, deadbolt:DeadboltActions,
-                           businessEntities:BusinessEntityDAO,
+                           businessEntities:BusinessEntityDAO, causes:InjuryCausesDAO, citizenships: CitizenshipsDAO,
                            cached:Cached, conf:Configuration)
                           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport {
   
@@ -128,6 +128,7 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
   }
   
   def accidentIndex(pRegions:Option[String], pIndustries:Option[String], pSeverities:Option[String],
+                    pCitizenships:Option[String], pCauses:Option[String],
                     pFrom:Option[String], pTo:Option[String], pSortBy:Option[String]=None,
                     pAsc:Option[String]=None, pPage:Option[Int]=None) = Action.async{ implicit req =>
     val dateFormat = Helpers.dateFormats(Helpers.DateFmt.ISO_Date)
@@ -140,25 +141,28 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
         case (Some(f), Some(t)) => if (f.isAfter(t) ) (ppTo, ppFrom) else (ppFrom, ppTo)
         case _ => (ppFrom, ppTo)
       }
-    val selRgns = pRegions.map( _.split(",").map(_.trim).filter(_.nonEmpty).map(_.toInt).map(regions(_)).filter(_.isDefined).flatten.toSet ).getOrElse(Set())
-    val selIndustries = pIndustries.map( _.split(",").map(_.trim).filter(_.nonEmpty).map(_.toInt).map(industries(_)).filter(_.isDefined).flatten.toSet ).getOrElse(Set())
+    
     val selSeverities = pSeverities.map( _.split(",").map(_.trim).filter(_.nonEmpty).filter(_ != "-1").map(Severity.withName).toSet ).getOrElse(Set())
     val includeNullSevs = pSeverities.exists(_.contains("-1"))
-    val rgnIds = selRgns.map(_.id) ++ pRegions.filter(_.contains("-1")).map(_ => -1)
-    val indIds = selIndustries.map(_.id) ++ pIndustries.filter(_.contains("-1")).map(_ => -1)
+    
+    val rgnIds = mkIdSet( pRegions, regions(_).map(_.id))
+    val indIds = mkIdSet(pIndustries, industries(_).map(_.id) )
+    val selCitizenshipIds = mkIdSet(pCitizenships, citizenships(_).map(_.id))
+    val selCausesIds = mkIdSet( pCauses, causes(_).map(_.id) )
     
     for {
       regionList <- regions.list()
       industryList <- industries.list()
+      causeList <- causes.list()
+      citizenshipsList <- citizenships.list()
       accCount <- accidents.accidentCount(start, end, rgnIds, indIds, selSeverities, includeNullSevs)
       accRows  <- accidents.listAccidents(start, end, rgnIds, indIds, selSeverities, includeNullSevs, (page-1)*PAGE_SIZE, PAGE_SIZE, sortBy, asc)
     } yield {
-      val selSeveritiesStr = selSeverities.toSeq.map(_.toString) ++ Seq(includeNullSevs).filter( identity ).map(_ => "-1")
-      
       Ok(views.html.publicside.accidentsList(accRows,
-        regionList, industryList, regions.apply,
-        rgnIds, indIds,
-        selSeverities, includeNullSevs, selSeveritiesStr.mkString(","),
+        regionList, industryList, causeList, citizenshipsList,
+        regions.apply, rgnIds, indIds,
+        selSeverities, includeNullSevs,
+        selCitizenshipIds, selCausesIds,
         start.map( dateFormat.format ), end.map( dateFormat.format ),
         accCount, PaginationInfo(page, Math.ceil(accCount/PAGE_SIZE.toDouble).toInt), sortBy, asc))
     }
@@ -299,5 +303,8 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
       .withHeaders("Content-Disposition"->s"attachment; filename=${"\""}${filename}${"\""}")
   }
   
+  private def mkIdSet( idStrOpt:Option[String], validator:(Int=>Option[Int])):Set[Int] = idStrOpt.map(
+    _.split(",").map(_.trim).filter(_.nonEmpty).map(_.toInt).flatMap(i => if (i == -1) Some(-1) else validator(i) ).toSet
+  ).getOrElse(Set())
 }
 

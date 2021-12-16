@@ -2,19 +2,23 @@
 @import dataaccess.WorkAccidentDAO.SortKey
 @import java.time.LocalDate
 @(ents:Seq[WorkAccidentSummary],
-  regions:Seq[Region], industries:Seq[Industry], rgns:(Int=>Option[Region]),
+  regions:Seq[Region], industries:Seq[Industry], causes:Seq[InjuryCause], citizenships:Seq[Citizenship],
+        rgns:(Int=>Option[Region]),
         selRgns:Set[Int], selIndustries:Set[Int],
-        selSeverities:Set[models.Severity.Value], includeNullSeverity:Boolean, selSeveritiesStr:String,
+        selSeverities:Set[models.Severity.Value], includeNullSeverity:Boolean,
+        selCitizenships:Set[Int], selCauses:Set[Int],
         from:Option[String], to:Option[String],
         total:Long, pi:PaginationInfo, curSort:SortKey.Value, isAsc:Boolean)(implicit request:Request[_], msgs:MessagesProvider)
 
 @extraHead={
   <script src="@routes.Assets.versioned("js/accidentList.js")"></script>
 }
-
+@maybeParam(ids:Set[_])=@{if(ids.nonEmpty)Some(ids.mkString(",")) else None}
 @th(sort:String, cur:SortKey.Value, key:SortKey.Value, isCurrentlyAsc:Boolean)=@{
   val asc = (cur==key) && !isCurrentlyAsc
-  routes.PublicCtrl.accidentIndex(Some(selRgns.mkString(",")), Some(selIndustries.mkString(",")), Some(selSeveritiesStr),
+  routes.PublicCtrl.accidentIndex(
+    maybeParam(selRgns), maybeParam(selIndustries),
+    maybeParam(selSeverities), maybeParam(selCitizenships), maybeParam(selCauses),
     from, to,
     Some(sort), Some(if(asc)"t" else "f"), Some(pi.currentPage))
 }
@@ -24,17 +28,19 @@
     <div class="ms-2">
       @comps.accidentCount(total)
     </div>
-    @defining(selRgns.nonEmpty || selIndustries.nonEmpty || selSeveritiesStr.nonEmpty || from.nonEmpty || to.nonEmpty ) { hasFilter =>
+    @defining( Seq( selRgns, selIndustries, selSeverities, selCitizenships, from, to).exists( _.iterator.nonEmpty ) ) { hasFilter =>
       <button class="btn btn-outline-klo-blue @if(hasFilter){btnActive}" data-bs-toggle="collapse" data-bs-target="#searchPanel">@comps.svg.search() @Messages("filterAndSearch")</button>
     }
   }
   <div class="collapse" id="searchPanel">
       <div class="row flex-row">
-        <div class="col-md flex-grow-0 controlGrid" style="min-width: 20em">
+        <div class="col-md flex-grow-0 controlGrid" style="min-width: 12em">
           <form action="" method="GET" id="filterForm">
             <input type="hidden" name="regions" value="@selRgns.mkString(",")">
             <input type="hidden" name="industries" value="@selIndustries.mkString(",")">
             <input type="hidden" name="severities" value="@selSeverities.mkString(",")">
+            <input type="hidden" name="citizenships" value="@selCitizenships.mkString(",")">
+            <input type="hidden" name="causes" value="@selCauses.mkString(",")">
             <label class="form-label" for="fromDate">@Messages("startDate")</label>
             <input type="date" value="@from" class="form-control" name="from" id="fromDate" autocomplete="off">
             <label class="form-label" for="toDate">@Messages("endDate")</label>
@@ -47,33 +53,55 @@
             @for(rgn<-regions) {
               <input type="checkbox" onchange="updateForm('regions')" class="hidden"
                       name="regionsChk" value="@rgn.id" id="rgnCheck@rgn.id" autocomplete="off" @if(selRgns(rgn.id)){checked="checked"}>
-              <label class="buttonLike" for="rgnCheck@rgn.id">@rgn.name</label>
+              <label class="buttonLike flex-grow-1" for="rgnCheck@rgn.id">@rgn.name</label>
             }
             <input type="checkbox" onchange="updateForm('regions')" class="hidden"
                     name="regionsChk" value="-1" id="rgnCheckUnknown" autocomplete="off" @if(selRgns(-1)){checked="checked"}>
-            <label class="buttonLike btnUnknown" for="rgnCheckUnknown">@Messages("unknown")</label>
+            <label class="buttonLike flex-grow-1 btnUnknown" for="rgnCheckUnknown">@Messages("unknown")</label>
           </div>
           @Messages("industry")
           <div class="buttonLikeGroup">
             @for(idn<-industries) {
               <input type="checkbox" class="hidden" onchange="updateForm('industries')" name="industriesChk"
                 value="@idn.id" id="industries@idn.id" autocomplete="off" @if(selIndustries(idn.id)){checked="checked"}>
-              <label class="buttonLike" for="industries@idn.id">@idn.name</label>
+              <label class="buttonLike flex-grow-1" for="industries@idn.id">@idn.name</label>
             }
             <input type="checkbox" class="hidden" onchange="updateForm('industries')" name="industriesChk"
               value="-1" id="industriesUnknown" autocomplete="off" @if(selIndustries(-1)){checked="checked"}>
-            <label class="buttonLike btnUnknown" for="industriesUnknown">@Messages("unknown")</label>
+            <label class="buttonLike btnUnknown flex-grow-1" for="industriesUnknown">@Messages("unknown")</label>
           </div>
           @Messages("severity")
           <div class="buttonLikeGroup">
             @for(sev<-models.Severity.values.toSeq) {
               <input type="checkbox" class="hidden"  onchange="updateForm('severities')" name="severitiesChk"
                 value="@sev" id="sev@sev" autocomplete="off" @if(selSeverities(sev)){checked="checked"}>
-              <label class="buttonLike" for="sev@sev">@Messages("severity." + sev)</label>
+              <label class="buttonLike flex-grow-1" for="sev@sev">@Messages("severity." + sev)</label>
             }
             <input type="checkbox" class="hidden" onchange="updateForm('severities')" name="severitiesChk"
               value="-1" id="sevUnknown" autocomplete="off" @if(includeNullSeverity){checked="checked"}>
-            <label class="buttonLike btnUnknown" for="sevUnknown">@Messages("unknown")</label>
+            <label class="buttonLike btnUnknown flex-grow-1" for="sevUnknown">@Messages("unknown")</label>
+          </div>
+          @Messages("citizenship")
+          <div class="buttonLikeGroup">
+            @for(ct<-citizenships) {
+              <input type="checkbox" class="hidden"  onchange="updateForm('citizenships')" name="citizenshipsChk"
+              value="@ct.id" id="cit@ct.id" autocomplete="off" @if(selCitizenships(ct.id)){checked="checked"}>
+              <label class="buttonLike flex-grow-1" for="cit@ct.id">@Messages(ct.name)</label>
+            }
+            <input type="checkbox" class="hidden" onchange="updateForm('citizenships')" name="citizenshipsChk"
+            value="-1" id="citUnknown" autocomplete="off" @if(selCitizenships(-1)){checked="checked"}>
+            <label class="buttonLike btnUnknown flex-grow-1" for="citUnknown">@Messages("unknown")</label>
+          </div>
+          @Messages("injuryCause")
+          <div class="buttonLikeGroup">
+            @for(ct<-causes) {
+              <input type="checkbox" class="hidden"  onchange="updateForm('causes')" name="causesChk"
+              value="@ct.id" id="ic@ct.id" autocomplete="off" @if(selCauses(ct.id)){checked="checked"}>
+              <label class="buttonLike" for="ic@ct.id">@Messages(ct.name)</label>
+            }
+            <input type="checkbox" class="hidden" onchange="updateForm('causes')" name="causesChk"
+            value="-1" id="icUnknown" autocomplete="off" @if(selCauses(-1)){checked="checked"}>
+            <label class="buttonLike btnUnknown" for="csUnknown">@Messages("unknown")</label>
           </div>
         </div>
         <div class="col-md d-grid flex-grow-0">
@@ -160,8 +188,10 @@
           </tbody>
         </table>
       </div>
-      @comps.pager(pi){i=>@routes.PublicCtrl.accidentIndex(Some(selRgns.mkString(",")), Some(selIndustries.mkString(",")),
-        Some(selSeveritiesStr), from, to,
+      @comps.pager(pi){i=>@routes.PublicCtrl.accidentIndex(
+        maybeParam(selRgns), maybeParam(selIndustries),
+        maybeParam(selSeverities), maybeParam(selCitizenships), maybeParam(selCauses),
+        from, to,
         Some(curSort.toString), Some(if(isAsc)"t" else "f"), Some(i))}
     }
     </div>

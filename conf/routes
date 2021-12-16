@@ -4,7 +4,7 @@
 # ~~~~
 
 GET     /               controllers.PublicCtrl.main()
-GET     /accidents/     controllers.PublicCtrl.accidentIndex(regions:Option[String],industries:Option[String],severities:Option[String],from:Option[String],to:Option[String],sort:Option[String], asc:Option[String], page:Option[Int])
+GET     /accidents/     controllers.PublicCtrl.accidentIndex(regions:Option[String],industries:Option[String],severities:Option[String],citizenships:Option[String],causes:Option[String],from:Option[String],to:Option[String],sort:Option[String], asc:Option[String], page:Option[Int])
 GET     /accidents/:id  controllers.PublicCtrl.accidentDetails(id:Long)
 GET     /fatalities     controllers.PublicCtrl.fatalities(year:Option[Int])
 GET     /datasets/      controllers.PublicCtrl.datasets()
