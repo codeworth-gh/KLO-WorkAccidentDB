@@ -28,7 +28,7 @@
     <div class="ms-2">
       @comps.accidentCount(total)
     </div>
-    @defining( Seq( selRgns, selIndustries, selSeverities, selCitizenships, from, to).exists( _.iterator.nonEmpty ) ) { hasFilter =>
+    @defining( Seq( selRgns, selIndustries, selSeverities, selCitizenships, selSeverities, from, to).exists( _.iterator.nonEmpty ) ) { hasFilter =>
       <button class="btn btn-outline-klo-blue @if(hasFilter){btnActive}" data-bs-toggle="collapse" data-bs-target="#searchPanel">@comps.svg.search() @Messages("filterAndSearch")</button>
     }
   }
@@ -101,7 +101,7 @@
             }
             <input type="checkbox" class="hidden" onchange="updateForm('causes')" name="causesChk"
             value="-1" id="icUnknown" autocomplete="off" @if(selCauses(-1)){checked="checked"}>
-            <label class="buttonLike btnUnknown" for="csUnknown">@Messages("unknown")</label>
+            <label class="buttonLike btnUnknown" for="icUnknown">@Messages("unknown")</label>
           </div>
         </div>
         <div class="col-md d-grid flex-grow-0">

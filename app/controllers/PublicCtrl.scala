@@ -155,8 +155,8 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
       industryList <- industries.list()
       causeList <- causes.list()
       citizenshipsList <- citizenships.list()
-      accCount <- accidents.accidentCount(start, end, rgnIds, indIds, selSeverities, includeNullSevs)
-      accRows  <- accidents.listAccidents(start, end, rgnIds, indIds, selSeverities, includeNullSevs, (page-1)*PAGE_SIZE, PAGE_SIZE, sortBy, asc)
+      accCount <- accidents.accidentCount(start, end, rgnIds, indIds, selCitizenshipIds, selCausesIds, selSeverities, includeNullSevs)
+      accRows  <- accidents.listAccidents(start, end, rgnIds, indIds, selCitizenshipIds, selCausesIds, selSeverities, includeNullSevs, (page-1)*PAGE_SIZE, PAGE_SIZE, sortBy, asc)
     } yield {
       Ok(views.html.publicside.accidentsList(accRows,
         regionList, industryList, causeList, citizenshipsList,

@@ -59,6 +59,13 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   private val injWkr_sev_inSet = (w: InjuredWorkersTable, severities:Set[Int]) => w.injury_severity.inSet(severities.filter(_ > -1))
   private val injWkr_sev_inSetOrNull = (w: InjuredWorkersTable, severities:Set[Int]) => injWkr_sev_allowNulls(w) || injWkr_sev_inSet(w, severities)
   
+  private val injWkr_ctz_allowNulls = (w: InjuredWorkersTable) => w.citizenship_id.isEmpty
+  private val injWkr_ctz_inSet = (w: InjuredWorkersTable, citizenshipIds:Set[Int]) => w.citizenship_id.inSet(citizenshipIds.filter(_ > -1))
+  private val injWkr_ctz_inSetOrNull = (w: InjuredWorkersTable, citizenshipIds:Set[Int]) => injWkr_ctz_allowNulls(w) || injWkr_ctz_inSet(w, citizenshipIds)
+  
+  private val injWkr_ics_allowNulls = (w: InjuredWorkersTable) => w.injury_cause_id.isEmpty
+  private val injWkr_ics_inSet = (w: InjuredWorkersTable, injuryCauseIds:Set[Int]) => w.injury_cause_id.inSet(injuryCauseIds.filter(_ > -1))
+  private val injWkr_ics_inSetOrNull = (w: InjuredWorkersTable, injuryCauseIds:Set[Int]) => injWkr_ics_allowNulls(w) || injWkr_ics_inSet(w, injuryCauseIds)
   
   private val log = Logger(classOf[WorkAccidentDAO])
   
@@ -114,7 +121,8 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   }
   
   def listAccidents(fromOpt:Option[LocalDate], toOpt:Option[LocalDate], regionIds:Set[Int],
-                    industryIds:Set[Int], severities:Set[Severity.Value], includeNullSeverities:Boolean,
+                    industryIds:Set[Int], citizenshipIds:Set[Int], injuryCauseIds:Set[Int],
+                    severities:Set[Severity.Value], includeNullSeverities:Boolean,
     start:Int, pageSize:Int, sortBy:SortKey.Value=SortKey.Datetime, isAsc:Boolean=false):Future[Seq[WorkAccidentSummary]] = {
     var qry:Query[WorkAccidentSummaryTable, WorkAccidentSummaryTable#TableElementType, Seq] = workAccidentSummaries
     fromOpt.foreach(d => qry = qry.filter(r => r.dateTime >= d.atStartOfDay()))
@@ -134,6 +142,26 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
         case (false, true) => (w:InjuredWorkersTable) => injWkr_ind_allowNulls(w)
         case (true, true)  => (w:InjuredWorkersTable) => injWkr_ind_inSetOrNull(w, industryIds)
         case (_   , false) => (w:InjuredWorkersTable) => injWkr_ind_inSet(w, industryIds)
+      }
+      qry = qry.filter( r => injuredWorkers.filter(w=>related(w,r.id) && filter(w)).exists )
+    }
+  
+    if (citizenshipIds.nonEmpty) {
+      // filter by citizenship id
+      val filter:InjuredWorkersTable=>Rep[Option[Boolean]] = (citizenshipIds.size>1, citizenshipIds(-1)) match {
+        case (true, true)  => (w:InjuredWorkersTable) => injWkr_ctz_inSetOrNull(w, citizenshipIds)
+        case (false, true) => (w:InjuredWorkersTable) => injWkr_ctz_allowNulls(w)
+        case (_   , false) => (w:InjuredWorkersTable) => injWkr_ctz_inSet(w, citizenshipIds)
+      }
+      qry = qry.filter( r => injuredWorkers.filter(w=>related(w,r.id) && filter(w)).exists )
+    }
+    
+    if (injuryCauseIds.nonEmpty) {
+      // filter by injury cause
+      val filter:InjuredWorkersTable=>Rep[Option[Boolean]] = (injuryCauseIds.size>1, injuryCauseIds(-1)) match {
+        case (true, true)  => (w:InjuredWorkersTable) => injWkr_ics_inSetOrNull(w, injuryCauseIds)
+        case (false, true) => (w:InjuredWorkersTable) => injWkr_ics_allowNulls(w)
+        case (_   , false) => (w:InjuredWorkersTable) => injWkr_ics_inSet(w, injuryCauseIds)
       }
       qry = qry.filter( r => injuredWorkers.filter(w=>related(w,r.id) && filter(w)).exists )
     }
@@ -193,7 +221,8 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   }
   
   def filteredWorkAccidents(fromOpt:Option[LocalDate], toOpt:Option[LocalDate], regionIds:Set[Int],
-                            industryIds:Set[Int], severities:Set[Severity.Value], includeNullSeverities:Boolean):Query[WorkAccidentsTable, WorkAccidentRecord, Seq] = {
+                            industryIds:Set[Int], citizenshipIds:Set[Int], injuryCauseIds:Set[Int],
+                            severities:Set[Severity.Value], includeNullSeverities:Boolean):Query[WorkAccidentsTable, WorkAccidentRecord, Seq] = {
     var qry = workAccidents
       .filterOpt(fromOpt)((r,d) => r.date_time >= d.atStartOfDay())
       .filterOpt(toOpt)((r,d)   => r.date_time < d.plusDays(1).atStartOfDay())
@@ -216,6 +245,26 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
       qry = qry.filter( r => injuredWorkers.filter(w=>related(w,r.id) && filter(w)).exists )
     }
   
+    if (citizenshipIds.nonEmpty) {
+      // filter by citizenship id
+      val filter:InjuredWorkersTable=>Rep[Option[Boolean]] = (citizenshipIds.size>1, citizenshipIds(-1)) match {
+        case (true, true)  => (w:InjuredWorkersTable) => injWkr_ctz_inSetOrNull(w, citizenshipIds)
+        case (false, true) => (w:InjuredWorkersTable) => injWkr_ctz_allowNulls(w)
+        case (_   , false) => (w:InjuredWorkersTable) => injWkr_ctz_inSet(w, citizenshipIds)
+      }
+      qry = qry.filter( r => injuredWorkers.filter(w=>related(w,r.id) && filter(w)).exists )
+    }
+  
+    if (injuryCauseIds.nonEmpty) {
+      // filter by injury cause
+      val filter:InjuredWorkersTable=>Rep[Option[Boolean]] = (injuryCauseIds.size>1, injuryCauseIds(-1)) match {
+        case (true, true)  => (w:InjuredWorkersTable) => injWkr_ics_inSetOrNull(w, injuryCauseIds)
+        case (false, true) => (w:InjuredWorkersTable) => injWkr_ics_allowNulls(w)
+        case (_   , false) => (w:InjuredWorkersTable) => injWkr_ics_inSet(w, injuryCauseIds)
+      }
+      qry = qry.filter( r => injuredWorkers.filter(w=>related(w,r.id) && filter(w)).exists )
+    }
+  
     if ( severities.nonEmpty || includeNullSeverities ) {
       val filter:InjuredWorkersTable=>Rep[Option[Boolean]] = (severities.nonEmpty, includeNullSeverities) match {
         case (false,true) => (w:InjuredWorkersTable) => injWkr_sev_allowNulls(w)
@@ -229,8 +278,9 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   }
   
   def accidentCount(fromOpt:Option[LocalDate], toOpt:Option[LocalDate], regionIds:Set[Int],
-                    industryIds:Set[Int], severities:Set[Severity.Value], includeNullSeverities:Boolean):Future[Int] = {
-    val qry = filteredWorkAccidents(fromOpt, toOpt, regionIds, industryIds, severities, includeNullSeverities)
+                    industryIds:Set[Int], citizenshipIds:Set[Int], injuryCauseIds:Set[Int],
+                    severities:Set[Severity.Value], includeNullSeverities:Boolean):Future[Int] = {
+    val qry = filteredWorkAccidents(fromOpt, toOpt, regionIds, industryIds, citizenshipIds, injuryCauseIds, severities, includeNullSeverities)
     db.run( qry.length.result )
   }
   
