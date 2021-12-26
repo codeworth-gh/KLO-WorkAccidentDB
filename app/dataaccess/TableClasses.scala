@@ -1,11 +1,11 @@
 package dataaccess
 
 import java.sql.Timestamp
-import models.{BusinessEntity, BusinessEntityStats, BusinessEntitySummary, Citizenship, Industry, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, User, WorkAccidentSummary}
+import models.{BusinessEntity, BusinessEntityMapping, BusinessEntityStats, BusinessEntitySummary, Citizenship, Industry, IndustryMapping, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, SafetyWarrant, User, WorkAccidentSummary}
 import slick.lifted.Tag
 import slick.jdbc.PostgresProfile.api._
 
-import java.time.LocalDateTime
+import java.time.{LocalDate, LocalDateTime}
 import scala.reflect.ClassTag
 
 class UsersTable(tag:Tag) extends Table[User](tag,"users") {
@@ -168,6 +168,52 @@ class AccidentToBusinessEntityTable(t:Tag) extends Table[RelationToAccidentRecor
   def fkAcc = foreignKey("bart_accident_accident_id_fkey", accidentId, TableRefs.accidents)(_.id)
   def fkRel = foreignKey("bart_accident_bart_id_fkey", relationId, TableRefs.relationsToAccidents)(_.id)
   def fkBiz = foreignKey("bart_accident_business_entity_id_fkey", bizEntId, TableRefs.businessEntities)(_.id)
+}
+
+class SafetyWarrantsTable(t:Tag) extends Table[SafetyWarrant](t,"safety_warrants"){
+  
+  def id             = column[Long]("id", O.PrimaryKey)
+  def sentDate       = column[LocalDate]("sent_date")
+  def operatorTextId = column[String]("operator_text_id")
+  def operatorName   = column[String]("operator_name")
+  def cityName       = column[String]("city_name")
+  def executorName   = column[String]("executor_name")
+  def categoryName   = column[String]("category_name")
+  def felony         = column[String]("felony")
+  def law            = column[String]("law")
+  def clause         = column[String]("clause")
+  def scrapeDate     = column[LocalDateTime]("scrape_date")
+  def kloOperatorId  = column[Option[Long]]("klo_operator_id")
+  def kloExecutorId  = column[Option[Long]]("klo_executor_id")
+  def kloIndustryId  = column[Option[Int]]("klo_industry_id")
+
+  def * = (id, sentDate, operatorTextId, operatorName, cityName, executorName, categoryName,
+    felony, law, clause, scrapeDate, kloOperatorId, kloExecutorId, kloIndustryId
+   ) <> (SafetyWarrant.tupled, SafetyWarrant.unapply)
+  
+  def fkComp = foreignKey("fk_operator_id", kloOperatorId, TableRefs.businessEntities)(_.id)
+  def fkExec = foreignKey("fk_executor_id", kloExecutorId, TableRefs.businessEntities)(_.id)
+  def fkInds = foreignKey("fk_industry_id", kloIndustryId, TableRefs.industries)(_.id)
+}
+
+class BusinessEntityMappingTable(t:Tag) extends Table[BusinessEntityMapping](t,"business_entity_mapping") {
+  def id = column[Long]("id", O.PrimaryKey)
+  def name = column[String]("name")
+  def bizEntityId = column[Long]("biz_entity_id")
+  
+  def * = (id, name, bizEntityId) <> (BusinessEntityMapping.tupled, BusinessEntityMapping.unapply )
+  
+  def fkBizEnt = foreignKey("fk_be_id", bizEntityId, TableRefs.businessEntities)(_.id)
+}
+
+class IndustryMappingTable(t:Tag) extends Table[IndustryMapping](t,"industry_mapping") {
+  def id = column[Long]("id", O.PrimaryKey)
+  def name = column[String]("name")
+  def industryId = column[Int]("industry_id")
+  
+  def * = (id, name, industryId) <> (IndustryMapping.tupled, IndustryMapping.unapply )
+  
+  def fkBizEnt = foreignKey("fk_be_id", industryId, TableRefs.industries)(_.id)
 }
 
 object TableRefs {
