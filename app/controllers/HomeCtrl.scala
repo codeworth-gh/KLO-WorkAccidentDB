@@ -1,6 +1,7 @@
 package controllers
 
 import actors.ImportDataActor
+import actors.WarrantScrapingActor.StartScrapingSafety
 import akka.actor.ActorRef
 import be.objectify.deadbolt.scala.DeadboltActions
 import play.api._
@@ -56,6 +57,7 @@ object HomeCtrl {
 
 class HomeCtrl @Inject()(deadbolt:DeadboltActions, localAction:LocalAction,
                          @Named("ImportDataActor")importActor:ActorRef,
+                         @Named("WarrantScrapingActor")swActor:ActorRef,
                          cc: ControllerComponents)
                         (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport {
   
@@ -94,6 +96,12 @@ class HomeCtrl @Inject()(deadbolt:DeadboltActions, localAction:LocalAction,
     } else {
       BadRequest("Path not found on FS: " + path.toAbsolutePath.toString)
     }
+  }
+  
+  def scrapeSafety(skip:Option[Int]) = localAction(cc.parsers.byteString){ req =>
+    var msg = StartScrapingSafety(skip.getOrElse(0))
+    swActor ! msg
+    Accepted("Scraping started: " + msg)
   }
   
   def notImplYet = TODO

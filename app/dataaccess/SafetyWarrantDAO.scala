@@ -33,6 +33,8 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
     safetyWarrantTbl.filter(_.id === id ).result.headOption
   )
   
+  
+  
   def getForBizEnt( bizEntId:Long ):Future[Seq[SafetyWarrant]] = {
     val bes = Set(bizEntId)
     db.run(

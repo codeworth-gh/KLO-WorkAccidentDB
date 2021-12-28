@@ -51,6 +51,8 @@ POST  /bkofc/accidents/     controllers.WorkAccidentCtrl.doSaveAccident()
 GET   /bkofc/import/accidents controllers.WorkAccidentCtrl.showImport()
 POST  /bkofc/import/accidents controllers.WorkAccidentCtrl.doImport()
 
+POST /bkofc/import/safetyWarrants controllers.HomeCtrl.scrapeSafety(skip:Option[Int])
+
 # API
 ## Front end
 GET    /api/regions/  controllers.HelperTableCtrl.apiListRegions()
