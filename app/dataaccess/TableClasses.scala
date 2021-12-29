@@ -8,6 +8,17 @@ import slick.jdbc.PostgresProfile.api._
 import java.time.{LocalDate, LocalDateTime}
 import scala.reflect.ClassTag
 
+class SettingsTable(t:Tag) extends Table[Setting](t,"settings"){
+  
+  def key = column[String]("name", O.PrimaryKey)
+  def value = column[String]("value")
+  
+  def * = (key, value) <> (
+    rec => Setting( SettingKey.withName(rec._1), rec._2 ),
+    (stg:Setting) => Some((stg.key.toString, stg.value))
+  )
+}
+
 class UsersTable(tag:Tag) extends Table[User](tag,"users") {
 
   def id                = column[Long]("id",O.PrimaryKey, O.AutoInc)

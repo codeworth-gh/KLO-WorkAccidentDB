@@ -4,7 +4,7 @@ import actors.DataProductsActor.PossiblyUpdateWarrantTable
 import akka.actor.{Actor, Props}
 import com.github.jferard.fastods.OdsFactory
 import controllers.PublicCtrl.{rowStyle, titleStyle}
-import dataaccess.SafetyWarrantDAO
+import dataaccess.{SafetyWarrantDAO, SettingDAO, SettingKey}
 import models.{Column, SafetyWarrant}
 import play.api.{Configuration, Logger}
 
@@ -43,6 +43,7 @@ object DataProductsActor {
  * Actor for making data products in the background.
  */
 class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
+                                   settings:SettingDAO,
                                    config:Configuration)(implicit anEc:ExecutionContext) extends Actor {
   import DataProductsActor._
   private val D = Duration(5, duration.MINUTES)
@@ -52,6 +53,8 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
   override def receive: Receive = {
     case PossiblyUpdateWarrantTable() => {
       // TODO: check settings and see do we need to update the products
+      
+      settings.set(SettingKey.SafetyWarrantProductsNeedUpdate, "no")
       
       log.info("Updating safety warrant ODS")
       val odsFactory = OdsFactory.create(java.util.logging.Logger.getLogger("DataProductsActor"), Locale.US)
