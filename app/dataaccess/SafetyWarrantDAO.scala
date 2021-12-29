@@ -3,7 +3,8 @@ package dataaccess
 import models.SafetyWarrant
 import play.api.cache.AsyncCacheApi
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import slick.jdbc.JdbcProfile
+import slick.basic.DatabasePublisher
+import slick.jdbc.{JdbcProfile, ResultSetConcurrency, ResultSetType}
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -67,6 +68,16 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
     val tq = filterWarrants(startDate, endDate, industryId).take(fetchSize)
     db.run( (if (skip==0) tq else tq.drop(skip)).sortBy(_.sentDate.desc).result )
   }
+  
+  def listAll():DatabasePublisher[SafetyWarrant] = db.stream(
+    safetyWarrantTbl
+      .sortBy( _.id )
+      .result
+      .withStatementParameters(
+        rsType = ResultSetType.ForwardOnly,
+        rsConcurrency = ResultSetConcurrency.ReadOnly,
+        fetchSize = 1000)
+      .transactionally)
   
   def countWarrants(startDate:Option[LocalDate], endDate:Option[LocalDate], industryId:Option[Int] ):Future[Int] =
     db.run( filterWarrants(startDate, endDate, industryId).length.result )

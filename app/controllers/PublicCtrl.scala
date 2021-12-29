@@ -8,7 +8,7 @@ import com.github.jferard.fastods.datastyle.{DataStyle, FloatStyleBuilder}
 import com.github.jferard.fastods.style.TableRowStyle
 import dataaccess.BusinessEntityDAO.StatsSortKey
 import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, TableRefs, WorkAccidentDAO}
-import models.{InjuredWorker, InjuredWorkerRow, Severity, WorkAccidentSummary}
+import models.{Column, InjuredWorker, InjuredWorkerRow, Severity, WorkAccidentSummary}
 import play.api.{Configuration, Logger}
 import play.api.cache.Cached
 import play.api.i18n.I18nSupport
@@ -17,24 +17,22 @@ import views.{Helpers, PaginationInfo}
 
 import java.util.Locale
 import java.io.ByteArrayOutputStream
+import java.nio.file.Paths
 import java.time.{LocalDate, ZoneOffset}
 import java.util.{Date, Locale}
 import javax.inject.{Inject, Named}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Using
 
-class Column[T](val name:String, writer:(T, TableCellWalker)=>Any) {
-  def write(t:T, w:TableCellWalker)=writer(t,w)
-}
-object Column {
-  def apply[T](name:String, extractor:(T, TableCellWalker)=>Any) = new Column(name, extractor)
-}
+
+
 
 object PublicCtrl {
   val PAGE_SIZE = 50
   val INDEX_PAGE_CACHE_KEY = "PublicCtrl::publicMain"
   val integerDataStyle = new FloatStyleBuilder("int", Locale.US).decimalPlaces(0).groupThousands(false).build()
   val rowStyle = TableRowStyle.builder("okRow").rowHeight(SimpleLength.pt(16.0)).build()
+  val titleStyle = TableCellStyle.builder("title").fontWeightBold().build()
 }
 
 
@@ -46,6 +44,8 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
                           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport {
   
   import PublicCtrl._
+  import Column._
+  
   private val logger = Logger(classOf[PublicCtrl])
   
   val accidentsDatasetCols:Seq[Column[WorkAccidentSummary]] = Seq(
@@ -69,50 +69,26 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
   )
   
   val injuredDatasetCols:Seq[Column[InjuredWorkerRow]] = Seq(
-    Column("id", (v,w)=>printInt(v.worker.id, w) ),
-    Column("accident_id", (v,w)=>printInt(v.accidentId, w)),
-    Column("date", (v,w) => printDate(v.accidentDate, w)),
-    Column("name", (v,w) => w.setStringValue( if (v.worker.injurySeverity.contains(Severity.fatal)) v.worker.name else "") ),
-    Column("age", (v,w)  => printIntOption(v.worker.age, w)),
-    Column("citizenship_id",   (v,w) => printIntOption(v.worker.citizenship.map(_.id), w)),
-    Column("citizenship_name", (v,w) => printStrOption(v.worker.citizenship.map(_.name), w)),
-    Column("industry_id",      (v,w) => printIntOption(v.worker.industry.map(_.id), w)),
-    Column("industry_name",    (v,w) => printStrOption(v.worker.industry.map(_.name), w)),
-    Column("employer_id",      (v,w) => printOption(v.worker.employer.map(_.id), w)),
-    Column("employer_name",    (v,w) => printStrOption(v.worker.employer.map(_.name), w)),
-    Column("injury_cause_id",  (v,w) => printOption(v.worker.injuryCause.map(_.id), w)),
-    Column("injury_cause_name",    (v,w) => printStrOption(v.worker.injuryCause.map(_.name), w) ),
-    Column("injury_severity_code", (v,w) => printOption(v.worker.injurySeverity.map(_.id), w) ),
-    Column("injury_severity_name", (v,w) => printStrOption(v.worker.injurySeverity.map(_.toString), w) ),
-    Column("injury_description",   (v,w) => w.setStringValue( v.worker.injuryDescription) ),
-    Column("remarks", (v,w) => w.setStringValue(v.worker.publicRemarks) )
+    Column[InjuredWorkerRow]("id", (v,w)=>printInt(v.worker.id, w) ),
+    Column[InjuredWorkerRow]("accident_id", (v,w)=>printInt(v.accidentId, w)),
+    Column[InjuredWorkerRow]("date", (v,w) => printDate(v.accidentDate, w)),
+    Column[InjuredWorkerRow]("name", (v,w) => w.setStringValue( if (v.worker.injurySeverity.contains(Severity.fatal)) v.worker.name else "") ),
+    Column[InjuredWorkerRow]("age", (v,w)  => printIntOption(v.worker.age, w)),
+    Column[InjuredWorkerRow]("citizenship_id",   (v,w) => printIntOption(v.worker.citizenship.map(_.id), w)),
+    Column[InjuredWorkerRow]("citizenship_name", (v,w) => printStrOption(v.worker.citizenship.map(_.name), w)),
+    Column[InjuredWorkerRow]("industry_id",      (v,w) => printIntOption(v.worker.industry.map(_.id), w)),
+    Column[InjuredWorkerRow]("industry_name",    (v,w) => printStrOption(v.worker.industry.map(_.name), w)),
+    Column[InjuredWorkerRow]("employer_id",      (v,w) => printOption(v.worker.employer.map(_.id), w)),
+    Column[InjuredWorkerRow]("employer_name",    (v,w) => printStrOption(v.worker.employer.map(_.name), w)),
+    Column[InjuredWorkerRow]("injury_cause_id",  (v,w) => printOption(v.worker.injuryCause.map(_.id), w)),
+    Column[InjuredWorkerRow]("injury_cause_name",    (v,w) => printStrOption(v.worker.injuryCause.map(_.name), w) ),
+    Column[InjuredWorkerRow]("injury_severity_code", (v,w) => printOption(v.worker.injurySeverity.map(_.id), w) ),
+    Column[InjuredWorkerRow]("injury_severity_name", (v,w) => printStrOption(v.worker.injurySeverity.map(_.toString), w) ),
+    Column[InjuredWorkerRow]("injury_description",   (v,w) => w.setStringValue( v.worker.injuryDescription) ),
+    Column[InjuredWorkerRow]("remarks", (v,w) => w.setStringValue(v.worker.publicRemarks) )
   )
   
-  def printInt( i:Long, w:TableCellWalker ):Unit = {
-    w.setFloatValue(i.toFloat)
-    w.setDataStyle(integerDataStyle)
-  }
-  
-  def printStrOption(os:Option[String], w: TableCellWalker ):Unit = {
-    os match {
-      case None => w.setStringValue("")
-      case Some(s) => w.setStringValue(s)
-    }
-  }
-  
-  def printIntOption( os:Option[Int], w: TableCellWalker ):Unit = printOption(os.map(_.toLong), w)
-  def printOption( os:Option[Long], w: TableCellWalker ):Unit = {
-    os match {
-      case None => w.setStringValue("")
-      case Some(s) => printInt(s,w)
-    }
-  }
-  
-  def printDate( d:LocalDate, w:TableCellWalker ):Unit = {
-    val millies = d.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli
-    val jd = new Date(millies)
-    w.setDateValue(jd)
-  }
+
   
   def main = cached(_=>PublicCtrl.INDEX_PAGE_CACHE_KEY, 60){
     Action.async{implicit req =>
@@ -290,6 +266,12 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
       }
       fastOdsToOkFile(writer, "injured-workers.ods")
     }
+  }
+  
+  def safetyWarrantsDataset = Action{ req =>
+    Ok.sendFile( Paths.get(conf.get[String]("klo.dataProductFolder")).resolve("safetyWarrants.ods").toFile)
+      .as("application/vnd.oasis.opendocument.spreadsheet")
+      .withHeaders("Content-Disposition"->s"attachment; filename=safety-warrants.ods")
   }
   
   private def fastOdsToOkFile(writer:AnonymousOdsFileWriter, filename:String ) = {

@@ -24,6 +24,7 @@ datasets.help=בעמוד זה ניתן להוריד קבצי נתונים בנו
 datasets.lastUpdate=עודכן לאחרונה בתאריך {0} בשעה {1}.
 datasets.accidentList=רשימת תאונות
 datasets.injuredList=רשימת נפגעים
+datasets.safetyWarrants=רשימת צווי בטיחות
 
 error.email=כתובת אימייל לא תקינה
 error.email.exists=משתמשת עם כתובת אימייל כזו כבר קיימת במערכת

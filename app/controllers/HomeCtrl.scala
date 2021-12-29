@@ -1,6 +1,6 @@
 package controllers
 
-import actors.ImportDataActor
+import actors.{DataProductsActor, ImportDataActor}
 import actors.WarrantScrapingActor.StartScrapingSafety
 import akka.actor.ActorRef
 import be.objectify.deadbolt.scala.DeadboltActions
@@ -58,6 +58,7 @@ object HomeCtrl {
 class HomeCtrl @Inject()(deadbolt:DeadboltActions, localAction:LocalAction,
                          @Named("ImportDataActor")importActor:ActorRef,
                          @Named("WarrantScrapingActor")swActor:ActorRef,
+                         @Named("DataProductsActor")dataProductActor:ActorRef,
                          cc: ControllerComponents)
                         (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport {
   
@@ -102,6 +103,13 @@ class HomeCtrl @Inject()(deadbolt:DeadboltActions, localAction:LocalAction,
     var msg = StartScrapingSafety(skip.getOrElse(0))
     swActor ! msg
     Accepted("Scraping started: " + msg)
+  }
+  
+  def updateSafetyWarrantsOds() = localAction(cc.parsers.byteString){ req =>
+    
+    dataProductActor ! DataProductsActor.PossiblyUpdateWarrantTable()
+    
+    Accepted("data product updates started")
   }
   
   def notImplYet = TODO

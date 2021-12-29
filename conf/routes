@@ -8,8 +8,9 @@ GET     /accidents/     controllers.PublicCtrl.accidentIndex(regions:Option[Stri
 GET     /accidents/:id  controllers.PublicCtrl.accidentDetails(id:Long)
 GET     /fatalities     controllers.PublicCtrl.fatalities(year:Option[Int])
 GET     /datasets/      controllers.PublicCtrl.datasets()
-GET     /datasets/accidents       controllers.PublicCtrl.accidentsDataset()
+GET     /datasets/accidents      controllers.PublicCtrl.accidentsDataset()
 GET     /datasets/injuries       controllers.PublicCtrl.injuriesDataset()
+GET     /datasets/safetyWarrants controllers.PublicCtrl.safetyWarrantsDataset()
 GET     /businesses/      controllers.PublicCtrl.bizEntIndex(pPage:Option[Int], pSortBy:Option[String], pAsc:Option[String], searchStr?="")
 GET     /businesses/:id   controllers.PublicCtrl.bizEntDetails(id:Long)
 
@@ -52,6 +53,7 @@ GET   /bkofc/import/accidents controllers.WorkAccidentCtrl.showImport()
 POST  /bkofc/import/accidents controllers.WorkAccidentCtrl.doImport()
 
 POST /bkofc/import/safetyWarrants controllers.HomeCtrl.scrapeSafety(skip:Option[Int])
+PUT  /bkofc/dataProducts/update   controllers.HomeCtrl.updateSafetyWarrantsOds()
 
 # API
 ## Front end
