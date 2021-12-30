@@ -25,6 +25,7 @@ datasets.lastUpdate=עודכן לאחרונה בתאריך {0} בשעה {1}.
 datasets.accidentList=רשימת תאונות
 datasets.injuredList=רשימת נפגעים
 datasets.safetyWarrants=רשימת צווי בטיחות
+datasets.safetyWarrants.lastUpdate=רשימת צווי בטיחות עודכנה לאחרונה בתאריך {0} בשעה {1}.
 
 error.email=כתובת אימייל לא תקינה
 error.email.exists=משתמשת עם כתובת אימייל כזו כבר קיימת במערכת

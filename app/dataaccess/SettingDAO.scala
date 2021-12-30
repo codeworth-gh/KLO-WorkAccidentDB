@@ -36,9 +36,23 @@ class SettingDAO @Inject() (protected val dbConfigProvider:DatabaseConfigProvide
   def get(key:SettingKey.Value):Option[String] = {
     cache.get[String]("settings-" + key.toString) match {
       case s:Some[String] => s
-      case None    => loadFromDb(key)
+      case None           => loadFromDb(key)
     }
   }
+  
+  /**
+   * Returns `true` if the key exists and contains a value that can be viewed as true.
+   * @param key
+   * @return
+   */
+  def isTrueish(key:SettingKey.Value):Boolean = {
+    cache.get[String]("settings-" + key.toString) match {
+      case Some(v) => Setting(key, v).isTrueish
+      case None    => loadFromDb(key).exists(v => Setting(key, v).isTrueish)
+    }
+  }
+  
+  
   
   def set( k:SettingKey.Value, v:String):Setting = set(Setting(k,v))
   

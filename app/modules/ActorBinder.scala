@@ -1,5 +1,6 @@
-package actors
+package modules
 
+import actors.{DataProductsActor, ImportDataActor, WarrantScrapingActor}
 import com.google.inject.AbstractModule
 import play.libs.akka.AkkaGuiceSupport
 

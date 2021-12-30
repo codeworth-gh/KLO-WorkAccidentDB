@@ -1,13 +1,18 @@
 @import java.time.LocalDateTime
-@(lastUpdate:LocalDateTime)(implicit request:Request[_], msgs:MessagesProvider)
+@(lastUpdate:LocalDateTime, lastWarrantUpdate:Option[LocalDateTime])(implicit request:Request[_], msgs:MessagesProvider)
 
 @templates.frontEndBase(Messages("datasets.title"), views.PublicSections.Datasets) {
   @comps.pageTitleRow(Messages("datasets.title"))(Html(""))
   @comps.helpRow(Messages("datasets.help"))
-  @comps.helpRow(Messages("datasets.lastUpdate",
-    lastUpdate.format(Helpers.dateFormats(Helpers.DateFmt.HR_Date)),
-    lastUpdate.format(Helpers.dateFormats(Helpers.DateFmt.HR_Time))
-  ))
+  @comps.helpRow(
+    Messages("datasets.lastUpdate",
+      lastUpdate.format(Helpers.dateFormats(Helpers.DateFmt.HR_Date)),
+      lastUpdate.format(Helpers.dateFormats(Helpers.DateFmt.HR_Time))
+    ) + " " +
+            lastWarrantUpdate.map( d => Messages("datasets.safetyWarrants.lastUpdate",
+                                    d.format(Helpers.dateFormats(Helpers.DateFmt.HR_Date)),
+                                    d.format(Helpers.dateFormats(Helpers.DateFmt.HR_Time)))).getOrElse("")
+  )
 
   <div class="row">
     <div class="col">

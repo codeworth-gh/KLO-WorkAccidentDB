@@ -52,48 +52,60 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
   
   override def receive: Receive = {
     case PossiblyUpdateWarrantTable() => {
-      // TODO: check settings and see do we need to update the products
+      if ( ! settings.isTrueish(SettingKey.SafetyWarrantProductsNeedUpdate) ) {
+        log.info("Data products do not need an update")
+
+      } else {
+        log.info("Updating safety warrant ODS")
+        updateSafetyWarrantDownloadable()
+        log.info("Done")
+      }
       
-      settings.set(SettingKey.SafetyWarrantProductsNeedUpdate, "no")
-      
-      log.info("Updating safety warrant ODS")
-      val odsFactory = OdsFactory.create(java.util.logging.Logger.getLogger("DataProductsActor"), Locale.US)
-      val writer = odsFactory.createWriter
-      val document = writer.document()
-      val table = document.addTable("Safety Warrants")
-      val walker = table.getWalker
-      
-      // add title row
-      safetyWarrantCols.foreach( c => {
-        walker.setStringValue(c.name)
-        walker.setStyle(titleStyle)
+    }
+  }
+  
+  private def updateSafetyWarrantDownloadable():Unit = {
+    settings.set(SettingKey.SafetyWarrantProductsNeedUpdate, "no")
+    
+    val odsFactory = OdsFactory.create(java.util.logging.Logger.getLogger("DataProductsActor"), Locale.US)
+    val writer = odsFactory.createWriter
+    val document = writer.document()
+    val table = document.addTable("Safety Warrants")
+    val walker = table.getWalker
+    
+    // add title row
+    safetyWarrantCols.foreach(c => {
+      walker.setStringValue(c.name)
+      walker.setStyle(titleStyle)
+      walker.next()
+    })
+    walker.setRowStyle(rowStyle)
+    walker.nextRow()
+    
+    // add rows
+    log.info("Writing rows")
+    val src = safetyWarrants.listAll()
+    val done = src.foreach(sw => {
+      safetyWarrantCols.foreach(c => {
+        c.write(sw, walker);
         walker.next()
-      } )
+      })
       walker.setRowStyle(rowStyle)
       walker.nextRow()
-  
-      // add rows
-      log.info("Writing rows")
-      val src = safetyWarrants.listAll()
-      val done = src.foreach( sw => {
-        safetyWarrantCols.foreach( c => {c.write(sw, walker); walker.next()} )
-        walker.setRowStyle(rowStyle)
-        walker.nextRow()
-      })
-      Await.result(done, D)
-      
-      // write a temp file
-      log.info("Writing temp file")
-      val tempPath = Paths.get(config.get[String]("klo.dataProductFolder")).resolve("safetyWarrants.ods.temp")
-      
-      Using( Files.newOutputStream(tempPath) ){ writer.save }
-      
-      // Move to
-      log.info("Moving temp file to place")
-      Files.move(tempPath, tempPath.resolveSibling("safetyWarrants.ods"),
-        StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
-      
-      log.info("Done")
+    })
+    Await.result(done, D)
+    
+    // write a temp file
+    log.info("Writing temp file")
+    val tempPath = Paths.get(config.get[String]("klo.dataProductFolder")).resolve("safetyWarrants.ods.temp")
+    
+    Using(Files.newOutputStream(tempPath)) {
+      writer.save
     }
+    
+    // Move to
+    log.info("Moving temp file to place")
+    Files.move(tempPath, tempPath.resolveSibling("safetyWarrants.ods"),
+      StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
   }
 }

@@ -1,9 +1,9 @@
 package actors
 
-import actors.WarrantScrapingActor.StartScrapingSafety
+import actors.WarrantScrapingActor.{StartScrapingSafety, ldtFmt}
 import akka.actor.{Actor, Props}
 import controllers.Assets
-import dataaccess.SafetyWarrantDAO
+import dataaccess.{SafetyWarrantDAO, SettingDAO, SettingKey}
 import models.SafetyWarrant
 import play.api.libs.json.{JsArray, JsDefined, JsObject, JsString, JsUndefined, JsValue}
 import play.api.libs.ws.WSClient
@@ -21,15 +21,16 @@ object WarrantScrapingActor {
   def props: Props = Props[WarrantScrapingActor]()
   
   val dateFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+  val ldtFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
   case class StartScrapingSafety( skip:Int )
 }
 
 @Singleton
-class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, ws:WSClient, assets:Assets,
+class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:SettingDAO, ws:WSClient, assets:Assets,
                                       config:Configuration)(implicit anEc:ExecutionContext) extends Actor {
   private val log = Logger(classOf[WarrantScrapingActor])
   private val D = Duration(5, duration.MINUTES)
-  private val ldtFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+  
   
   override def receive: Receive = {
     case StartScrapingSafety( skip ) => {
@@ -69,29 +70,30 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, ws:WSClie
       val json = res.json.asInstanceOf[JsObject]
       val records = parse(json, timestamp)
   
-      // store if new
+      // See if we have new records
       val newRecs = records.filter(r => !Await.result(safetyWarrants.exists(r.id), D))
-      log.info(s"Found ${newRecs.size} new warrants")
-  
+      
       // TODO apply mappings
   
-      // skip +20 if new found
-      val fw = newRecs.map(r => safetyWarrants.store(r))
-  
-      Await.result(Future.sequence(fw), D) // wait until all entries are done
-  
       if (newRecs.nonEmpty) {
-        log.info("New records found, requesting another scrape")
+        settings.set(SettingKey.SafetyWarrantProductsNeedUpdate, "pending")
+        val fw = newRecs.map(r => safetyWarrants.store(r))
+        Await.result(Future.sequence(fw), D) // wait until all entries are done
+        log.info(s"${newRecs.size} new records found, requesting another scrape")
+        
+        // skip +20 if new found
         val newSkip = skip + config.get[Int]("scraper.safety.skipDelta")
-    
-        // TODO wait 10-30 sec
         delay()
-    
         self ! StartScrapingSafety(newSkip)
     
       } else {
+        if ( settings.get(SettingKey.SafetyWarrantProductsNeedUpdate).contains("pending") ) {
+          settings.set(SettingKey.SafetyWarrantProductsNeedUpdate, "yes")
+        }
         log.info("No new records found, scraping done")
       }
+      settings.set(SettingKey.LastSafetyWarrantScrapeTime, ldtFmt.format(LocalDateTime.now()))
+      
     } catch {
       case e:Exception => {
         log.warn("Error scraping safety warrants: " + e.getMessage, e)

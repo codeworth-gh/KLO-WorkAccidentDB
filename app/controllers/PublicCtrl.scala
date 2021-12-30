@@ -1,5 +1,6 @@
 package controllers
 
+import actors.WarrantScrapingActor
 import be.objectify.deadbolt.scala.DeadboltActions
 import com.github.jferard.fastods.{AnonymousOdsFileWriter, ObjectToCellValueConverter, OdsFactory, Table, TableCellWalker}
 import com.github.jferard.fastods.style.TableCellStyle
@@ -7,7 +8,7 @@ import com.github.jferard.fastods.attribute.SimpleLength
 import com.github.jferard.fastods.datastyle.{DataStyle, FloatStyleBuilder}
 import com.github.jferard.fastods.style.TableRowStyle
 import dataaccess.BusinessEntityDAO.StatsSortKey
-import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, TableRefs, WorkAccidentDAO}
+import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, SettingDAO, SettingKey, TableRefs, WorkAccidentDAO}
 import models.{Column, InjuredWorker, InjuredWorkerRow, Severity, WorkAccidentSummary}
 import play.api.{Configuration, Logger}
 import play.api.cache.Cached
@@ -18,10 +19,11 @@ import views.{Helpers, PaginationInfo}
 import java.util.Locale
 import java.io.ByteArrayOutputStream
 import java.nio.file.Paths
-import java.time.{LocalDate, ZoneOffset}
+import java.time.{LocalDate, LocalDateTime, ZoneOffset}
 import java.util.{Date, Locale}
 import javax.inject.{Inject, Named}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.postfixOps
 import scala.util.Using
 
 
@@ -40,7 +42,7 @@ object PublicCtrl {
 class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, regions:RegionsDAO,
                            relations:RelationToAccidentDAO, industries:IndustriesDAO, deadbolt:DeadboltActions,
                            businessEntities:BusinessEntityDAO, causes:InjuryCausesDAO, citizenships: CitizenshipsDAO,
-                           cached:Cached, conf:Configuration)
+                           settings:SettingDAO, cached:Cached, conf:Configuration)
                           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport {
   
   import PublicCtrl._
@@ -201,7 +203,8 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     for {
       lastUpdate <- accidents.getLastUpdateDate
     } yield {
-      Ok(views.html.publicside.datasets(lastUpdate))
+      val lastScrape = settings.get(SettingKey.LastSafetyWarrantScrapeTime).map( v => LocalDateTime.parse(v, WarrantScrapingActor.ldtFmt) )
+      Ok(views.html.publicside.datasets(lastUpdate, lastScrape ))
     }
   }
   
