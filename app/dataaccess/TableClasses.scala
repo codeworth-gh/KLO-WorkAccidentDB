@@ -1,7 +1,7 @@
 package dataaccess
 
 import java.sql.Timestamp
-import models.{BusinessEntity, BusinessEntityMapping, BusinessEntityStats, BusinessEntitySummary, Citizenship, Industry, IndustryMapping, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, SafetyWarrant, User, WorkAccidentSummary}
+import models.{BusinessEntity, BusinessEntityMapping, BusinessEntityStats, BusinessEntitySummary, Citizenship, ExecutorCountPerYearRow, ExecutorCountRow, Industry, IndustryMapping, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, SafetyWarrant, User, WorkAccidentSummary}
 import slick.lifted.Tag
 import slick.jdbc.PostgresProfile.api._
 
@@ -225,6 +225,28 @@ class IndustryMappingTable(t:Tag) extends Table[IndustryMapping](t,"industry_map
   def * = (id, name, industryId) <> (IndustryMapping.tupled, IndustryMapping.unapply )
   
   def fkBizEnt = foreignKey("fk_be_id", industryId, TableRefs.industries)(_.id)
+}
+
+class SWWorst20Table(t:Tag) extends Table[ExecutorCountRow](t, "safety_warrants_top_20_executors") {
+  def execName = column[String]("executor_name")
+  def count    = column[Int]("count")
+  
+  def * = (execName, count)<> (ExecutorCountRow.tupled, ExecutorCountRow.unapply)
+}
+
+class SWOver10After201820Table(t:Tag) extends Table[ExecutorCountRow](t, "safety_warrant_over_10_after_2018") {
+  def execName = column[String]("executor_name")
+  def count    = column[Int]("count")
+  
+  def * = (execName, count)<> (ExecutorCountRow.tupled, ExecutorCountRow.unapply)
+}
+
+class SWPerExecutorPerYear(t:Tag) extends Table[ExecutorCountPerYearRow](t, "safety_warrants_per_executor_per_year") {
+  def execName = column[String]("executor_name")
+  def year     = column[Int]("year")
+  def count    = column[Int]("count")
+  
+  def * = (execName, year, count)<> (ExecutorCountPerYearRow.tupled, ExecutorCountPerYearRow.unapply)
 }
 
 object TableRefs {

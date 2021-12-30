@@ -8,7 +8,7 @@ import com.github.jferard.fastods.attribute.SimpleLength
 import com.github.jferard.fastods.datastyle.{DataStyle, FloatStyleBuilder}
 import com.github.jferard.fastods.style.TableRowStyle
 import dataaccess.BusinessEntityDAO.StatsSortKey
-import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, SettingDAO, SettingKey, TableRefs, WorkAccidentDAO}
+import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, SafetyWarrantDAO, SettingDAO, SettingKey, TableRefs, WorkAccidentDAO}
 import models.{Column, InjuredWorker, InjuredWorkerRow, Severity, WorkAccidentSummary}
 import play.api.{Configuration, Logger}
 import play.api.cache.Cached
@@ -42,6 +42,7 @@ object PublicCtrl {
 class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, regions:RegionsDAO,
                            relations:RelationToAccidentDAO, industries:IndustriesDAO, deadbolt:DeadboltActions,
                            businessEntities:BusinessEntityDAO, causes:InjuryCausesDAO, citizenships: CitizenshipsDAO,
+                           safetyWarrants:SafetyWarrantDAO,
                            settings:SettingDAO, cached:Cached, conf:Configuration)
                           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport {
   
@@ -196,7 +197,33 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     } yield {
       Ok( views.html.publicside.fatalitiesList(actualYear, yearsWithAccidents, killed) )
     }
-    
+  }
+  
+  def safetyWarrantsIndex() = Action.async{ implicit req =>
+    for {
+      total <- safetyWarrants.count()
+      worst20 <- safetyWarrants.worst20ExecutorsAllTime()
+    } yield {
+      val groupedExecutors = worst20.groupBy(_.count).map( kv => kv._1->kv._2.map(_.name).sorted )
+      Ok( views.html.publicside.safetywarrants.index(total, groupedExecutors) )
+    }
+  }
+  
+  def safetyWarrantsForExec(execName:String) = Action.async{ implicit req =>
+    for {
+      sws <- safetyWarrants.getForExecutor(execName)
+    } yield {
+      Ok( views.html.publicside.safetywarrants.execDetails(execName, sws) )
+    }
+  }
+  
+  def showSafetyWarrant(id: Long) = Action.async{ implicit req =>
+    for {
+      w <- safetyWarrants.get(id)
+    } yield w match {
+      case None => NotFound( views.html.errorPage(404, "Warrant not found", None, None, req, request2Messages(req)) )
+      case Some(w) => Ok(views.html.publicside.safetywarrants.warrantDetails(w) )
+    }
   }
   
   def datasets = Action.async{ implicit req =>

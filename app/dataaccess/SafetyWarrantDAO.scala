@@ -1,9 +1,10 @@
 package dataaccess
 
-import models.SafetyWarrant
+import models.{ExecutorCountRow, SafetyWarrant}
 import play.api.cache.AsyncCacheApi
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.basic.DatabasePublisher
+import slick.dbio.DBIOAction
 import slick.jdbc.{JdbcProfile, ResultSetConcurrency, ResultSetType}
 
 import java.time.LocalDate
@@ -18,6 +19,7 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
   import slick.jdbc.PostgresProfile.api._
   
   val safetyWarrantTbl = TableQuery[SafetyWarrantsTable]
+  val swWorst20 = TableQuery[SWWorst20Table]
   
   /**
    * True iff a warrant with that id exists in the DB
@@ -33,8 +35,6 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
   def get( id:Long ):Future[Option[SafetyWarrant]] = db.run(
     safetyWarrantTbl.filter(_.id === id ).result.headOption
   )
-  
-  
   
   def getForBizEnt( bizEntId:Long ):Future[Seq[SafetyWarrant]] = {
     val bes = Set(bizEntId)
@@ -69,6 +69,8 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
     db.run( (if (skip==0) tq else tq.drop(skip)).sortBy(_.sentDate.desc).result )
   }
   
+  def count():Future[Int] = db.run(safetyWarrantTbl.size.result)
+  
   def listAll():DatabasePublisher[SafetyWarrant] = db.stream(
     safetyWarrantTbl
       .sortBy( _.id )
@@ -81,6 +83,22 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
   
   def countWarrants(startDate:Option[LocalDate], endDate:Option[LocalDate], industryId:Option[Int] ):Future[Int] =
     db.run( filterWarrants(startDate, endDate, industryId).length.result )
+  
+  
+  def refreshViews:Future[Unit] = db.run(
+    sql"""
+        |REFRESH MATERIALIZED VIEW safety_warrant_over_10_after_2018;
+        |REFRESH MATERIALIZED VIEW safety_warrants_top_20_executors;
+        |REFRESH MATERIALIZED VIEW safety_warrants_per_executor;
+        |REFRESH MATERIALIZED VIEW safety_warrants_per_executor_per_year;
+         """.stripMargin.as[(Int)]
+  ).map(_=>())
+  
+  def worst20ExecutorsAllTime():Future[Seq[ExecutorCountRow]] = db.run( swWorst20.result )
+  
+  def getForExecutor(execName:String):Future[Seq[SafetyWarrant]] = db.run(
+    safetyWarrantTbl.filter(_.executorName===execName).sortBy(_.sentDate.desc).result
+  )
   
   private def filterWarrants(startDate:Option[LocalDate], endDate:Option[LocalDate], industryId:Option[Int] ) = {
     var q: Query[SafetyWarrantsTable, SafetyWarrant, Seq] = safetyWarrantTbl

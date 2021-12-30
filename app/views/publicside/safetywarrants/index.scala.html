@@ -1,0 +1,35 @@
+@(totalCount: Int, worst20Map:Map[Int, Seq[String]])(implicit request:Request[_], msgs:MessagesProvider)
+
+@templates.frontEndBase(Messages("safetyWarrants.title"), views.PublicSections.SafetyWarrants) {
+  @comps.pageTitleRow(Messages("safetyWarrants.title")){ }
+  @comps.helpRow(Messages("safetyWarrants.info") + " " + Messages("safetyWarrants.count", totalCount))
+
+  <div class="row my-2">
+    <div class="col-sm-6">
+      <h2>@Messages("safetyWarrants.worst20.title")</h2>
+      <table class="table table-striped worst20">
+        <thead>
+          <tr>
+            <th>@Messages("safetyWarrants.worst20.place")</th>
+            <th>@Messages("safetyWarrants.worst20.executors")</th>
+            <th>@Messages("safetyWarrants.worst20.warrantCount")</th>
+          </tr>
+        </thead>
+        @for( p <- worst20Map.toSeq.filter( r => r._2.exists(_.nonEmpty)).sortBy(_._1).reverse.zipWithIndex ) {
+          <tr>
+            <td>@{p._2+1}</td>
+            <td>
+              @for( n <- p._1._2.zipWithIndex ){@if(n._2>0){, }<a href="@routes.PublicCtrl.safetyWarrantsForExec(n._1)">@n._1</a>}
+            </td>
+            <td>
+              @p._1._1
+            </td>
+          </tr>
+        }
+      </table>
+      <p>
+        @Messages("safetyWarrants.warrantCountNoName", worst20Map.find(_._2.exists(_.isBlank)).map(_._1).getOrElse(0))
+      </p>
+    </div>
+  </div>
+}

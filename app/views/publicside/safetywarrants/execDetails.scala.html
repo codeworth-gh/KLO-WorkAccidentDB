@@ -1,0 +1,32 @@
+@(executorName:String, warrants:Seq[SafetyWarrant])(implicit request:Request[_], msgs:MessagesProvider)
+
+@templates.frontEndBase(Messages("safetyWarrants.executor.title") + " " + executorName, views.PublicSections.SafetyWarrants) {
+  @comps.pageTitleRow(Messages("safetyWarrants.executor.title") + " " + "<em>" + executorName + "</em>"){ }
+  @comps.helpRow(Messages("safetyWarrants.executor.infoLine", warrants.size))
+  <div class="row my-2">
+    <div class="col">
+      <div class="table-responsive">
+        <table class="table table-striped table-sm table-hover">
+          <thead>
+            <tr>
+              <th>@Messages("safetyWarrants.executor.table.number")</th>
+              <th>@Messages("safetyWarrants.executor.table.date")</th>
+              <th>@Messages("safetyWarrants.executor.table.place")</th>
+              <th>@Messages("safetyWarrants.executor.table.felony")</th>
+              <th>&nbsp;</th>
+            </tr>
+          </thead>
+          @for( p <- warrants ) {
+            <tr>
+              <td><a href="@routes.PublicCtrl.showSafetyWarrant(p.id)">@p.id</a></td>
+              <td>@Helpers.dateFormats(Helpers.DateFmt.HR_Date).format(p.sentDate)</td>
+              <td>@p.cityName</td>
+              <td>@p.felony</td>
+              <td><a href="@routes.PublicCtrl.showSafetyWarrant(p.id)">@comps.svg.arrowLeftCircle()</a></td>
+            </tr>
+          }
+        </table>
+      </div>
+    </div>
+  </div>
+}

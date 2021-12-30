@@ -21,3 +21,6 @@ case class BusinessEntityStats(
   killedCount:   Long,
   injuredCount:  Long
 )
+
+case class ExecutorCountRow(name:String, count:Int)
+case class ExecutorCountPerYearRow(name:String, year:Int, count:Int)

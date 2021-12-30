@@ -56,16 +56,17 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
         log.info("Data products do not need an update")
 
       } else {
+        settings.set(SettingKey.SafetyWarrantProductsNeedUpdate, "no")
         log.info("Updating safety warrant ODS")
         updateSafetyWarrantDownloadable()
+        log.info("Refreshing materialized views")
+        safetyWarrants.refreshViews
         log.info("Done")
       }
-      
     }
   }
   
   private def updateSafetyWarrantDownloadable():Unit = {
-    settings.set(SettingKey.SafetyWarrantProductsNeedUpdate, "no")
     
     val odsFactory = OdsFactory.create(java.util.logging.Logger.getLogger("DataProductsActor"), Locale.US)
     val writer = odsFactory.createWriter

@@ -1,0 +1,39 @@
+@(warrant:SafetyWarrant)(implicit request:Request[_], msgs:MessagesProvider)
+
+@templates.frontEndBase(Messages("safetyWarrants.warrant.title", warrant.id), views.PublicSections.SafetyWarrants) {
+  @comps.pageTitleRow(Messages("safetyWarrants.warrant.title", warrant.id)){ }
+
+  <div class="row my-1 mt-2">
+    <div class="col-sm-3">@Messages("safetyWarrants.warrant.number")</div>
+    <div class="col-sm-9">@warrant.id</div>
+  </div>
+  <div class="row my-1">
+    <div class="col-sm-3">@Messages("safetyWarrants.warrant.date")</div>
+    <div class="col-sm-9">@Helpers.dateFormats(Helpers.DateFmt.HR_Date).format(warrant.sentDate)</div>
+  </div>
+  <div class="row my-1">
+    <div class="col-sm-3">@Messages("safetyWarrants.warrant.site")</div>
+    <div class="col-sm-9">@warrant.operatorName</div>
+  </div>
+  <div class="row my-1">
+    <div class="col-sm-3">@Messages("safetyWarrants.warrant.executor")</div>
+    <div class="col-sm-9"><a href="@routes.PublicCtrl.safetyWarrantsForExec(warrant.executorName)">@warrant.executorName</a></div>
+  </div>
+  <div class="row my-1">
+    <div class="col-sm-3">@Messages("safetyWarrants.warrant.category")</div>
+    <div class="col-sm-9">@warrant.categoryName</div>
+  </div>
+  <div class="row my-1">
+    <div class="col-sm-3">@Messages("safetyWarrants.warrant.felony")</div>
+    <div class="col-sm-9">@warrant.felony</div>
+  </div>
+  <div class="row my-1">
+    <div class="col-sm-3">@Messages("safetyWarrants.warrant.law")</div>
+    <div class="col-sm-9">@warrant.law</div>
+  </div>
+  <div class="row my-1">
+    <div class="col-sm-3">@Messages("safetyWarrants.warrant.clause")</div>
+    <div class="col-sm-9">@warrant.clause</div>
+  </div>
+
+}

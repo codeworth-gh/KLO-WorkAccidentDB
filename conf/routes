@@ -3,11 +3,14 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
-GET     /               controllers.PublicCtrl.main()
-GET     /accidents/     controllers.PublicCtrl.accidentIndex(regions:Option[String],industries:Option[String],severities:Option[String],citizenships:Option[String],causes:Option[String],from:Option[String],to:Option[String],sort:Option[String], asc:Option[String], page:Option[Int])
-GET     /accidents/:id  controllers.PublicCtrl.accidentDetails(id:Long)
-GET     /fatalities     controllers.PublicCtrl.fatalities(year:Option[Int])
-GET     /datasets/      controllers.PublicCtrl.datasets()
+GET     /                   controllers.PublicCtrl.main()
+GET     /accidents/         controllers.PublicCtrl.accidentIndex(regions:Option[String],industries:Option[String],severities:Option[String],citizenships:Option[String],causes:Option[String],from:Option[String],to:Option[String],sort:Option[String], asc:Option[String], page:Option[Int])
+GET     /accidents/:id      controllers.PublicCtrl.accidentDetails(id:Long)
+GET     /safetyWarrants/    controllers.PublicCtrl.safetyWarrantsIndex()
+GET     /safetyWarrants/execs/:execName    controllers.PublicCtrl.safetyWarrantsForExec(execName)
+GET     /safetyWarrants/:id controllers.PublicCtrl.showSafetyWarrant(id:Long)
+GET     /fatalities         controllers.PublicCtrl.fatalities(year:Option[Int])
+GET     /datasets/          controllers.PublicCtrl.datasets()
 GET     /datasets/accidents      controllers.PublicCtrl.accidentsDataset()
 GET     /datasets/injuries       controllers.PublicCtrl.injuriesDataset()
 GET     /datasets/safetyWarrants controllers.PublicCtrl.safetyWarrantsDataset()
