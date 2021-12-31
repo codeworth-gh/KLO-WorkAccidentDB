@@ -289,6 +289,22 @@ ul.errors{
   }
 }
 
+.klo-navbar-ctnr {
+  box-shadow: 0 4px 8px rgba(0,0,0,.25);
+  background-color: $KloLightGray;
+}
+
+nav.nav.nav-pills {
+  a.nav-link {
+    color: $KloBlue
+  }
+  a.nav-link.active {
+    background-color: $KloBlue;
+    color: white;
+  }
+
+}
+
 tr.detailsRow {
   font-size: 10pt;
   box-shadow: 0 3px 3px rgba(0,0,0,.25) inset, 0 -3px 3px rgba(0,0,0,.25) inset;
@@ -305,11 +321,6 @@ th.sortingColumnHeader{
       background-color: $KloLightGray
     }
   }
-}
-
-.klo-navbar-ctnr {
-  box-shadow: 0 4px 8px rgba(0,0,0,.25);
-  background-color: $KloLightGray;
 }
 
 ul.injuredWorkers {

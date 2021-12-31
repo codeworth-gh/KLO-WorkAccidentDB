@@ -2,10 +2,20 @@
 
 @templates.frontEndBase(Messages("safetyWarrants.title"), views.PublicSections.SafetyWarrants) {
   @comps.pageTitleRow(Messages("safetyWarrants.title")){ }
+
+  <div class="row my-2">
+    <div class="col">
+      <nav class="nav nav-pills justify-content-center">
+        <a class="nav-link active" aria-current="page" href="#">@Messages("safetyWarrants.nav.worst20")</a>
+        <a class="nav-link" href="@routes.PublicCtrl.safetyWarrantsList(None,None)">@Messages("safetyWarrants.nav.fullList")</a>
+      </nav>
+    </div>
+  </div>
+
   @comps.helpRow(Messages("safetyWarrants.info") + " " + Messages("safetyWarrants.count", totalCount))
 
   <div class="row my-2">
-    <div class="col-sm-6">
+    <div class="col">
       <h2>@Messages("safetyWarrants.worst20.title")</h2>
       <table class="table table-striped worst20">
         <thead>

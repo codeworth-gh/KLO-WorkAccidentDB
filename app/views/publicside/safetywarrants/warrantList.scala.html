@@ -1,0 +1,57 @@
+@import views.PaginationInfo
+@(warrants:Seq[SafetyWarrant], pi:PaginationInfo, total:Int, searchStr:Option[String])(implicit request:Request[_], msgs:MessagesProvider)
+
+@templates.frontEndBase(Messages("safetyWarrantList.title"), views.PublicSections.SafetyWarrants) {
+  @comps.pageTitleRow(Messages("safetyWarrantList.title")){
+    <div class="ms-2">
+      @Messages("safetyWarrantList.foundCount", total)
+      <form action="@routes.PublicCtrl.safetyWarrantsList(None, None)" class="d-inline-block" method="GET">
+        <div class="input-group">
+          <input type="text" placeholder="@Messages("searchText")" class="form-control" name="searchStr" value="@searchStr.getOrElse("")">
+          <button class="btn btn-outline-klo-blue">@Messages("search")</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="row my-2">
+    <div class="col">
+      <nav class="nav nav-pills justify-content-center">
+        <a class="nav-link" href="@routes.PublicCtrl.safetyWarrantsIndex()">@Messages("safetyWarrants.nav.worst20")</a>
+        <a class="nav-link active" href="#" aria-current="page" >@Messages("safetyWarrants.nav.fullList")</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="row my-2">
+    <div class="col">
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>@Messages("safetyWarrants.table.number")</th>
+              <th>@Messages("safetyWarrants.table.date")</th>
+              <th>@Messages("safetyWarrants.table.place")</th>
+              <th>@Messages("safetyWarrants.table.felony")</th>
+              <th>@Messages("safetyWarrants.table.executor")</th>
+              <th>&nbsp;</th>
+            </tr>
+          </thead>
+          @for( p <- warrants ) {
+            <tr>
+              <td><a href="@routes.PublicCtrl.showSafetyWarrant(p.id)">@p.id</a></td>
+              <td>@Helpers.dateFormats(Helpers.DateFmt.HR_Date).format(p.sentDate)</td>
+              <td>@p.cityName</td>
+              <td>@p.felony</td>
+              <td>@p.executorName</td>
+              <td><a href="@routes.PublicCtrl.showSafetyWarrant(p.id)">@comps.svg.arrowLeftCircle()</a></td>
+            </tr>
+          }
+        </table>
+      </div>
+      @comps.pager(pi){i=>@Html(routes.PublicCtrl.safetyWarrantsList(searchStr, Some(i)).url)}
+    </div>
+  </div>
+
+
+}

@@ -64,10 +64,15 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
     safetyWarrantTbl.filter( r => r.kloOperatorId.isEmpty || r.kloExecutorId.isEmpty ).length.result
   )
   
-  def listWarrants(skip:Int, fetchSize:Int, startDate:Option[LocalDate], endDate:Option[LocalDate], industryId:Option[Int] ):Future[Seq[SafetyWarrant]] = {
-    val tq = filterWarrants(startDate, endDate, industryId).take(fetchSize)
-    db.run( (if (skip==0) tq else tq.drop(skip)).sortBy(_.sentDate.desc).result )
+  def listWarrants(skip:Int, fetchSize:Int, searchStr:Option[String], startDate:Option[LocalDate], endDate:Option[LocalDate], industryId:Option[Int] ):Future[Seq[SafetyWarrant]] = {
+    db.run(
+      filterWarrants(searchStr, startDate, endDate, industryId)
+        .drop(skip).take(fetchSize).sortBy(_.sentDate.desc).result
+    )
   }
+  
+  def countWarrants(searchStr:Option[String], startDate:Option[LocalDate], endDate:Option[LocalDate], industryId:Option[Int] ):Future[Int] =
+    db.run( filterWarrants(searchStr, startDate, endDate, industryId).length.result )
   
   def count():Future[Int] = db.run(safetyWarrantTbl.size.result)
   
@@ -80,10 +85,6 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
         rsConcurrency = ResultSetConcurrency.ReadOnly,
         fetchSize = 1000)
       .transactionally)
-  
-  def countWarrants(startDate:Option[LocalDate], endDate:Option[LocalDate], industryId:Option[Int] ):Future[Int] =
-    db.run( filterWarrants(startDate, endDate, industryId).length.result )
-  
   
   def refreshViews:Future[Unit] = db.run(
     sql"""
@@ -100,11 +101,13 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
     safetyWarrantTbl.filter(_.executorName===execName).sortBy(_.sentDate.desc).result
   )
   
-  private def filterWarrants(startDate:Option[LocalDate], endDate:Option[LocalDate], industryId:Option[Int] ) = {
+  private def filterWarrants(searchStr:Option[String], startDate:Option[LocalDate], endDate:Option[LocalDate], industryId:Option[Int] ) = {
     var q: Query[SafetyWarrantsTable, SafetyWarrant, Seq] = safetyWarrantTbl
     startDate.foreach( d => q=q.filter(r=>r.sentDate>=d) )
     endDate.foreach( d => q=q.filter(r=>r.sentDate<=d) )
     industryId.foreach( d => q=q.filter(r=>r.kloIndustryId.inSet(Set(d))) )
+    searchStr.foreach( s => q=q.filter(r=>r.executorName.like(s"%$s%") || r.cityName.like(s"%$s%")
+                                          || r.operatorName.like(s"%$s%") || r.felony.like(s"%$s%")) )
     q
   }
   

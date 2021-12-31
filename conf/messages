@@ -226,11 +226,19 @@ safetyWarrants.worst20.warrantCount=צווים
 safetyWarrants.warrantCountNoName=ישנים {0} צווים בהם שם המבצע לא צויין.
 
 safetyWarrants.executor.title=צווי בטיחות עבור
-safetyWarrants.executor.table.number=מספר צו
-safetyWarrants.executor.table.date=תאריך
-safetyWarrants.executor.table.place=שם אתר
-safetyWarrants.executor.table.felony=עבירה
 safetyWarrants.executor.infoLine=סה״כ נמצאו {0} צווים.
+
+safetyWarrants.table.number=מספר צו
+safetyWarrants.table.date=תאריך
+safetyWarrants.table.place=שם אתר
+safetyWarrants.table.felony=עבירה
+safetyWarrants.table.executor=מבצע
+
+safetyWarrants.nav.fullList=רשימת הצווים
+safetyWarrants.nav.worst20=20 השיאנים
+
+safetyWarrantList.title=צווי בטיחות
+safetyWarrantList.foundCount=נמצאו {0} צווים
 
 safetyWarrants.warrant.title=צו בטיחות מספר {0,number, integer}
 safetyWarrants.warrant.number=מספר צו
@@ -302,4 +310,5 @@ injuredWorkers=נפגעים
 year=שנה
 startDate=התחלה
 search=חיפוש
+searchText=מלל לחיפוש
 endDate=סיום
