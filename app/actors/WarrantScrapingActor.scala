@@ -37,7 +37,7 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
       if ( config.get[Boolean]("scraper.safety.active") ) {
         scrapeSafety( skip )
       } else {
-        log.info( s"Ignoring call to scrape from $skip - actor inactive")
+        log.info( s"Ignoring call to scrape from $skip - actor deactivated (scraper.safety.active != true)")
       }
     }
   }

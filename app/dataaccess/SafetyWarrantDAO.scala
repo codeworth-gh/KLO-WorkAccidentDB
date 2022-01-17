@@ -1,6 +1,7 @@
 package dataaccess
 
 import models.{ExecutorCountRow, SafetyWarrant}
+import play.api.{Configuration, Logger}
 import play.api.cache.AsyncCacheApi
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.basic.DatabasePublisher
@@ -13,24 +14,37 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigProvider,
-                                  industries: IndustriesDAO
+                                  industries: IndustriesDAO, config:Configuration
                                  )(implicit ec:ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
   
   import slick.jdbc.PostgresProfile.api._
-  
+  val log = Logger(classOf[SafetyWarrant])
   val safetyWarrantTbl = TableQuery[SafetyWarrantsTable]
+  val rawSafetyWarrantTbl = TableQuery[RawSafetyWarrantsTable]
   val swWorst20 = TableQuery[SWWorst20Table]
+  
+  val mutedCategories = config.get[Seq[String]]("scraper.safety.mutedCategories").toSet
+  log.info(s"Muted categories: $mutedCategories")
   
   /**
    * True iff a warrant with that id exists in the DB
    */
   def exists( id:Long ):Future[Boolean] = db.run(
-    safetyWarrantTbl.filter(_.id === id).exists.result
+    rawSafetyWarrantTbl.filter(_.id === id).exists.result
   )
   
-  def store( wnt: SafetyWarrant ):Future[Try[SafetyWarrant]] = db.run(
-    safetyWarrantTbl.insertOrUpdate(wnt).asTry
-  ).map( r => r.map(_ => wnt) )
+  def store( wnt: SafetyWarrant ):Future[Try[SafetyWarrant]] = {
+    val plan = for {
+      rw <- rawSafetyWarrantTbl.insertOrUpdate(wnt).asTry
+      sw <- if (mutedCategories(wnt.categoryName)) {
+        DBIO.successful(wnt)
+      } else {
+        safetyWarrantTbl.insertOrUpdate(wnt)
+      }
+    } yield rw
+    
+    db.run( plan ).map( r => r.map(_ => wnt) )
+  }
   
   def get( id:Long ):Future[Option[SafetyWarrant]] = db.run(
     safetyWarrantTbl.filter(_.id === id ).result.headOption
@@ -88,10 +102,10 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
   
   def refreshViews:Future[Unit] = db.run(
     sql"""
-        |REFRESH MATERIALIZED VIEW safety_warrant_over_10_after_2018;
-        |REFRESH MATERIALIZED VIEW safety_warrants_top_20_executors;
         |REFRESH MATERIALIZED VIEW safety_warrants_per_executor;
         |REFRESH MATERIALIZED VIEW safety_warrants_per_executor_per_year;
+        |REFRESH MATERIALIZED VIEW safety_warrant_over_10_after_2018;
+        |REFRESH MATERIALIZED VIEW safety_warrants_top_20_executors;
          """.stripMargin.as[(Int)]
   ).map(_=>())
   

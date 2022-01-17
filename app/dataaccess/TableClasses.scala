@@ -181,7 +181,7 @@ class AccidentToBusinessEntityTable(t:Tag) extends Table[RelationToAccidentRecor
   def fkBiz = foreignKey("bart_accident_business_entity_id_fkey", bizEntId, TableRefs.businessEntities)(_.id)
 }
 
-class SafetyWarrantsTable(t:Tag) extends Table[SafetyWarrant](t,"safety_warrants"){
+abstract class BaseSafetyWarrantsTable(t:Tag, tableName:String) extends Table[SafetyWarrant](t,tableName){
   
   def id             = column[Long]("id", O.PrimaryKey)
   def sentDate       = column[LocalDate]("sent_date")
@@ -206,6 +206,10 @@ class SafetyWarrantsTable(t:Tag) extends Table[SafetyWarrant](t,"safety_warrants
   def fkExec = foreignKey("fk_executor_id", kloExecutorId, TableRefs.businessEntities)(_.id)
   def fkInds = foreignKey("fk_industry_id", kloIndustryId, TableRefs.industries)(_.id)
 }
+
+class SafetyWarrantsTable(t:Tag) extends BaseSafetyWarrantsTable(t, "safety_warrants")
+class RawSafetyWarrantsTable(t:Tag) extends BaseSafetyWarrantsTable(t, "safety_warrants_raw")
+
 
 class BusinessEntityMappingTable(t:Tag) extends Table[BusinessEntityMapping](t,"business_entity_mapping") {
   def id = column[Long]("id", O.PrimaryKey)
