@@ -8,6 +8,7 @@ GET     /accidents/         controllers.PublicCtrl.accidentIndex(regions:Option[
 GET     /accidents/:id      controllers.PublicCtrl.accidentDetails(id:Long)
 GET     /safetyWarrants/    controllers.PublicCtrl.safetyWarrantsIndex()
 GET     /safetyWarrants/list/   controllers.PublicCtrl.safetyWarrantsList(searchStr:Option[String], pPage:Option[Int])
+GET     /safetyWarrants/4in24/  controllers.PublicCtrl.over4Last24(page:Option[Int])
 GET     /safetyWarrants/execs/:execName    controllers.PublicCtrl.safetyWarrantsForExec(execName)
 GET     /safetyWarrants/:id controllers.PublicCtrl.showSafetyWarrant(id:Long)
 GET     /fatalities         controllers.PublicCtrl.fatalities(year:Option[Int])

@@ -3,20 +3,16 @@
 @templates.frontEndBase(Messages("safetyWarrants.title"), views.PublicSections.SafetyWarrants) {
   @comps.pageTitleRow(Messages("safetyWarrants.title")){ }
 
-  <div class="row my-2">
-    <div class="col">
-      <nav class="nav nav-pills justify-content-center">
-        <a class="nav-link active" aria-current="page" href="#">@Messages("safetyWarrants.nav.worst20")</a>
-        <a class="nav-link" href="@routes.PublicCtrl.safetyWarrantsList(None,None)">@Messages("safetyWarrants.nav.fullList")</a>
-      </nav>
-    </div>
-  </div>
+  @nav(views.SafetyWarrantSections.Top20)
 
   @comps.helpRow(Messages("safetyWarrants.info") + " " + Messages("safetyWarrants.count", totalCount))
 
   <div class="row my-2">
     <div class="col">
       <h2>@Messages("safetyWarrants.worst20.title")</h2>
+      <div class="alert alert-warning">
+       @comps.svg.exclamationTriangle() @Messages("safetyWarrants.warrantCountNoName", worst20Map.find(_._2.exists(_.isBlank)).map(_._1).getOrElse(0))
+      </div>
       <table class="table table-striped worst20">
         <thead>
           <tr>
@@ -29,7 +25,7 @@
           <tr>
             <td>@{p._2+1}</td>
             <td>
-              @for( n <- p._1._2.zipWithIndex ){@if(n._2>0){, }<a href="@routes.PublicCtrl.safetyWarrantsForExec(n._1)">@n._1</a>}
+              @for( n <- p._1._2.zipWithIndex ){@if(n._2>0){@Html("<br>")}<a href="@routes.PublicCtrl.safetyWarrantsForExec(n._1)">@n._1</a>}
             </td>
             <td>
               @p._1._1
@@ -37,9 +33,6 @@
           </tr>
         }
       </table>
-      <p>
-        @Messages("safetyWarrants.warrantCountNoName", worst20Map.find(_._2.exists(_.isBlank)).map(_._1).getOrElse(0))
-      </p>
     </div>
   </div>
 }

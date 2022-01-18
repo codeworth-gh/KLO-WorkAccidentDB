@@ -1,0 +1,16 @@
+@import views.Structure
+@(cur:views.SafetyWarrantSections.Value)(implicit request:Request[_], msgs:MessagesProvider)
+
+<div class="row my-2">
+  <div class="col">
+    <nav class="nav nav-pills justify-content-center">
+      @for( ps <- Structure.safetyWarrantsSections ) {
+        @if( ps.id == cur ) {
+          <a class="nav-link active" aria-current="page" href="#">@Messages(ps.title)</a>
+        } else {
+          <a class="nav-link" href="@ps.call">@Messages(ps.title)</a>
+        }
+      }
+    </nav>
+  </div>
+</div>

@@ -22,6 +22,7 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
   val safetyWarrantTbl = TableQuery[SafetyWarrantsTable]
   val rawSafetyWarrantTbl = TableQuery[RawSafetyWarrantsTable]
   val swWorst20 = TableQuery[SWWorst20Table]
+  val executorsWithOver4In24 = TableQuery[ExecutorsWithOver4In24]
   
   val mutedCategories = config.get[Seq[String]]("scraper.safety.mutedCategories").toSet
   log.info(s"Muted categories: $mutedCategories")
@@ -85,6 +86,14 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
     )
   }
   
+  def executorsOver4In24( skip:Int, fetchSize:Int ):Future[Seq[(String, Int)]] = db.run(
+    executorsWithOver4In24.drop(skip).take(fetchSize).result
+  )
+  
+  def executorsOver4In24Count():Future[Int] = db.run(
+    executorsWithOver4In24.size.result
+  )
+  
   def countWarrants(searchStr:Option[String], startDate:Option[LocalDate], endDate:Option[LocalDate], industryId:Option[Int] ):Future[Int] =
     db.run( filterWarrants(searchStr, startDate, endDate, industryId).length.result )
   
@@ -100,13 +109,23 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
         fetchSize = 1000)
       .transactionally)
   
-  def refreshViews:Future[Unit] = db.run(
+  def refreshViews():Future[Unit] = db.run(
     sql"""
         |REFRESH MATERIALIZED VIEW safety_warrants_per_executor;
         |REFRESH MATERIALIZED VIEW safety_warrants_per_executor_per_year;
         |REFRESH MATERIALIZED VIEW safety_warrant_over_10_after_2018;
         |REFRESH MATERIALIZED VIEW safety_warrants_top_20_executors;
-         """.stripMargin.as[(Int)]
+        |REFRESH MATERIALIZED VIEW executors_with_4_plus_24mo;
+        |REFRESH MATERIALIZED VIEW safety_warrant_by_category_24mo;
+        |REFRESH MATERIALIZED VIEW safety_warrant_by_category_all;
+         """.stripMargin.as[Int]
+  ).map(_=>())
+  
+  
+  def refreshTemporalViews():Future[Unit] = db.run(
+    sql"""
+         |REFRESH MATERIALIZED VIEW executors_with_4_plus_24mo;
+         """.stripMargin.as[Int]
   ).map(_=>())
   
   def worst20ExecutorsAllTime():Future[Seq[ExecutorCountRow]] = db.run( swWorst20.result )

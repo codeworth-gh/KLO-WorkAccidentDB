@@ -12,7 +12,6 @@ import play.api.{Configuration, Logger}
 import java.time.{LocalDate, LocalDateTime}
 import java.time.format.DateTimeFormatter
 import javax.inject.{Inject, Singleton}
-import scala.annotation.tailrec
 import scala.concurrent.{Await, ExecutionContext, Future, duration}
 import scala.concurrent.duration.Duration
 import scala.io.Source

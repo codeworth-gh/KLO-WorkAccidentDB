@@ -14,14 +14,7 @@
     </div>
   }
 
-  <div class="row my-2">
-    <div class="col">
-      <nav class="nav nav-pills justify-content-center">
-        <a class="nav-link" href="@routes.PublicCtrl.safetyWarrantsIndex()">@Messages("safetyWarrants.nav.worst20")</a>
-        <a class="nav-link active" href="#" aria-current="page" >@Messages("safetyWarrants.nav.fullList")</a>
-      </nav>
-    </div>
-  </div>
+  @nav(views.SafetyWarrantSections.List)
 
   <div class="row my-2">
     <div class="col">

@@ -210,6 +210,16 @@ abstract class BaseSafetyWarrantsTable(t:Tag, tableName:String) extends Table[Sa
 class SafetyWarrantsTable(t:Tag) extends BaseSafetyWarrantsTable(t, "safety_warrants")
 class RawSafetyWarrantsTable(t:Tag) extends BaseSafetyWarrantsTable(t, "safety_warrants_raw")
 
+abstract class NameAndCountTable(t:Tag, tableName:String) extends Table[(String, Int)](t, tableName) {
+  def name = column[String]("name")
+  def count = column[Int]("count")
+  
+  def * = (name, count)
+}
+
+class ExecutorsWithOver4In24(t:Tag) extends NameAndCountTable(t, "executors_with_4_plus_24mo")
+class SafetyWarrantByCategoryAll(t:Tag) extends NameAndCountTable(t, "safety_warrant_by_category_all")
+class SafetyWarrantByCategory24Mo(t:Tag) extends NameAndCountTable(t, "safety_warrant_by_category_24mo")
 
 class BusinessEntityMappingTable(t:Tag) extends Table[BusinessEntityMapping](t,"business_entity_mapping") {
   def id = column[Long]("id", O.PrimaryKey)

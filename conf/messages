@@ -216,6 +216,11 @@ publicIndex.injuriesBranch=לפי ענף
 publicIndex.injuriesSeverity=לפי חומרה
 publicIndex.injuriesByYear=חומרת פגיעה לפי שנה
 
+safetyWarrants.nav.dashboard=מבט על
+safetyWarrants.nav.top20=20 השיאנים
+safetyWarrants.nav.over4Last24Mo=מעל 4 ב-24
+safetyWarrants.nav.list=רשימת הצווים המלאה
+
 safetyWarrants.title=צווי בטיחות
 safetyWarrants.info=צווים אלו ניתנים על ידי מפקחי המנהל, בעקבות הפרות בטיחות.
 safetyWarrants.count=באתר רשומים כרגע {0} צווים.
@@ -223,7 +228,13 @@ safetyWarrants.worst20.title=20 השיאנים של כל הזמנים
 safetyWarrants.worst20.place=מקום
 safetyWarrants.worst20.executors=מבצעים
 safetyWarrants.worst20.warrantCount=צווים
-safetyWarrants.warrantCountNoName=ישנים {0} צווים בהם שם המבצע לא צויין.
+safetyWarrants.warrantCountNoName=ישנם {0} צווים בהם שם המבצע לא צויין.
+
+safetyWarrants.last24mo.title=מבצעים עם 4 צווים או יותר ב-24 החודשים האחרונים
+safetyWarrants.last24mo.count=נמצאו {0} מבצעים כאלו.
+safetyWarrants.last24mo.info=רשימה זו כוללת את כל המבצעים אשר נרשמו להם לפחות 4 צווי בטיחות ב-24 החודשים האחרונים.
+safetyWarrants.last24mo.executors=מבצע
+safetyWarrants.last24mo.warrantCount=מספר צווים ב-24 החודשים האחרונים
 
 safetyWarrants.executor.title=צווי בטיחות עבור
 safetyWarrants.executor.infoLine=סה״כ נמצאו {0} צווים.
@@ -250,7 +261,6 @@ safetyWarrants.warrant.law=שם חוק
 safetyWarrants.warrant.clause=שם סעיף
 safetyWarrants.warrant.category=קטגוריה
 safetyWarrants.warrant.cityName=יישוב
-
 
 severity.light=פציעה קלה
 severity.medium=פציעה בינונית

@@ -1,0 +1,34 @@
+@import views.PaginationInfo
+@(rows:Seq[(String, Int)], totalCount:Int, pi:PaginationInfo)(implicit request:Request[_], msgs:MessagesProvider)
+
+@templates.frontEndBase(Messages("safetyWarrants.last24mo.title"), views.PublicSections.SafetyWarrants) {
+  @comps.pageTitleRow(Messages("safetyWarrants.last24mo.title")){ }
+
+  @nav(views.SafetyWarrantSections.Over4InLast24Mo)
+
+  @comps.helpRow(Messages("safetyWarrants.last24mo.info") + " " + Messages("safetyWarrants.last24mo.count", totalCount))
+
+  <div class="row my-2">
+    <div class="col">
+      <table class="table table-striped worst20">
+        <thead>
+          <tr>
+            <th>@Messages("safetyWarrants.last24mo.executors")</th>
+            <th>@Messages("safetyWarrants.last24mo.warrantCount")</th>
+          </tr>
+        </thead>
+        @for( row <- rows ) {
+          <tr>
+            <td>
+            @Helpers.nonEmptyOrElse(row._1){ v => <a href="@routes.PublicCtrl.safetyWarrantsForExec(row._1)">@v</a>}{<span class="text-muted">@Messages("unknownName")</span>}
+            </td>
+            <td>
+              @row._2
+            </td>
+          </tr>
+        }
+      </table>
+    </div>
+    @comps.pager(pi){i=>@Html(routes.PublicCtrl.over4Last24(Some(i)).url)}
+  </div>
+}

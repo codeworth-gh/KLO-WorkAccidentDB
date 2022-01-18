@@ -39,6 +39,12 @@ object BackOfficeSections extends Enumeration {
   val Users = Value("Users")
 }
 
+object SafetyWarrantSections extends Enumeration {
+  val Dashboard = Value
+  val Top20 = Value
+  val Over4InLast24Mo = Value
+  val List = Value
+}
 
 /**
   * Holds data about the site structure.
@@ -68,6 +74,13 @@ object Structure {
       SeparatorSectionItem,
       PageSectionItem("navbar.users.invite", routes.UserCtrl.showInviteUser())
     ))
+  )
+  
+  val safetyWarrantsSections:Seq[PageSection[SafetyWarrantSections.Value]] = Seq(
+    PageSection("safetyWarrants.nav.dashboard", SafetyWarrantSections.Dashboard, routes.PublicCtrl.safetyWarrantsIndex()),
+    PageSection("safetyWarrants.nav.top20", SafetyWarrantSections.Top20, routes.PublicCtrl.safetyWarrantsIndex()),
+    PageSection("safetyWarrants.nav.over4Last24Mo", SafetyWarrantSections.Over4InLast24Mo, routes.PublicCtrl.over4Last24(None)),
+    PageSection("safetyWarrants.nav.list", SafetyWarrantSections.List, routes.PublicCtrl.safetyWarrantsList(None,None))
   )
   
 }

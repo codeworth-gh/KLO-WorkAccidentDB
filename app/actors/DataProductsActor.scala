@@ -1,25 +1,22 @@
 package actors
 
-import actors.DataProductsActor.PossiblyUpdateWarrantTable
 import akka.actor.{Actor, Props}
 import com.github.jferard.fastods.OdsFactory
 import controllers.PublicCtrl.{rowStyle, titleStyle}
 import dataaccess.{SafetyWarrantDAO, SettingDAO, SettingKey}
 import models.{Column, SafetyWarrant}
 import play.api.{Configuration, Logger}
-
-import java.io.ByteArrayOutputStream
-import java.nio.file.{CopyOption, Files, Paths, StandardCopyOption}
+import java.nio.file.{Files, Paths, StandardCopyOption}
 import java.util.Locale
 import javax.inject.Inject
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, duration}
-import scala.io.Source
 import scala.util.Using
 
 object DataProductsActor {
   def props:Props = Props[DataProductsActor]()
   case class PossiblyUpdateWarrantTable()
+  case class UpdateTemporalViews()
   
   import Column._
   val safetyWarrantCols = Seq(
@@ -60,10 +57,13 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
         log.info("Updating safety warrant ODS")
         updateSafetyWarrantDownloadable()
         log.info("Refreshing materialized views")
-        safetyWarrants.refreshViews
+        safetyWarrants.refreshViews()
         log.info("Done")
       }
     }
+    case UpdateTemporalViews() =>
+      log.info("Refreshing temporal views")
+      safetyWarrants.refreshTemporalViews()
   }
   
   private def updateSafetyWarrantDownloadable():Unit = {

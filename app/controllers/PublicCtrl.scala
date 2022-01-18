@@ -209,6 +209,16 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     }
   }
   
+  def over4Last24(page:Option[Int]) = Action.async{ implicit req =>
+    for {
+      count <- safetyWarrants.executorsOver4In24Count()
+      items <- safetyWarrants.executorsOver4In24( (page.getOrElse(1)-1)*PAGE_SIZE, PAGE_SIZE )
+    } yield {
+      val pi = PaginationInfo(page.getOrElse(1), Math.ceil(count/PAGE_SIZE.toDouble).toInt)
+      Ok( views.html.publicside.safetywarrants.last24mo(items, count, pi))
+    }
+  }
+  
   def safetyWarrantsList(searchStr:Option[String], pPage:Option[Int]) = Action.async{ implicit req =>
     for {
       warrants <- safetyWarrants.listWarrants((pPage.getOrElse(1)-1)*PAGE_SIZE, PAGE_SIZE, searchStr, None, None, None )
