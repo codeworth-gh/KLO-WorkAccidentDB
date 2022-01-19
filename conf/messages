@@ -217,6 +217,23 @@ publicIndex.injuriesBranch=לפי ענף
 publicIndex.injuriesSeverity=לפי חומרה
 publicIndex.injuriesByYear=חומרת פגיעה לפי שנה
 
+safetyWarrants.index.byCatAllTimes=צווים לפי קטגוריה
+safetyWarrants.index.byCatAllTimes.remark=בכל המאגר
+safetyWarrants.index.byCatAllTimes.chart=בכל המאגר
+safetyWarrants.index.byCat24Mo=צווים לפי קטגוריה
+safetyWarrants.index.byCat24Mo.remark=24 חודשים אחרונים
+safetyWarrants.index.byCat24Mo.chart=24 חודשים אחרונים
+safetyWarrants.index.catPerYear=צווים לפי קטגוריה ושנה
+safetyWarrants.index.byLaw=חמשת החוקים השכיחים
+safetyWarrants.index.byLaw.remark=חמשת החוקים שמכוחם הוצאו הצווים הרבים ביותר
+safetyWarrants.index.law=שם החוק
+safetyWarrants.index.warrantCount=צווים
+safetyWarrants.index.5TopExecAllTimes=דירוג מבצעים לפי מספר צווים
+safetyWarrants.index.5TopExecAllTimes.remark=חמשת המבצעים שקיבלו את מספר הצווים הגבוה ביותר
+safetyWarrants.index.5TopExec24Mo=דירוג מבצעים ב-24 החודשים האחרונים
+safetyWarrants.index.5TopExec24Mo.remark=חמשת המבצעים שקיבלו את מספר הצווים הגבוה ביותר ב-24 החודשים האחרונים
+safetyWarrants.index.seeFullList=לרשימה המלאה
+
 safetyWarrants.nav.dashboard=מבט על
 safetyWarrants.nav.top20=20 השיאנים
 safetyWarrants.nav.over4Last24Mo=מעל 4 ב-24
@@ -225,7 +242,7 @@ safetyWarrants.warrantCountNoName=ישנם {0} צווים בהם שם המבצע
 
 safetyWarrants.title=צווי בטיחות
 safetyWarrants.info=צווים אלו ניתנים על ידי מפקחי המנהל, בעקבות הפרות בטיחות.
-safetyWarrants.count=באתר רשומים כרגע {0} צווים.
+safetyWarrants.count=באתר רשומים כרגע {0} צווים. ב-{1} מהם שם המבצע לא ידוע.
 safetyWarrants.top20.title=20 השיאנים של כל הזמנים
 safetyWarrants.top20.place=מקום
 safetyWarrants.top20.info=20 המבצעים להם הוצא מספר הצווים הרב ביותר מאז נבנה המאגר. סה״כ הוצאו {1} צווים לחברות אלו, המהווים {2, number, percent} מתוך {0} הצווים הרשומים.

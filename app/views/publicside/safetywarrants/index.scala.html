@@ -1,38 +1,158 @@
-@(totalCount: Int, worst20Map:Map[Int, Seq[String]])(implicit request:Request[_], msgs:MessagesProvider)
-
-@templates.frontEndBase(Messages("safetyWarrants.title"), views.PublicSections.SafetyWarrants) {
+@(totalCount: Int, totalUnknown:Int, top5AllTime:Seq[(Int, Seq[String])], top5in24Mo:Seq[(Int, Seq[String])],
+        countByCatAll:Map[String,Int], countByCat24Mo:Map[String,Int], countsByLaw:Seq[(String,Int)],
+        years:Seq[Int], countsByCatAndYear:Map[(String,Int), Int]
+)(implicit request:Request[_], msgs:MessagesProvider)
+@executorRankTable(rows:Seq[(Int, Seq[String])])={
+  <div class="table-responsive">
+  <table class="table table-striped worst20">
+    <thead>
+      <tr>
+        <th>@Messages("safetyWarrants.top20.place")</th>
+        <th>@Messages("safetyWarrants.top20.executors")</th>
+        <th>@Messages("safetyWarrants.top20.warrantCount")</th>
+      </tr>
+    </thead>
+    @for( p <- rows.zipWithIndex ) {
+      <tr>
+        <td>@{p._2+1}</td>
+        <td>@for( n <- p._1._2.zipWithIndex ) {@if(n._2>0){@Html(", ")}
+          @if(n._1.isBlank) {
+            <span class="text-muted">@Messages("unknownName")</span>
+          } else {
+            <a href="@routes.PublicCtrl.safetyWarrantsForExec(n._1)">@n._1</a>
+          }
+        }</td>
+        <td>@p._1._1</td>
+      </tr>
+    }
+  </table></div>
+}
+@extraHead={
+  <link href="@routes.Assets.versioned("vnd/c3/c3.min.css")" rel="stylesheet">
+  <script src="@routes.Assets.versioned("lib/d3js/d3.min.js")" charset="utf-8"></script>
+  <script src="@routes.Assets.versioned("vnd/c3/c3.min.js")"></script>
+}
+@extraBottom={
+ <script>
+  UiUtils.documentReady(function() {
+    c3.generate({
+      data: {
+        columns: [
+          @for(cc <- countByCatAll) {
+          ['@cc._1', @cc._2],
+          }
+        ],
+        type: 'donut',
+      },
+      bindto: '#swByCategoryAll',
+      donut: {
+        title: "@Messages("safetyWarrants.index.byCatAllTimes.chart")"
+      },
+      tooltip: {
+        format: {
+          value: function (value, ratio, id, index) { return value; }
+        }
+      }
+    });
+    c3.generate({
+      data: {
+        columns: [
+          @for(cc <- countByCat24Mo) {
+          ['@cc._1', @cc._2],
+          }
+        ],
+        type: 'donut',
+      },
+      bindto: '#swByCategory24Mo',
+      donut: {
+        title: "@Messages("safetyWarrants.index.byCat24Mo.chart")"
+      },
+      tooltip: {
+        format: {
+          value: function (value, ratio, id, index) { return value; }
+        }
+      }
+    });
+    c3.generate({
+      bindto:'#categoriesByYear',
+      data: {
+        x:'x',
+        type: 'bar',
+        @defining( countsByCatAndYear.keySet.map(_._1).toSeq.sorted ){ categories =>
+          columns: [
+            ['x', @Html(years.map(_.toString).mkString("'","', '","'"))],
+            @for( ctg <- categories ){
+              ['@ctg', @years.map(yr =>countsByCatAndYear.getOrElse((ctg,yr), 0)).mkString(",")],
+            }
+          ],
+          groups: [
+            [@Html(categories.mkString("'","', '","'"))]
+          ]
+        }
+      },
+      grid: {
+        y: {
+          show: 'true'
+        }
+      }
+    });
+});
+ </script>
+}
+@templates.frontEndBase(Messages("safetyWarrants.title"), views.PublicSections.SafetyWarrants, extraHead, extraBottom) {
   @comps.pageTitleRow(Messages("safetyWarrants.title")){ }
 
   @nav(views.SafetyWarrantSections.Dashboard)
 
-  @comps.helpRow(Messages("safetyWarrants.info") + " " + Messages("safetyWarrants.count", totalCount))
+  @comps.helpRow(Messages("safetyWarrants.info") + " " + Messages("safetyWarrants.count", totalCount, totalUnknown))
 
-  <div class="row my-2">
-    <div class="col">
-      <h2>@Messages("safetyWarrants.worst20.title")</h2>
-      <div class="alert alert-warning">
-       @comps.svg.exclamationTriangle() @Messages("safetyWarrants.warrantCountNoName", worst20Map.find(_._2.exists(_.isBlank)).map(_._1).getOrElse(0))
+  <div class="row row-cols-1 row-cols-md-2 my-3">
+    <div class="col mt-3">
+      <h3>@Messages("safetyWarrants.index.byCatAllTimes")</h3>
+      <div id="swByCategoryAll" class="text-ltr"></div>
+    </div>
+    <div class="col mt-3">
+      <h3>@Messages("safetyWarrants.index.byCat24Mo")</h3>
+      <div id="swByCategory24Mo" class="text-ltr"></div>
+    </div>
+    <div class="col mt-3">
+      <h3>@Messages("safetyWarrants.index.byLaw")</h3>
+      <div class="remark">@Messages("safetyWarrants.index.byLaw.remark")</div>
+      <div>
+        <div class="table-responsive">
+          <table class="table table-striped worst20">
+            <thead>
+              <tr>
+                <th>@Messages("safetyWarrants.index.law")</th>
+                <th>@Messages("safetyWarrants.index.warrantCount")</th>
+              </tr>
+            </thead>
+            @for( p <- countsByLaw ) {
+              <tr>
+                <td>@p._1</td>
+                <td>@p._2</td>
+              </tr>
+            }
+          </table></div>
       </div>
-      <table class="table table-striped worst20">
-        <thead>
-          <tr>
-            <th>@Messages("safetyWarrants.worst20.place")</th>
-            <th>@Messages("safetyWarrants.worst20.executors")</th>
-            <th>@Messages("safetyWarrants.worst20.warrantCount")</th>
-          </tr>
-        </thead>
-        @for( p <- worst20Map.toSeq.filter( r => r._2.exists(_.nonEmpty)).sortBy(_._1).reverse.zipWithIndex ) {
-          <tr>
-            <td>@{p._2+1}</td>
-            <td>
-              @for( n <- p._1._2.zipWithIndex ){@if(n._2>0){@Html("<br>")}<a href="@routes.PublicCtrl.safetyWarrantsForExec(n._1)">@n._1</a>}
-            </td>
-            <td>
-              @p._1._1
-            </td>
-          </tr>
-        }
-      </table>
+    </div>
+    <div class="col mt-3">
+      <h3 class="mb-3">@Messages("safetyWarrants.index.catPerYear")</h3>
+      <div id="categoriesByYear" class="text-ltr"></div>
+    </div>
+    <div class="col mt-3">
+      <h3>@Messages("safetyWarrants.index.5TopExecAllTimes")</h3>
+      <div class="remark">@Messages("safetyWarrants.index.5TopExecAllTimes.remark")</div>
+      @executorRankTable(top5AllTime)
+      <a href="@routes.PublicCtrl.top20Executors()" class="seeFullList">@Messages("safetyWarrants.index.seeFullList") @comps.svg.arrowLeftCircle()</a>
+    </div>
+    <div class="col mt-3">
+      <h3>@Messages("safetyWarrants.index.5TopExec24Mo")</h3>
+      <div class="remark">@Messages("safetyWarrants.index.5TopExec24Mo.remark")</div>
+      @executorRankTable(top5in24Mo)
+      <a href="@routes.PublicCtrl.over4Last24(None)" class="seeFullList">@Messages("safetyWarrants.index.seeFullList") @comps.svg.arrowLeftCircle()</a>
     </div>
   </div>
+
+
 }

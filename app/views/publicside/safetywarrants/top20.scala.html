@@ -9,10 +9,14 @@
 
   <div class="row my-2">
     <div class="col">
-      <h2></h2>
-      <div class="alert alert-warning">
-       @comps.svg.exclamationTriangle() @Messages("safetyWarrants.warrantCountNoName", worst20Map.find(_._2.exists(_.isBlank)).map(_._1).getOrElse(0))
-      </div>
+      @if(worst20Map.find(_._2.exists(_.isBlank))) {
+        <div class="alert alert-warning d-flex flex-row align-items-center">
+          <div class="ms-3">
+          @comps.svg.exclamationTriangle()
+          </div>
+          <div>@Messages("safetyWarrants.warrantCountNoName", worst20Map.find(_._2.exists(_.isBlank)).map(_._1).get)</div>
+        </div>
+      }
       <table class="table table-striped worst20">
         <thead>
           <tr>

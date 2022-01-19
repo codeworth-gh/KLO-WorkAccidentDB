@@ -1,7 +1,7 @@
 package dataaccess
 
 import java.sql.Timestamp
-import models.{BusinessEntity, BusinessEntityMapping, BusinessEntityStats, BusinessEntitySummary, Citizenship, ExecutorCountPerYearRow, ExecutorCountRow, Industry, IndustryMapping, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, SafetyWarrant, User, WorkAccidentSummary}
+import models.{BusinessEntity, BusinessEntityMapping, BusinessEntityStats, BusinessEntitySummary, Citizenship, CountByCategoryAndYear, ExecutorCountPerYearRow, ExecutorCountRow, Industry, IndustryMapping, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, SafetyWarrant, User, WorkAccidentSummary}
 import slick.lifted.Tag
 import slick.jdbc.PostgresProfile.api._
 
@@ -220,6 +220,7 @@ abstract class NameAndCountTable(t:Tag, tableName:String) extends Table[(String,
 class ExecutorsWithOver4In24(t:Tag) extends NameAndCountTable(t, "executors_with_4_plus_24mo")
 class SafetyWarrantByCategoryAll(t:Tag) extends NameAndCountTable(t, "safety_warrant_by_category_all")
 class SafetyWarrantByCategory24Mo(t:Tag) extends NameAndCountTable(t, "safety_warrant_by_category_24mo")
+class SafetyWarrantByLaw(t:Tag) extends NameAndCountTable(t, "safety_warrant_by_law")
 
 class BusinessEntityMappingTable(t:Tag) extends Table[BusinessEntityMapping](t,"business_entity_mapping") {
   def id = column[Long]("id", O.PrimaryKey)
@@ -261,6 +262,21 @@ class SWPerExecutorPerYear(t:Tag) extends Table[ExecutorCountPerYearRow](t, "saf
   def count    = column[Int]("count")
   
   def * = (execName, year, count)<> (ExecutorCountPerYearRow.tupled, ExecutorCountPerYearRow.unapply)
+}
+
+class SWPerCategoryPerYear(t:Tag) extends Table[CountByCategoryAndYear](t, "safety_warrant_by_category_and_year") {
+  def name  = column[String]("name")
+  def year  = column[Int]("year")
+  def count = column[Int]("count")
+  
+  def * = (name, year, count)<> (CountByCategoryAndYear.tupled, CountByCategoryAndYear.unapply)
+}
+
+class SWPerExecutor(t:Tag) extends Table[ExecutorCountRow](t, "safety_warrants_per_executor") {
+  def execName = column[String]("executor_name")
+  def count    = column[Int]("count")
+  
+  def * = (execName, count)<> (ExecutorCountRow.tupled, ExecutorCountRow.unapply)
 }
 
 object TableRefs {

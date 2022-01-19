@@ -32,6 +32,7 @@ import scala.util.Using
 object PublicCtrl {
   val PAGE_SIZE = 50
   val INDEX_PAGE_CACHE_KEY = "PublicCtrl::publicMain"
+  val SW_INDEX_PAGE_CACHE_KEY = "PublicCtrl::SWIndex"
   val integerDataStyle = new FloatStyleBuilder("int", Locale.US).decimalPlaces(0).groupThousands(false).build()
   val rowStyle = TableRowStyle.builder("okRow").rowHeight(SimpleLength.pt(16.0)).build()
   val titleStyle = TableCellStyle.builder("title").fontWeightBold().build()
@@ -93,7 +94,7 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
   
 
   
-  def main = cached(_=>PublicCtrl.INDEX_PAGE_CACHE_KEY, 60){
+  def main = cached(_=>PublicCtrl.INDEX_PAGE_CACHE_KEY, 120){
     Action.async{implicit req =>
       logger.warn("public-main actually rendered.")
       for {
@@ -199,13 +200,25 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     }
   }
   
-  def safetyWarrantsIndex() = Action.async{ implicit req =>
-    for {
-      total <- safetyWarrants.count()
-      worst20 <- safetyWarrants.worst20ExecutorsAllTime()
-    } yield {
-      val groupedExecutors = worst20.groupBy(_.count).map( kv => kv._1->kv._2.map(_.name).sorted )
-      Ok( views.html.publicside.safetywarrants.index(total, groupedExecutors) )
+  def safetyWarrantsIndex() = cached( _ => PublicCtrl.SW_INDEX_PAGE_CACHE_KEY, 120) {
+    Action.async{ implicit req =>
+      for {
+        top5 <- safetyWarrants.worst20ExecutorsAllTime(10) // we over-fetch to group later
+        top5Last24 <- safetyWarrants.executorsOver4In24(0,10)
+        byCatAll <- safetyWarrants.warrantCountByCategoryAll()
+        byCat24Mo <- safetyWarrants.warrantCountByCategory24Mo()
+        byLaw <- safetyWarrants.warrantCountByLaw(5)
+        byCatYear <- safetyWarrants.warrantCountByCategoryAndYear()
+        total <- safetyWarrants.count()
+        totalUnknown <- safetyWarrants.unknownExecutorCount()
+      } yield {
+        val top5AllTime = top5.filter(_.name.trim.nonEmpty).groupBy(_.count).map( kv => kv._1->kv._2.map(_.name).sorted ).toSeq.sortBy(-_._1).take(5)
+        val top5in24Mo = top5Last24.filter(_._1.trim.nonEmpty).groupBy(_._2).map( kv => kv._1->kv._2.map(_._1).sorted ).toSeq.sortBy(-_._1).take(5)
+        val years = byCatYear.map(_.year).distinct.sorted
+        val countPerYearByCat = byCatYear.map( r => (r.category, r.year)->r.count ).toMap
+        Ok( views.html.publicside.safetywarrants.index(total, totalUnknown, top5AllTime,
+          top5in24Mo, byCatAll, byCat24Mo, byLaw, years, countPerYearByCat) )
+      }
     }
   }
   
