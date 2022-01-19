@@ -55,7 +55,8 @@ forgotPassword.help=הכניסי את כתובת המייל איתה נרשמת 
 forgotPassword.emailSent=מייל איפוס סיסמא נשלח לכתובת {0}. אם את לא מוצאת אותו, חפשי בתיקיית הספאם.
 
 footer.warning=הנתונים המופיעים באתר לגבי נפגעים המוגדרים כ-"קל" חלקיים, כיוון שפציעות אלו לרוב אינן מדווחות.
-footer.disclaimer=הנתונים בטבלה נאספים באמצעות הודעות מד"א בגין תאונות עבודה. המידע מושלם על ידי מקורות ממשלתיים, רשתות חברתיות ותקשורת ממסדית. בהתאם לזאת, יתכן ויחסרו פרטים, והנתונים חלקיים בלבד. הנתונים בטבלה עד לשנת 2018 כוללים את ענף הבנייה בלבד. משנת 2019 הם כוללים את כלל הענפים. הנתונים באתר מתעדכנים באופן תדיר.
+footer.disclaimer=הנתונים בטבלת התאונות נאספים באמצעות הודעות מד"א בגין תאונות עבודה. המידע מושלם על ידי מקורות ממשלתיים, רשתות חברתיות ותקשורת ממסדית. בהתאם לזאת, יתכן ויחסרו פרטים, והנתונים חלקיים בלבד. הנתונים בטבלה עד לשנת 2018 כוללים את ענף הבנייה בלבד. משנת 2019 הם כוללים את כלל הענפים. הנתונים באתר מתעדכנים באופן תדיר.
+footer.swDisclaimer=המידע במאגר צווי הבטיחות שאוב ישירות <a href="https://www.gov.il/he/Departments/DynamicCollectors/safety-order-list?skip=0">מרשימת צווי הבטיחות באתר משרד הכלכלה – זרוע העבודה</a>. רשימה זו מפורסמת החל משנת 2017, בעקבות <a href="https://www.kavlaoved.org.il/%d7%a2%d7%aa%d7%99%d7%a8%d7%94-%d7%97%d7%93%d7%a9%d7%94-%d7%9c%d7%91%d7%92%d7%a6-%d7%a4%d7%a8%d7%a1%d7%95%d7%9d-%d7%9e%d7%99%d7%99%d7%93%d7%99-%d7%95%d7%9e%d7%9c%d7%90-%d7%a9%d7%9c-%d7%a6%d7%95/">עתירה שהוגשה על ידי "קו לעובד"</a>, ואנו שמחים להנגישה באתר זה. הרשימה מתעדכנת מדי יום, וכוללת רק מה שמפורסם ממילא בידי הרשות האמונה על אכיפת הבטיחות בעבודה. ט.ל.ח.
 
 inviteUser.title=הזמנת משתמשות
 inviteUser.help=ממסך זה ניתן לשלוח הזמנות למערכת
@@ -220,15 +221,16 @@ safetyWarrants.nav.dashboard=מבט על
 safetyWarrants.nav.top20=20 השיאנים
 safetyWarrants.nav.over4Last24Mo=מעל 4 ב-24
 safetyWarrants.nav.list=רשימת הצווים המלאה
+safetyWarrants.warrantCountNoName=ישנם {0} צווים בהם שם המבצע לא צויין.
 
 safetyWarrants.title=צווי בטיחות
 safetyWarrants.info=צווים אלו ניתנים על ידי מפקחי המנהל, בעקבות הפרות בטיחות.
 safetyWarrants.count=באתר רשומים כרגע {0} צווים.
-safetyWarrants.worst20.title=20 השיאנים של כל הזמנים
-safetyWarrants.worst20.place=מקום
-safetyWarrants.worst20.executors=מבצעים
-safetyWarrants.worst20.warrantCount=צווים
-safetyWarrants.warrantCountNoName=ישנם {0} צווים בהם שם המבצע לא צויין.
+safetyWarrants.top20.title=20 השיאנים של כל הזמנים
+safetyWarrants.top20.place=מקום
+safetyWarrants.top20.info=20 המבצעים להם הוצא מספר הצווים הרב ביותר מאז נבנה המאגר. סה״כ הוצאו {1} צווים לחברות אלו, המהווים {2, number, percent} מתוך {0} הצווים הרשומים.
+safetyWarrants.top20.executors=מבצעים
+safetyWarrants.top20.warrantCount=צווים
 
 safetyWarrants.last24mo.title=מבצעים עם 4 צווים או יותר ב-24 החודשים האחרונים
 safetyWarrants.last24mo.count=נמצאו {0} מבצעים כאלו.

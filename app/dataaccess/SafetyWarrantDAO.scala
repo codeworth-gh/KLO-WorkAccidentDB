@@ -87,7 +87,7 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
   }
   
   def executorsOver4In24( skip:Int, fetchSize:Int ):Future[Seq[(String, Int)]] = db.run(
-    executorsWithOver4In24.drop(skip).take(fetchSize).result
+    executorsWithOver4In24.sortBy(r=>(r.count.desc, r.name.asc)) .drop(skip).take(fetchSize).result
   )
   
   def executorsOver4In24Count():Future[Int] = db.run(

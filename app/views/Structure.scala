@@ -78,7 +78,7 @@ object Structure {
   
   val safetyWarrantsSections:Seq[PageSection[SafetyWarrantSections.Value]] = Seq(
     PageSection("safetyWarrants.nav.dashboard", SafetyWarrantSections.Dashboard, routes.PublicCtrl.safetyWarrantsIndex()),
-    PageSection("safetyWarrants.nav.top20", SafetyWarrantSections.Top20, routes.PublicCtrl.safetyWarrantsIndex()),
+    PageSection("safetyWarrants.nav.top20", SafetyWarrantSections.Top20, routes.PublicCtrl.top20Executors()),
     PageSection("safetyWarrants.nav.over4Last24Mo", SafetyWarrantSections.Over4InLast24Mo, routes.PublicCtrl.over4Last24(None)),
     PageSection("safetyWarrants.nav.list", SafetyWarrantSections.List, routes.PublicCtrl.safetyWarrantsList(None,None))
   )

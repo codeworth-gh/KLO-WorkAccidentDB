@@ -31,8 +31,7 @@ footer {
       direction: ltr;
       text-align: center;
       font-size: 9pt;
-      border-top: 1px solid rgba(255,255,255,.1);
-      margin-top: 2em;
+      margin-top: 0;
       padding: 1em 1em 2em 1em;
       a {
         color: black;
@@ -57,12 +56,15 @@ footer {
   }
 
   .disclaimer {
-    margin-top: 1em;
+    margin-bottom: 1em;
     padding: 1em;
     border: 1px solid rgba(255,210,200,.5);
     font-size: 9pt;
     color: rgb(255,210,200);
     font-weight: lighter;
+    a {
+      display: inline;
+    }
   }
 }
 

@@ -209,6 +209,18 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     }
   }
   
+  def top20Executors() = Action.async{ implicit req =>
+    for {
+      total <- safetyWarrants.count()
+      worst20 <- safetyWarrants.worst20ExecutorsAllTime()
+    } yield {
+      val groupedExecutors = worst20.groupBy(_.count).map( kv => kv._1->kv._2.map(_.name).sorted )
+      val totalIn20 = worst20.map( _.count ).sum
+      val pct = totalIn20.toDouble / total.toDouble
+      Ok( views.html.publicside.safetywarrants.top20(total, totalIn20, pct, groupedExecutors) )
+    }
+  }
+  
   def over4Last24(page:Option[Int]) = Action.async{ implicit req =>
     for {
       count <- safetyWarrants.executorsOver4In24Count()

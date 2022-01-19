@@ -1,24 +1,24 @@
-@(totalCount: Int, worst20Map:Map[Int, Seq[String]])(implicit request:Request[_], msgs:MessagesProvider)
+@(totalCount: Int, totalIn20:Int, pct:Double, worst20Map:Map[Int, Seq[String]])(implicit request:Request[_], msgs:MessagesProvider)
 
-@templates.frontEndBase(Messages("safetyWarrants.title"), views.PublicSections.SafetyWarrants) {
-  @comps.pageTitleRow(Messages("safetyWarrants.title")){ }
+@templates.frontEndBase(Messages("safetyWarrants.top20.title"), views.PublicSections.SafetyWarrants) {
+  @comps.pageTitleRow(Messages("safetyWarrants.top20.title")){ }
 
-  @nav(views.SafetyWarrantSections.Dashboard)
+  @nav(views.SafetyWarrantSections.Top20)
 
-  @comps.helpRow(Messages("safetyWarrants.info") + " " + Messages("safetyWarrants.count", totalCount))
+  @comps.helpRow(Messages("safetyWarrants.top20.info", totalCount, totalIn20, pct))
 
   <div class="row my-2">
     <div class="col">
-      <h2>@Messages("safetyWarrants.worst20.title")</h2>
+      <h2></h2>
       <div class="alert alert-warning">
        @comps.svg.exclamationTriangle() @Messages("safetyWarrants.warrantCountNoName", worst20Map.find(_._2.exists(_.isBlank)).map(_._1).getOrElse(0))
       </div>
       <table class="table table-striped worst20">
         <thead>
           <tr>
-            <th>@Messages("safetyWarrants.worst20.place")</th>
-            <th>@Messages("safetyWarrants.worst20.executors")</th>
-            <th>@Messages("safetyWarrants.worst20.warrantCount")</th>
+            <th>@Messages("safetyWarrants.top20.place")</th>
+            <th>@Messages("safetyWarrants.top20.executors")</th>
+            <th>@Messages("safetyWarrants.top20.warrantCount")</th>
           </tr>
         </thead>
         @for( p <- worst20Map.toSeq.filter( r => r._2.exists(_.nonEmpty)).sortBy(_._1).reverse.zipWithIndex ) {
