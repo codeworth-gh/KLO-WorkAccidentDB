@@ -105,9 +105,19 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
   def warrantCountByLaw(fetchSize:Int):Future[Seq[(String,Int)]] = db.run( swByLawAll.sortBy(_.count.desc).take(fetchSize).result )
   def warrantCountByCategoryAndYear():Future[Seq[CountByCategoryAndYear]] = db.run( swByCategoryAndYear.result )
   
-  def getExecutorYearlyCounts( execName:String ):Future[Seq[ExecutorCountPerYearRow]] = db.run(
-    swPerExecutorPerYear.filter( _.execName === execName ).sortBy( _.year.asc ).result
-  )
+  def getExecutorYearlyCounts( execName:String ):Future[Seq[ExecutorCountPerYearRow]] = for {
+    rows <- db.run(swPerExecutorPerYear.filter( _.execName === execName ).sortBy( _.year.asc ).result)
+  } yield {
+    val years = rows.map(_.year).toSet
+    if ( years.isEmpty ) {
+      Seq()
+    } else if ( years.max - years.min == years.size-1 ) {
+      rows // all years are present
+    } else {
+      Range.inclusive(years.min, years.max).map( year => rows.find( _.year == year).getOrElse(ExecutorCountPerYearRow(execName,year,0)))
+    }
+  }
+  
   
   def countWarrants(searchStr:Option[String], startDate:Option[LocalDate], endDate:Option[LocalDate], industryId:Option[Int] ):Future[Int] =
     db.run( filterWarrants(searchStr, startDate, endDate, industryId).length.result )

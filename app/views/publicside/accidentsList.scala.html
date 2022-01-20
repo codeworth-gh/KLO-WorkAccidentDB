@@ -28,7 +28,7 @@
     <div class="ms-2">
       @comps.accidentCount(total)
     </div>
-    @defining( Seq( selRgns, selIndustries, selSeverities, selCitizenships, selSeverities, from, to).exists( _.iterator.nonEmpty ) ) { hasFilter =>
+    @defining( Seq( selRgns, selIndustries, selSeverities, selCitizenships, selSeverities, from, to).flatten.nonEmpty ) { hasFilter =>
       <button class="btn btn-outline-klo-blue @if(hasFilter){btnActive}" data-bs-toggle="collapse" data-bs-target="#searchPanel">@comps.svg.search() @Messages("filterAndSearch")</button>
     }
   }

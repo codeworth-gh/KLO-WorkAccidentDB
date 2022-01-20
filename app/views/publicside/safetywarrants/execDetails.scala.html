@@ -19,14 +19,16 @@
           ]
         },
         legend: { show: false },
-        grid: {
+        axis: {
           y: {
               show: 'true',
-              tick: {
-                  count: 10
+              min: 0,
+              padding:0,
+              @defining( yearlyCounts.map(_.count).max ){ m =>
+                @if( m<10 ){ max: @m, tick:{count:@{m+1}} }
               }
+            }
           }
-        }
       });
     });
   </script>

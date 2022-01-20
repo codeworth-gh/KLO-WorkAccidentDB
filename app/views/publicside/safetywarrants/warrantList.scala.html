@@ -5,18 +5,41 @@
   @comps.pageTitleRow(Messages("safetyWarrantList.title")){
     <div class="ms-2">
       @Messages("safetyWarrantList.foundCount", total)
-      <form action="@routes.PublicCtrl.safetyWarrantsList(None, None)" class="d-inline-block" method="GET">
-        <div class="input-group">
-          <input type="text" placeholder="@Messages("searchText")" class="form-control" name="searchStr" value="@searchStr.getOrElse("")">
-          <button class="btn btn-outline-klo-blue">@Messages("search")</button>
-        </div>
-      </form>
+      @defining( Seq(searchStr).flatten.nonEmpty ) { hasFilter =>
+        <button class="btn btn-outline-klo-blue @if(hasFilter) {btnActive}" data-bs-toggle="collapse" data-bs-target="#searchPanel">@comps.svg.search() @Messages("filterAndSearch")</button>
+      }
     </div>
   }
 
   @nav(views.SafetyWarrantSections.List)
 
-  <div class="row my-2">
+  <div class="collapse" id="searchPanel">
+    <form action="@routes.PublicCtrl.safetyWarrantsList(None, None)" class="row row-cols-1 row-cols-md-5 my-3 px-3" method="GET">
+      <div class="col">
+        <div class="input-group">
+          <label for="startDate" class="input-group-text">@Messages("from")</label>
+          <input type="date" placeholder="@Messages("safetyWarrantList.searchStartDate")" class="form-control" name="startDate" id="startDate" value="@searchStr.getOrElse("")">
+        </div>
+      </div>
+      <div class="col">
+        <div class="input-group">
+          <label for="endDate" class="input-group-text">@Messages("to")</label>
+          <input type="date" placeholder="@Messages("safetyWarrantList.searchEndDate")" class="form-control" name="endDate" id="endDate" value="@searchStr.getOrElse("")">
+        </div>
+      </div>
+      <div class="col">
+        <input type="text" placeholder="@Messages("safetyWarrantList.executorName")" class="form-control" name="executorName" value="@searchStr.getOrElse("")">
+      </div>
+      <div class="col">
+        <input type="text" placeholder="@Messages("safetyWarrantList.freeText")" class="form-control" name="searchStr" value="@searchStr.getOrElse("")">
+      </div>
+      <div class="col text-end">
+        <button class="btn btn-klo-blue">@Messages("search")</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="row">
     <div class="col">
       <div class="table-responsive">
         <table class="table table-sm">
@@ -36,7 +59,7 @@
               <td>@Helpers.dateFormats(Helpers.DateFmt.HR_Date).format(p.sentDate)</td>
               <td>@p.cityName</td>
               <td>@p.felony</td>
-              <td>@p.executorName</td>
+              <td><a href="@routes.PublicCtrl.safetyWarrantsForExec(p.executorName)">@p.executorName</a></td>
               <td><a href="@routes.PublicCtrl.showSafetyWarrant(p.id)">@comps.svg.arrowLeftCircle()</a></td>
             </tr>
           }

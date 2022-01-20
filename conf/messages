@@ -272,6 +272,10 @@ safetyWarrants.nav.worst20=20 השיאנים
 
 safetyWarrantList.title=צווי בטיחות
 safetyWarrantList.foundCount=נמצאו {0} צווים
+safetyWarrantList.searchStartDate=מתאריך
+safetyWarrantList.searchEndDate=עד תאריך
+safetyWarrantList.executorName=שם מבצע
+safetyWarrantList.freeText=מלל חופשי
 
 safetyWarrants.warrant.title=צו בטיחות מספר {0,number, integer}
 safetyWarrants.warrant.number=מספר צו
@@ -344,3 +348,5 @@ startDate=התחלה
 search=חיפוש
 searchText=מלל לחיפוש
 endDate=סיום
+from=מ-
+to=עד
