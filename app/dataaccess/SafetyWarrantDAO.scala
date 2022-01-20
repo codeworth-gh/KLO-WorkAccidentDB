@@ -1,5 +1,6 @@
 package dataaccess
 
+import controllers.PublicCtrl
 import models.{CountByCategoryAndYear, ExecutorCountPerYearRow, ExecutorCountRow, SafetyWarrant}
 import play.api.{Configuration, Logger}
 import play.api.cache.AsyncCacheApi
@@ -14,7 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigProvider,
-                                  industries: IndustriesDAO, config:Configuration
+                                  industries: IndustriesDAO, config:Configuration, cache:AsyncCacheApi
                                  )(implicit ec:ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
   
   import slick.jdbc.PostgresProfile.api._
@@ -134,26 +135,32 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
         fetchSize = 1000)
       .transactionally)
   
-  def refreshViews():Future[Unit] = db.run(
-    sql"""
-        |REFRESH MATERIALIZED VIEW safety_warrants_per_executor;
-        |REFRESH MATERIALIZED VIEW safety_warrants_per_executor_per_year;
-        |REFRESH MATERIALIZED VIEW safety_warrant_over_10_after_2018;
-        |REFRESH MATERIALIZED VIEW safety_warrants_top_20_executors;
-        |REFRESH MATERIALIZED VIEW executors_with_4_plus_24mo;
-        |REFRESH MATERIALIZED VIEW safety_warrant_by_category_24mo;
-        |REFRESH MATERIALIZED VIEW safety_warrant_by_category_all;
-        |REFRESH MATERIALIZED VIEW safety_warrant_by_law;
-        |REFRESH MATERIALIZED VIEW safety_warrant_by_category_and_year;
+  def refreshViews():Future[Unit] = {
+    db.run(
+      sql"""
+           |REFRESH MATERIALIZED VIEW safety_warrants_per_executor;
+           |REFRESH MATERIALIZED VIEW safety_warrants_per_executor_per_year;
+           |REFRESH MATERIALIZED VIEW safety_warrant_over_10_after_2018;
+           |REFRESH MATERIALIZED VIEW safety_warrants_top_20_executors;
+           |REFRESH MATERIALIZED VIEW executors_with_4_plus_24mo;
+           |REFRESH MATERIALIZED VIEW safety_warrant_by_category_24mo;
+           |REFRESH MATERIALIZED VIEW safety_warrant_by_category_all;
+           |REFRESH MATERIALIZED VIEW safety_warrant_by_law;
+           |REFRESH MATERIALIZED VIEW safety_warrant_by_category_and_year;
          """.stripMargin.as[Int]
-  ).map(_=>())
+    ).map(_=>{
+      cache.remove(PublicCtrl.SW_INDEX_PAGE_CACHE_KEY)
+      ()})
+  }
   
   
   def refreshTemporalViews():Future[Unit] = db.run(
     sql"""
          |REFRESH MATERIALIZED VIEW executors_with_4_plus_24mo;
          """.stripMargin.as[Int]
-  ).map(_=>())
+  ).map(_=>{
+    cache.remove(PublicCtrl.SW_INDEX_PAGE_CACHE_KEY)
+    ()})
   
   def worst20ExecutorsAllTime():Future[Seq[ExecutorCountRow]] = db.run( swWorst20.result )
   def worst20ExecutorsAllTime(fetchSize:Int):Future[Seq[ExecutorCountRow]] = db.run( swWorst20.sortBy(_.count.desc).take(fetchSize).result )
