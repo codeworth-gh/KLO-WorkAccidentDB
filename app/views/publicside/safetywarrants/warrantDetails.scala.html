@@ -16,6 +16,10 @@
     <div class="col-sm-9">@warrant.operatorName</div>
   </div>
   <div class="row my-1">
+    <div class="col-sm-3">@Messages("safetyWarrants.warrant.cityName")</div>
+    <div class="col-sm-9">@warrant.cityName</div>
+  </div>
+  <div class="row my-1">
     <div class="col-sm-3">@Messages("safetyWarrants.warrant.executor")</div>
     <div class="col-sm-9"><a href="@routes.PublicCtrl.safetyWarrantsForExec(warrant.executorName)">@warrant.executorName</a></div>
   </div>

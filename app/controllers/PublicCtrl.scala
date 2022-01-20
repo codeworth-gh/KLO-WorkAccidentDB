@@ -257,8 +257,9 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
   def safetyWarrantsForExec(execName:String) = Action.async{ implicit req =>
     for {
       sws <- safetyWarrants.getForExecutor(execName)
+      yearlyCounts <- safetyWarrants.getExecutorYearlyCounts(execName)
     } yield {
-      Ok( views.html.publicside.safetywarrants.execDetails(execName, sws) )
+      Ok( views.html.publicside.safetywarrants.execDetails(execName, sws, yearlyCounts) )
     }
   }
   

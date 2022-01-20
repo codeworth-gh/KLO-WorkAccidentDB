@@ -1,6 +1,6 @@
 package dataaccess
 
-import models.{CountByCategoryAndYear, ExecutorCountRow, SafetyWarrant}
+import models.{CountByCategoryAndYear, ExecutorCountPerYearRow, ExecutorCountRow, SafetyWarrant}
 import play.api.{Configuration, Logger}
 import play.api.cache.AsyncCacheApi
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -23,6 +23,7 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
   private val rawSafetyWarrantTbl = TableQuery[RawSafetyWarrantsTable]
   private val swWorst20 = TableQuery[SWWorst20Table]
   private val swPerExecutor = TableQuery[SWPerExecutor]
+  private val swPerExecutorPerYear = TableQuery[SWPerExecutorPerYear]
   private val swByCategoryAll = TableQuery[SafetyWarrantByCategoryAll]
   private val swByCategory24mo = TableQuery[SafetyWarrantByCategory24Mo]
   private val swByLawAll = TableQuery[SafetyWarrantByLaw]
@@ -103,6 +104,10 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
   def warrantCountByCategory24Mo():Future[Map[String, Int]] = db.run( swByCategory24mo.result ).map( _.toMap )
   def warrantCountByLaw(fetchSize:Int):Future[Seq[(String,Int)]] = db.run( swByLawAll.sortBy(_.count.desc).take(fetchSize).result )
   def warrantCountByCategoryAndYear():Future[Seq[CountByCategoryAndYear]] = db.run( swByCategoryAndYear.result )
+  
+  def getExecutorYearlyCounts( execName:String ):Future[Seq[ExecutorCountPerYearRow]] = db.run(
+    swPerExecutorPerYear.filter( _.execName === execName ).sortBy( _.year.asc ).result
+  )
   
   def countWarrants(searchStr:Option[String], startDate:Option[LocalDate], endDate:Option[LocalDate], industryId:Option[Int] ):Future[Int] =
     db.run( filterWarrants(searchStr, startDate, endDate, industryId).length.result )

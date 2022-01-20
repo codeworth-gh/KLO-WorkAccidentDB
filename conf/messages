@@ -256,11 +256,14 @@ safetyWarrants.last24mo.executors=מבצע
 safetyWarrants.last24mo.warrantCount=מספר צווים ב-24 החודשים האחרונים
 
 safetyWarrants.executor.title=צווי בטיחות עבור
-safetyWarrants.executor.infoLine=סה״כ נמצאו {0} צווים.
+safetyWarrants.executor.infoLine=נמצאו {0} צווים שהוצאו עבור מבצע זה.
+safetyWarrants.executor.countByYear=מספר צווים לפי שנים
+safetyWarrants.executor.warrantList=רשימת צווים
+safetyWarrants.executor.warrants=צווים
 
-safetyWarrants.table.number=מספר צו
+safetyWarrants.table.number=מספר
 safetyWarrants.table.date=תאריך
-safetyWarrants.table.place=שם אתר
+safetyWarrants.table.cityName=יישוב
 safetyWarrants.table.felony=עבירה
 safetyWarrants.table.executor=מבצע
 
