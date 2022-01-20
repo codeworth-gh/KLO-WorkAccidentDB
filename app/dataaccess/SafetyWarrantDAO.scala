@@ -19,7 +19,7 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
                                  )(implicit ec:ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
   
   import slick.jdbc.PostgresProfile.api._
-  private val log = Logger(classOf[SafetyWarrant])
+  private val log = Logger(classOf[SafetyWarrantDAO])
   private val safetyWarrantTbl = TableQuery[SafetyWarrantsTable]
   private val rawSafetyWarrantTbl = TableQuery[RawSafetyWarrantsTable]
   private val swWorst20 = TableQuery[SWWorst20Table]
@@ -86,12 +86,15 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
     swPerExecutor.filter( r => r.execName === "" ).map(_.count).result.headOption
   ).map( _.getOrElse(0) )
   
-  def listWarrants(skip:Int, fetchSize:Int, searchStr:Option[String], startDate:Option[LocalDate], endDate:Option[LocalDate], industryId:Option[Int] ):Future[Seq[SafetyWarrant]] = {
+  def listWarrants(skip:Int, fetchSize:Int, searchStr:Option[String], startDate:Option[LocalDate], endDate:Option[LocalDate], executorName:Option[String] ):Future[Seq[SafetyWarrant]] = {
     db.run(
-      filterWarrants(searchStr, startDate, endDate, industryId)
+      filterWarrants(searchStr, startDate, endDate, executorName)
         .drop(skip).take(fetchSize).sortBy(_.sentDate.desc).result
     )
   }
+  
+  def countWarrants(searchStr:Option[String], startDate:Option[LocalDate], endDate:Option[LocalDate], executorName:Option[String] ):Future[Int] =
+    db.run( filterWarrants(searchStr, startDate, endDate, executorName).length.result )
   
   def executorsOver4In24( skip:Int, fetchSize:Int ):Future[Seq[(String, Int)]] = db.run(
     executorsWithOver4In24.sortBy(r=>(r.count.desc, r.name.asc)).drop(skip).take(fetchSize).result
@@ -119,9 +122,6 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
     }
   }
   
-  
-  def countWarrants(searchStr:Option[String], startDate:Option[LocalDate], endDate:Option[LocalDate], industryId:Option[Int] ):Future[Int] =
-    db.run( filterWarrants(searchStr, startDate, endDate, industryId).length.result )
   
   def count():Future[Int] = db.run(safetyWarrantTbl.size.result)
   
@@ -169,13 +169,14 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
     safetyWarrantTbl.filter(_.executorName===execName).sortBy(_.sentDate.desc).result
   )
   
-  private def filterWarrants(searchStr:Option[String], startDate:Option[LocalDate], endDate:Option[LocalDate], industryId:Option[Int] ) = {
+  private def filterWarrants(searchStr:Option[String], startDate:Option[LocalDate], endDate:Option[LocalDate], executorName:Option[String] ) = {
     var q: Query[SafetyWarrantsTable, SafetyWarrant, Seq] = safetyWarrantTbl
     startDate.foreach( d => q=q.filter(r=>r.sentDate>=d) )
     endDate.foreach( d => q=q.filter(r=>r.sentDate<=d) )
-    industryId.foreach( d => q=q.filter(r=>r.kloIndustryId.inSet(Set(d))) )
+    executorName.foreach( e => q=q.filter(r=>r.executorName.like(s"%$e%")))
     searchStr.foreach( s => q=q.filter(r=>r.executorName.like(s"%$s%") || r.cityName.like(s"%$s%")
-                                          || r.operatorName.like(s"%$s%") || r.felony.like(s"%$s%")) )
+                                          || r.operatorName.like(s"%$s%") || r.felony.like(s"%$s%")
+                                          || r.clause.like(s"%$s%") || r.law.like(s"%$s%") ))
     q
   }
   

@@ -124,7 +124,9 @@ businessEntities.relatedAccidents=מעורבות בתאונות
 businessEntitiesEditor.title=עריכת גורם מעורב
 businessEntitiesEditor.deleteMsg=למחוק את הגורם המעורב?
 businessEntitiesEditor.deleteMsgSub=לא ניתן יהיה לשחזר את הנתונים לאחר מכן
-businessEntitiesEditor.deletionFailed=המחיקה נכלשה
+businessEntitiesEditor.deletionFailed=המחיקה נכשלה
+
+fatalities.noData=לא נמצאו מקרי מוות.
 
 helperTables.title=מאפייני תאונות
 helperTables.help=במסך זה ניתן לערוך את רשימות המאפיינים המשמשים בתיאור תאונות, נפגעים, והקשרים ביניהם.
@@ -257,7 +259,7 @@ safetyWarrants.last24mo.warrantCount=מספר צווים ב-24 החודשים ה
 
 safetyWarrants.executor.title=צווי בטיחות עבור
 safetyWarrants.executor.infoLine=נמצאו {0} צווים שהוצאו עבור מבצע זה.
-safetyWarrants.executor.countByYear=מספר צווים לפי שנים
+safetyWarrants.executor.countByYear=כמות צווים לפי שנה
 safetyWarrants.executor.warrantList=רשימת צווים
 safetyWarrants.executor.warrants=צווים
 

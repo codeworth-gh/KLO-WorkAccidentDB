@@ -1,12 +1,12 @@
 @import views.PaginationInfo
-@(warrants:Seq[SafetyWarrant], pi:PaginationInfo, total:Int, searchStr:Option[String])(implicit request:Request[_], msgs:MessagesProvider)
+@(warrants:Seq[SafetyWarrant], pi:PaginationInfo, total:Int, searchStr:Option[String], startDate:Option[String], endDate:Option[String], executorName:Option[String])(implicit request:Request[_], msgs:MessagesProvider)
 
 @templates.frontEndBase(Messages("safetyWarrantList.title"), views.PublicSections.SafetyWarrants) {
   @comps.pageTitleRow(Messages("safetyWarrantList.title")){
     <div class="ms-2">
       @Messages("safetyWarrantList.foundCount", total)
-      @defining( Seq(searchStr).flatten.nonEmpty ) { hasFilter =>
-        <button class="btn btn-outline-klo-blue @if(hasFilter) {btnActive}" data-bs-toggle="collapse" data-bs-target="#searchPanel">@comps.svg.search() @Messages("filterAndSearch")</button>
+      @defining( Seq(searchStr, startDate, endDate, executorName).flatten.exists(_.trim.nonEmpty) ) { hasFilter =>
+        <button class="btn btn-outline-klo-blue @if(hasFilter){btnActive}" data-bs-toggle="collapse" data-bs-target="#searchPanel">@comps.svg.search() @Messages("filterAndSearch")</button>
       }
     </div>
   }
@@ -14,21 +14,21 @@
   @nav(views.SafetyWarrantSections.List)
 
   <div class="collapse" id="searchPanel">
-    <form action="@routes.PublicCtrl.safetyWarrantsList(None, None)" class="row row-cols-1 row-cols-md-5 my-3 px-3" method="GET">
+    <form action="@routes.PublicCtrl.safetyWarrantsList(None, None, None, None, None)" class="row row-cols-1 row-cols-md-5 my-3 px-3" method="GET">
       <div class="col">
         <div class="input-group">
           <label for="startDate" class="input-group-text">@Messages("from")</label>
-          <input type="date" placeholder="@Messages("safetyWarrantList.searchStartDate")" class="form-control" name="startDate" id="startDate" value="@searchStr.getOrElse("")">
+          <input type="date" placeholder="@Messages("safetyWarrantList.searchStartDate")" class="form-control" name="startDate" id="startDate" value="@startDate.getOrElse("")">
         </div>
       </div>
       <div class="col">
         <div class="input-group">
           <label for="endDate" class="input-group-text">@Messages("to")</label>
-          <input type="date" placeholder="@Messages("safetyWarrantList.searchEndDate")" class="form-control" name="endDate" id="endDate" value="@searchStr.getOrElse("")">
+          <input type="date" placeholder="@Messages("safetyWarrantList.searchEndDate")" class="form-control" name="endDate" id="endDate" value="@endDate.getOrElse("")">
         </div>
       </div>
       <div class="col">
-        <input type="text" placeholder="@Messages("safetyWarrantList.executorName")" class="form-control" name="executorName" value="@searchStr.getOrElse("")">
+        <input type="text" placeholder="@Messages("safetyWarrantList.executorName")" class="form-control" name="executorName" value="@executorName.getOrElse("")">
       </div>
       <div class="col">
         <input type="text" placeholder="@Messages("safetyWarrantList.freeText")" class="form-control" name="searchStr" value="@searchStr.getOrElse("")">
@@ -65,7 +65,7 @@
           }
         </table>
       </div>
-      @comps.pager(pi){i=>@Html(routes.PublicCtrl.safetyWarrantsList(searchStr, Some(i)).url)}
+      @comps.pager(pi){i=>@Html(routes.PublicCtrl.safetyWarrantsList(searchStr, startDate, endDate, executorName, Some(i)).url)}
     </div>
   </div>
 

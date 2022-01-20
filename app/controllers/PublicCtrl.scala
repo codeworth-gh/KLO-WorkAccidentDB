@@ -24,7 +24,7 @@ import java.util.{Date, Locale}
 import javax.inject.{Inject, Named}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
-import scala.util.Using
+import scala.util.{Try, Using}
 
 
 
@@ -244,13 +244,26 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     }
   }
   
-  def safetyWarrantsList(searchStr:Option[String], pPage:Option[Int]) = Action.async{ implicit req =>
+  def safetyWarrantsList(searchStr:Option[String], pStartDate:Option[String], pEndDate:Option[String], executorName:Option[String], pPage:Option[Int]) = Action.async{ implicit req =>
+    val fmt = Helpers.dateFormats(Helpers.DateFmt.ISO_Date)
+    var startDate:Option[LocalDate] = pStartDate.flatMap( s => Try(LocalDate.parse(s, fmt)).toOption )
+    var endDate:Option[LocalDate] = pEndDate.flatMap( s => Try(LocalDate.parse(s, fmt)).toOption )
+  
+    (startDate, endDate) match {
+      case (Some(s),Some(e)) => if ( s.compareTo(e) > 0 ) {
+        startDate = Some(e)
+        endDate = Some(s)
+      }
+      case _ => ()
+    }
+    logger.info(s"Start: $startDate end: $endDate")
+    
     for {
-      warrants <- safetyWarrants.listWarrants((pPage.getOrElse(1)-1)*PAGE_SIZE, PAGE_SIZE, searchStr, None, None, None )
-      count <- safetyWarrants.countWarrants(searchStr, None, None, None)
+      warrants <- safetyWarrants.listWarrants((pPage.getOrElse(1)-1)*PAGE_SIZE, PAGE_SIZE, searchStr, startDate, endDate, executorName )
+      count <- safetyWarrants.countWarrants(searchStr, startDate, endDate, executorName)
     } yield {
       val pi = PaginationInfo(pPage.getOrElse(1), Math.ceil(count/PAGE_SIZE.toDouble).toInt)
-      Ok( views.html.publicside.safetywarrants.warrantList(warrants, pi, count, searchStr))
+      Ok( views.html.publicside.safetywarrants.warrantList(warrants, pi, count, searchStr, pStartDate, pEndDate, executorName))
     }
   }
   

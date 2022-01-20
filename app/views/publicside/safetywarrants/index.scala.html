@@ -34,11 +34,13 @@
 }
 @extraBottom={
  <script>
+   const colors = { pattern:['#3568B6', '#788864', '#a1a26e', '#613A3A', '#362C28'] };
   UiUtils.documentReady(function() {
     c3.generate({
+      color:colors,
       data: {
         columns: [
-          @for(cc <- countByCatAll) {
+          @for(cc <- countByCatAll.toSeq.sortBy(_._1)) {
           ['@cc._1', @cc._2],
           }
         ],
@@ -55,9 +57,10 @@
       }
     });
     c3.generate({
+      color:colors,
       data: {
         columns: [
-          @for(cc <- countByCat24Mo) {
+          @for(cc <- countByCat24Mo.toSeq.sortBy(_._1)) {
           ['@cc._1', @cc._2],
           }
         ],
@@ -74,6 +77,7 @@
       }
     });
     c3.generate({
+      color:colors,
       bindto:'#categoriesByYear',
       data: {
         x:'x',
