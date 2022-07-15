@@ -1,6 +1,7 @@
+@import java.time.LocalDate
 @(totalCount: Int, totalUnknown:Int, top5AllTime:Seq[(Int, Seq[String])], top5in24Mo:Seq[(Int, Seq[String])],
         countByCatAll:Map[String,Int], countByCat24Mo:Map[String,Int], countsByLaw:Seq[(String,Int)],
-        years:Seq[Int], countsByCatAndYear:Map[(String,Int), Int]
+        years:Seq[Int], countsByCatAndYear:Map[(String,Int), Int], dates:(LocalDate, LocalDate)
 )(implicit request:Request[_], msgs:MessagesProvider)
 @executorRankTable(rows:Seq[(Int, Seq[String])])={
   <div class="table-responsive">
@@ -108,7 +109,12 @@
 
   @nav(views.SafetyWarrantSections.Dashboard)
 
-  @comps.helpRow(Messages("safetyWarrants.info") + " " + Messages("safetyWarrants.count", totalCount, totalUnknown))
+  @comps.helpRow( Messages("safetyWarrants.info") + " "
+                 + Messages("safetyWarrants.count", totalCount, totalUnknown) + " "
+                 + Messages("safetyWarrants.dateRange",
+                      Helpers.format(Helpers.DateFmt.HR_Date,dates._1),
+                      Helpers.format(Helpers.DateFmt.HR_Date,dates._2))
+  )
 
   <div class="row row-cols-1 row-cols-md-2 my-3">
     <div class="col mt-3">

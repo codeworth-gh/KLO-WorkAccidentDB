@@ -10,6 +10,7 @@ import slick.dbio.DBIOAction
 import slick.jdbc.{JdbcProfile, ResultSetConcurrency, ResultSetType}
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -89,7 +90,7 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
   def listWarrants(skip:Int, fetchSize:Int, searchStr:Option[String], startDate:Option[LocalDate], endDate:Option[LocalDate], executorName:Option[String] ):Future[Seq[SafetyWarrant]] = {
     db.run(
       filterWarrants(searchStr, startDate, endDate, executorName)
-        .drop(skip).take(fetchSize).sortBy(_.sentDate.desc).result
+        .sortBy(_.sentDate.desc).drop(skip).take(fetchSize).result
     )
   }
   
@@ -102,6 +103,14 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
   
   def executorsOver4In24Count():Future[Int] = db.run(
     executorsWithOver4In24.size.result
+  )
+  
+  
+  private val LOCAL_DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+  def warrantDates():Future[(LocalDate,LocalDate)] = db.run(
+    sql"select to_char(min(sent_date), 'yyyy-mm-dd'), to_char(max(sent_date), 'yyyy-mm-dd') from safety_warrants".as[(String, String)]
+  ).map( s =>
+    ( LocalDate.parse(s(0)._1, LOCAL_DATE_FMT), LocalDate.parse(s(0)._2, LOCAL_DATE_FMT) )
   )
   
   def warrantCountByCategoryAll():Future[Map[String, Int]] = db.run( swByCategoryAll.result ).map( _.toMap )

@@ -19,14 +19,17 @@ libraryDependencies ++= Seq(
   caffeine,
   ws,
   guice,
-  "com.typesafe.play" %% "play-slick" % "5.0.0",
-  "com.typesafe.play" %% "play-slick-evolutions" % "5.0.0",
-  "com.typesafe.play" %% "play-mailer" % "8.0.0",
-  "com.typesafe.play" %% "play-mailer-guice" % "8.0.0",
-  "be.objectify" %% "deadbolt-scala" % "2.7.1",
-  "org.mindrot" % "jbcrypt" % "0.3m",
-  "org.postgresql" % "postgresql" % "42.2.11",
-  "com.github.jferard"% "fastods"%"0.7.3",
+  "com.google.inject"            % "guice"                % "5.1.0", /* Needed for JDK17 */
+  "com.google.inject.extensions" % "guice-assistedinject" % "5.1.0", /* Needed for JDK17 */
+  "com.typesafe.play" %% "play-slick" % "5.0.2",
+  "com.typesafe.play" %% "play-slick-evolutions" % "5.0.2",
+  "com.typesafe.play" %% "play-mailer" % "8.0.1",
+  "com.typesafe.play" %% "play-mailer-guice" % "8.0.1",
+  "io.methvin" % "directory-watcher" % "0.15.1",
+  "be.objectify" %% "deadbolt-scala" % "2.8.2",
+  "org.mindrot" % "jbcrypt" % "0.4",
+  "org.postgresql" % "postgresql" % "42.3.6",
+  "com.github.jferard"% "fastods"%"0.8.1",
   "org.webjars" % "jquery" % "3.2.1",
   "org.webjars" % "jquery-ui" % "1.12.1",
   "org.webjars" % "tether" % "1.4.0",
@@ -46,6 +49,9 @@ SassKeys.cssStyle := Minified
 
 SassKeys.generateSourceMaps := true
 
+// Needed for M1/Apple Silicon
+PlayKeys.fileWatchService := play.dev.filewatch.FileWatchService.jdk7(play.sbt.run.toLoggerProxy(sLog.value))
+
 // TODO add sections and table helpers
 // TwirlKeys.templateImports ++= Seq( "views.Sections", "views.TableHelper")
 TwirlKeys.templateImports ++= Seq("views.Helpers")
@@ -53,6 +59,6 @@ TwirlKeys.templateImports ++= Seq("views.Helpers")
 pipelineStages := Seq(digest, gzip)
 
 // Disable documentation creation
-sources in (Compile, doc) := Seq.empty
-publishArtifact in (Compile, packageDoc) := false
+Compile / doc / sources  := Seq.empty
+Compile / packageDoc / publishArtifact := false
 

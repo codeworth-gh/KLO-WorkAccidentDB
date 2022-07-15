@@ -235,6 +235,7 @@ safetyWarrants.index.5TopExecAllTimes.remark=חמשת המבצעים שקיבל�
 safetyWarrants.index.5TopExec24Mo=דירוג מבצעים ב-24 החודשים האחרונים
 safetyWarrants.index.5TopExec24Mo.remark=חמשת המבצעים שקיבלו את מספר הצווים הגבוה ביותר ב-24 החודשים האחרונים
 safetyWarrants.index.seeFullList=לרשימה המלאה
+safetyWarrants.dateRange=הצווים במאגר ניתנו בין ה-{0} ל-{1}.
 
 safetyWarrants.nav.dashboard=מבט על
 safetyWarrants.nav.top20=20 השיאנים
