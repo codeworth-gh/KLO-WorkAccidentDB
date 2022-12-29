@@ -87,17 +87,24 @@ users.noPendingInvitations=אין הזמנות ממתינות
 users.pendingInvitations=הזמנות ממתינות
 users.signup.title=Sign up
 users.me=אני!
+users.admin=אדמינית
+
+userList.deleteWarn=למחוק את המשתמשת
+userList.cantUndo=לא ניתן לבטל פעולה זו
 
 userEditor.title=עריכת פרופיל
 userEditor.new.title=משתמשת חדשה
 userEditor.tabs.edit=פרטים
 userEditor.tabs.changePassword=שינוי סיסמא
+userEditor.tabs.setPassword=קביעת סיסמא
 userEditor.password.again=סיסמא (שוב)
 userEditor.previousPassword=סיסמא קודמת
 userEditor.newPassword=סיסמא חדשה
 userEditor.newPasswordAgain=סיסמא חדשה (שוב)
 userEditor.email.help=כתובת האימייל הזו תשמש אותנו במקרה שנידרש לאפס את הסיסמא שלך.
 userEditor.accountCreated=המשתמשת נוספה למערכת בהצלחה
+userEditor.isAdmin=מנהלת מערכת
+userEditor.cannotDeAdminSelf=על מנת למנוע מצב בו אין מנהלות מערכת, מנהלת לא יכולה להפוך את עצמה למשתמשת רגילה. יש לבקש ממנהלת אחרת לעשות זאת.
 
 bizEntList.title=גורמים מעורבים
 bizEntList.help=מסך זה מציג גורמים עסקיים המעורבים בתאונות, כגון מעסיקים, יזמים, וקבלנים. יכול להיות כי מספר גורמים יהיו מקושרים לאותה תאונה (למשל, יזם וקבלן). בנוסף, גורם אחד יכול להיות מעורב במספר תאונות.

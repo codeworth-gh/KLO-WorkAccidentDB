@@ -26,8 +26,9 @@ class UsersTable(tag:Tag) extends Table[User](tag,"users") {
   def name              = column[String]("name")
   def email             = column[String]("email")
   def encryptedPassword = column[String]("encrypted_password")
+  def isAdmin           = column[Boolean]("is_admin")
 
-  def * = (id, username, name, email, encryptedPassword) <> (User.tupled, User.unapply)
+  def * = (id, username, name, email, encryptedPassword, isAdmin) <> (User.tupled, User.unapply)
 
 }
 

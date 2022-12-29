@@ -4,4 +4,6 @@ case class User(id:Long,
                  username:String,
                  name:String,
                  email:String,
-                 encryptedPassword:String)
+                 encryptedPassword:String,
+                 isAdmin: Boolean
+               )

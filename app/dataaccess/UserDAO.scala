@@ -79,9 +79,11 @@ class UsersDAO @Inject() (protected val dbConfigProvider:DatabaseConfigProvider,
     getByUsernameOrEmail(usernameOrEmail).map(maybeUser => maybeUser.find(u=>BCrypt.checkpw(password, u.encryptedPassword)) )
   }
 
-  def hashPassword( plaintext:String ) = BCrypt.hashpw(plaintext, BCrypt.gensalt())
+  def hashPassword( plaintext:String ): String = BCrypt.hashpw(plaintext, BCrypt.gensalt())
 
-  // verifyPass
   def verifyPassword( u:User, plaintext:String ):Boolean = BCrypt.checkpw(plaintext, u.encryptedPassword)
 
+  def deleteUser( username: String):Future[Int] = db.run(
+    Users.filter( _.username===username ).delete
+  )
 }

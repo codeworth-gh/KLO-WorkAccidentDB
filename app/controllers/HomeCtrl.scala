@@ -46,6 +46,7 @@ object HomeCtrl {
     routes.javascript.UserCtrl.apiAddUser,
     routes.javascript.UserCtrl.apiReInviteUser,
     routes.javascript.UserCtrl.apiDeleteInvitation,
+    routes.javascript.UserCtrl.doDeleteUser,
     routes.javascript.WorkAccidentCtrl.doDeleteEntity,
     routes.javascript.WorkAccidentCtrl.backofficeIndex,
     routes.javascript.BusinessEntityCtrl.doDeleteEntity,

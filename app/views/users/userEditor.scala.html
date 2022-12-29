@@ -2,7 +2,8 @@
 @import be.objectify.deadbolt.scala.AuthenticatedRequest
 @import Helpers._
 
-@(form:Form[UserFormData], destination:Call, isNew:Boolean, activeFirst:Boolean=true
+@(form:Form[UserFormData], destination:Call,
+        isNew:Boolean, editingSelf:Boolean, userIsAdmin:Boolean, startInPasswordTab:Boolean = false
  )(implicit request: AuthenticatedRequest[_], msgs:MessagesProvider)
 
 @content = {
@@ -12,29 +13,36 @@
     }else{
       @comps.pageTitleRow(Messages("userEditor.title")){ }
     }
-
     <div class="row">
       <div class="col">
         @if( ! isNew ) {
           <ul class="nav nav-tabs justify-content-center">
             <li class="nav-item">
-              <a data-bs-toggle="tab" class="nav-link @if(activeFirst) {active}" href="#userEditor">@Messages("userEditor.tabs.edit")</a>
+              <a data-bs-toggle="tab" class="nav-link @if(!startInPasswordTab){active}" href="#userEditor">@Messages("userEditor.tabs.edit")</a>
             </li>
-            <li class="nav-item">
-              <a data-bs-toggle="tab" class="nav-link @if(isNew) {disabled} @if(!activeFirst) {active}" href="#changePassword">
-              @Messages("userEditor.tabs.changePassword")</a>
-            </li>
+            @if( (!isNew) && editingSelf ){
+              <li class="nav-item">
+                <a data-bs-toggle="tab" class="nav-link @if(startInPasswordTab){active}" href="#changePassword">
+                @Messages("userEditor.tabs.changePassword")</a>
+              </li>
+            }
+            @if( userIsAdmin && (!editingSelf) && (!isNew) ){
+              <li class="nav-item">
+                <a data-bs-toggle="tab" class="nav-link " href="#setPassword">
+                @Messages("userEditor.tabs.setPassword")</a>
+              </li>
+            }
           </ul>
         }
         <div class="tab-content my-2">
-          <div class="tab-pane @if(activeFirst){active}" id="userEditor">
+          <div class="tab-pane mt-2 @if(!startInPasswordTab){active}" id="userEditor">
 
             <form class="form-horizontal" action="@destination.url" method="POST">
               @formErrors(form)
               @formErrors(form("uuid"))
 
               <div class="form-group row my-2 @Helpers.fieldStatus(form("username"))">
-                <label for="idInput" class="col-sm-2 control-label">@Messages("username")</label>
+                <label for="usernameInput" class="col-sm-2 control-label">@Messages("username")</label>
                 <div class="col-sm-10">
                   <input type="text" class="form-control" id="usernameInput" name="username" value="@form("username").value.getOrElse("")"
                   placeholder="username" @if(!isNew){readonly}>
@@ -81,9 +89,27 @@
                 </div>
               </div>
 
+              @if( isNew ) {
+                <input name="isAdmin" type="hidden" value="false">
+              } else {
+                <div class="form-group row my-2">
+                  <label for="isAdmin" class="col-sm-2 control-label">@Messages("userEditor.isAdmin")</label>
+                  <div class="col-sm-10">
+                    @if( (!editingSelf) && userIsAdmin ) {
+                      <input id="isAdmin" name="isAdmin" type="checkbox" value="true" @if(form("isAdmin").value.contains("true")){ checked}>
+                    }
+                    @if( editingSelf && userIsAdmin ) {
+                      <div class="alert alert-info">
+                        @Messages("userEditor.cannotDeAdminSelf")
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
               <div class="form-group row">
                 <div class="col text-end">
-                  <a href="@routes.UserCtrl.userHome()" class="btn btn-secondary">@Messages("cancel")</a>
+                  <a href="@routes.UserCtrl.showUserList()" class="btn btn-secondary">@Messages("cancel")</a>
                   <button type="submit" class="btn btn-primary">@Messages("change")</button>
                 </div>
               </div>
@@ -92,7 +118,7 @@
             </form>
           </div>
 
-          <div class="tab-pane @if(!activeFirst){active} mt-2" id="changePassword">
+          <div class="tab-pane mt-2 @if(startInPasswordTab){active}" id="changePassword">
             <div class="col-md-12 mt-1">
               <form class="form-horizontal" action="@routes.UserCtrl.doChangePassword()" method="POST">
                 <div class="form-group row my-2">
@@ -121,8 +147,32 @@
                 <div class="form-group row my-2">
                   <div class="col-md-12">
                     <div class="text-end">
-                      <a class="btn btn-secondary" href="@routes.UserCtrl.userHome()">@Messages("cancel")</a>
+                      <a class="btn btn-secondary" href="@routes.UserCtrl.showUserList()">@Messages("cancel")</a>
 
+                      <button type="submit" class="btn btn-primary">@Messages("change")</button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="tab-pane mt-2" id="setPassword">
+            <div class="col-md-12 mt-1">
+              <form class="form-horizontal" action="@routes.UserCtrl.doSetPassword(form("username").value.getOrElse(""))" method="POST">
+                <div class="form-group row my-2">
+                  <label for="newPassword" class="col-sm-2 control-label">@Messages("userEditor.newPassword")</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="newPassword" name="newPassword" value=""
+                    placeholder="Password">
+                    @formErrors(form("newPassword"))
+                  </div>
+                </div>
+                @helper.CSRF.formField
+                <div class="form-group row my-2">
+                  <div class="col-md-12">
+                    <div class="text-end">
+                      <a class="btn btn-secondary" href="@routes.UserCtrl.showUserList()">@Messages("cancel")</a>
                       <button type="submit" class="btn btn-primary">@Messages("change")</button>
                     </div>
                   </div>
