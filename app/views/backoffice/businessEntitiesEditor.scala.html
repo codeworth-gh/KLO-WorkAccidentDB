@@ -62,6 +62,16 @@
         @comps.bform.fieldHRow(frm, "phone")
         @comps.bform.fieldHRow(frm, "email", inputType="email")
         @comps.bform.fieldHRow(frm, "website", inputType="url")
+        <div class="row mb-3">
+          <div class="col-7" style="padding-right: 14.5em;">
+            <div class="form-check">
+              @defining( frm("isKnownContractor").value.contains("true")){ isPrPsn =>
+                <input type="checkbox" class="form-check-input" value="true" name="isKnownContractor" id="fldKnownContractor" @if(isPrPsn){checked="checked"}>
+              }
+              <label for="fldKnownContractor" class="form-check-label">@Messages("businessEntities.knownContractor")</label>
+            </div>
+          </div>
+        </div>
         @comps.bform.textareaHRow(frm, "memo")
         @comps.bform.submitRow(routes.BusinessEntityCtrl.backofficeIndex(None, None, None, None))
 

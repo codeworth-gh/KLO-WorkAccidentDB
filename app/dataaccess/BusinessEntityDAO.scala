@@ -99,7 +99,7 @@ class BusinessEntityDAO @Inject() (protected val dbConfigProvider:DatabaseConfig
     for {
       existing <- db.run( Entities.filter( _.name inSet cleanNames ).result )
       missingNames  = cleanNames.removedAll( existing.map(_.name) )
-      toAdd = missingNames.map( name => BusinessEntity(0, name, None, None, None, false, None) )
+      toAdd = missingNames.map( name => BusinessEntity(0, name, None, None, None, false, false, None) )
       added <- db.run( (Entities returning Entities)++=toAdd )
     } yield {
       (existing++added).map( a => a.name -> a ).toMap

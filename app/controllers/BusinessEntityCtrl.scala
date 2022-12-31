@@ -43,13 +43,14 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
     "email" -> optional(text),
     "website" -> optional(text),
     "isPrivatePerson" -> boolean,
+    "isKnownContractor" -> boolean,
     "memo" -> optional(text)
   )(BusinessEntity.apply)(BusinessEntity.unapply))
   
  
   def showNew() = deadbolt.SubjectPresent()() { implicit req =>
     Future( Ok(
-      views.html.backoffice.businessEntitiesEditor(bizEntityForm.fill(new BusinessEntity(0,"",None, None, None, false, None)))
+      views.html.backoffice.businessEntitiesEditor(bizEntityForm.fill(new BusinessEntity(0,"",None, None, None, false, false, None)))
     ))
   }
   

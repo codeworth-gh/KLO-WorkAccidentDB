@@ -11,6 +11,7 @@ case class BusinessEntity(
   email:   Option[String],
   website: Option[String],
   isPrivatePerson: Boolean,
+  isKnownContractor: Boolean,
   memo: Option[String]
 )
 

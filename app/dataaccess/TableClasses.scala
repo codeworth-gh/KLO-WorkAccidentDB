@@ -60,10 +60,11 @@ class BusinessEntityTable(tag:Tag) extends Table[BusinessEntity](tag, "business_
   def email = column[Option[String]]("email")
   def website = column[Option[String]]("website")
   def isPrivatePerson = column[Boolean]("is_private_person")
+  def isKnownContractor = column[Boolean]("is_known_contractor")
   def memo = column[Option[String]]("memo")
   
   def * = (
-    id, name, phone, email, website, isPrivatePerson, memo
+    id, name, phone, email, website, isPrivatePerson, isKnownContractor, memo
   ) <> (BusinessEntity.tupled, BusinessEntity.unapply)
   
   def nameIdx = index("business_entities_name", name)

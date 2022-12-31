@@ -120,6 +120,7 @@ businessEntities.help=גורמים עסקיים המעורבים בתאונות,
 businessEntities.addNew=גורם חדש
 businessEntities.noData=לא רשומים במערכת גורמים מעורבים
 businessEntities.isPrivatePerson=אדם פרטי
+businessEntities.knownContractor=קבלן מוכר
 businessEntities.saved=הגורם המעורב ״{0}״ נשמר
 businessEntities.name=שם
 businessEntities.noData=אין פרטים
