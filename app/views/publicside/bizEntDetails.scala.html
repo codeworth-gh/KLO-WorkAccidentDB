@@ -1,7 +1,7 @@
 @(bizEnt:BusinessEntity, accidents:Map[WorkAccidentSummary, Set[RelationToAccident]])(implicit request:Request[_], msgs:MessagesProvider)
 
 @templates.frontEndBase(Messages("businessEntities.title") + "-" + bizEnt.name, views.PublicSections.BizEntList) {
-  @comps.pageTitleRow(bizEnt.name)(Html(""))
+  @comps.pageTitleRow( bizEnt.name + (if(bizEnt.isKnownContractor){ " <span class='badge text-bg-warning'>" + Messages("businessEntities.knownContractor") + "</span>"} else "") )(Html(""))
 
   <div class="row mt-2">
     <div class="col">
@@ -10,7 +10,9 @@
   </div>
   <div class="row">
     <div class="col-2">@Messages("businessEntities.name")</div>
-    <div class="col-10">@bizEnt.name</div>
+    <div class="col-10">
+      @bizEnt.name
+    </div>
   </div>
   <div class="row">
     <div class="col-2">@Messages("businessEntities.website")</div>

@@ -18,6 +18,7 @@ case class BusinessEntity(
 case class BusinessEntityStats(
   id:   Long,
   name: String,
+  isKnownContractor: Boolean,
   accidentCount: Long,
   killedCount:   Long,
   injuredCount:  Long

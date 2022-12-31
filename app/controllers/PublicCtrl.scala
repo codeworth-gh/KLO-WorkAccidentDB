@@ -162,16 +162,17 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     }
   }
   
-  def bizEntIndex(pPage:Option[Int]=None, pSortBy:Option[String]=None, pAsc:Option[String]=None, searchStr:String="") = Action.async { implicit req =>
+  def bizEntIndex(pPage:Option[Int]=None, pSortBy:Option[String]=None, pAsc:Option[String]=None, searchStr:String="", isKnownContractor:String="") = Action.async { implicit req =>
     val sortBy = pSortBy.flatMap(StatsSortKey.named).getOrElse(BusinessEntityDAO.StatsSortKey.Accidents)
     val page = pPage.getOrElse(1)
     val asc = pAsc.getOrElse("f").trim=="t"
+    val effKnownContractor = (isKnownContractor.trim.toLowerCase == "t" )
     for {
-      rows <- businessEntities.listStats(searchStr, (page-1)*PAGE_SIZE, PAGE_SIZE, sortBy, asc)
-      statCount <- businessEntities.countStats(searchStr)
+      rows <- businessEntities.listStats(searchStr, effKnownContractor, (page-1)*PAGE_SIZE, PAGE_SIZE, sortBy, asc)
+      statCount <- businessEntities.countStats(searchStr, effKnownContractor)
     } yield {
       val pi = PaginationInfo(page, Math.ceil(statCount/PAGE_SIZE.toDouble).toInt)
-      Ok( views.html.publicside.bizEntList(rows, statCount, pi, sortBy, asc, searchStr) )
+      Ok( views.html.publicside.bizEntList(rows, statCount, pi, sortBy, asc, effKnownContractor, searchStr) )
     }
   }
   

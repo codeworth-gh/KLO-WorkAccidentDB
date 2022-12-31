@@ -1,6 +1,6 @@
 @import dataaccess.BusinessEntityDAO.StatsSortKey
 @import views.PaginationInfo
-@(rows:Seq[BusinessEntityStats], total:Int, pi:PaginationInfo, sortKey:StatsSortKey.Value, isAsc:Boolean, searchStr:String)(implicit request:Request[_], msgs:MessagesProvider)
+@(rows:Seq[BusinessEntityStats], total:Int, pi:PaginationInfo, sortKey:StatsSortKey.Value, isAsc:Boolean, isKnownContractor:Boolean, searchStr:String)(implicit request:Request[_], msgs:MessagesProvider)
 
 @th(sort:String, cur:StatsSortKey.Value, key:StatsSortKey.Value, isCurrentlyAsc:Boolean)=@{
   val asc = (cur==key) && !isCurrentlyAsc
@@ -10,57 +10,83 @@
 @templates.frontEndBase(Messages("bizEntList.title"), views.PublicSections.BizEntList) {
   @comps.pageTitleRow(Messages("bizEntList.title")){
     <div class="ms-2">
-      @Messages("bizEntList.foundCount", total)
-      <form action="@routes.PublicCtrl.bizEntIndex(None, None, None)" class="d-inline-block" method="GET">
+      <form action="@routes.PublicCtrl.bizEntIndex(None, None, None)" class="row row-cols-lg-auto g-3 align-items-center" method="GET">
         <input type="hidden" name="pSortBy" value="@sortKey.toString">
-        <div class="input-group">
-          <input type="text" placeholder="@Messages("name")" class="form-control" name="searchStr" value="@searchStr">
+        <div class="col-12">
+          @Messages("bizEntList.foundCount", total)
+        </div>
+        <div class="col-12">
+          <div class="input-group">
+            <input type="text" placeholder="@Messages("name")" class="form-control" name="searchStr" value="@searchStr">
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="isKnownContractor" value="t" id="isKnownContractor" @if(isKnownContractor){checked}>
+            <label class="form-check-label" for="isKnownContractor">
+            @Messages("businessEntities.knownContractor")
+            </label>
+          </div>
+        </div>
+        <div class="col-12">
           <button class="btn btn-outline-klo-blue">@Messages("search")</button>
         </div>
       </form>
     </div>
   }
   @comps.helpRow(Messages("bizEntList.help"))
-  <div class="row mt-3">
-    <div class="col">
-      <div class="table-responsive">
-        <table class="table table-sm">
-          <thead>
-            <tr>
-              @comps.sortingTH(Messages("bizEntList.th.name"),
-                                b=>th("Name", sortKey, StatsSortKey.Name, isAsc),
-                                sortKey, StatsSortKey.Name, isAsc)
-              @comps.sortingTH(Messages("bizEntList.th.accidents"),
-                                b=>th("AccidentCount", sortKey, StatsSortKey.Accidents, isAsc),
-                                sortKey, StatsSortKey.Accidents, isAsc)
-              @comps.sortingTH(Messages("bizEntList.th.injuredCount"),
-                                b=>th("Injured", sortKey, StatsSortKey.Injured, isAsc),
-                                sortKey, StatsSortKey.Injured, isAsc)
-              @comps.sortingTH(Messages("bizEntList.th.killedCount"),
-                                b=>th("Killed", sortKey, StatsSortKey.Killed, isAsc),
-                                sortKey, StatsSortKey.Killed, isAsc)
-            </tr>
-          </thead>
-          <tbody>
+  @if( rows.isEmpty ) {
+    <div class="row mt-3">
+      <div class="col text-center noData">
+        @Messages("businessEntities.noneFound")
+      </div>
+    </div>
+  } else {
+    <div class="row mt-3">
+      <div class="col">
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                @comps.sortingTH(Messages("bizEntList.th.name"),
+                  b=>th("Name", sortKey, StatsSortKey.Name, isAsc),
+                  sortKey, StatsSortKey.Name, isAsc)
+                @comps.sortingTH(Messages("bizEntList.th.accidents"),
+                  b=>th("AccidentCount", sortKey, StatsSortKey.Accidents, isAsc),
+                  sortKey, StatsSortKey.Accidents, isAsc)
+                @comps.sortingTH(Messages("bizEntList.th.injuredCount"),
+                  b=>th("Injured", sortKey, StatsSortKey.Injured, isAsc),
+                  sortKey, StatsSortKey.Injured, isAsc)
+                @comps.sortingTH(Messages("bizEntList.th.killedCount"),
+                  b=>th("Killed", sortKey, StatsSortKey.Killed, isAsc),
+                  sortKey, StatsSortKey.Killed, isAsc)
+              </tr>
+            </thead>
+            <tbody>
             @for( bes <- rows ){
               <tr>
                 <td>
-                  <a href="@routes.PublicCtrl.bizEntDetails(bes.id)">@bes.name</a>
+                  <a href="@routes.PublicCtrl.bizEntDetails(bes.id)">
+                    @bes.name
+                    @if( bes.isKnownContractor ){ <span class="badge text-bg-warning">@Messages("businessEntities.knownContractor")</span>}
+                  </a>
                 </td>
                 <td>@String.format("%,d",bes.accidentCount)</td>
                 <td>@String.format("%,d",bes.injuredCount)</td>
                 <td>@String.format("%,d",bes.killedCount)</td>
               </tr>
             }
-          </tbody>
-        </table>
-      </div>
-      <div class="row my-2">
-        <div class="col">
-        @comps.pager(pi)(i=>Html(routes.PublicCtrl.bizEntIndex(Some(i), Some(sortKey.toString),Some(if(isAsc)"t" else "f"), searchStr).url))
+            </tbody>
+          </table>
+        </div>
+        <div class="row my-2">
+          <div class="col">
+          @comps.pager(pi)(i=>Html(routes.PublicCtrl.bizEntIndex(Some(i), Some(sortKey.toString),Some(if(isAsc)"t" else "f"), searchStr).url))
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  }
+
 
 }

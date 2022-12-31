@@ -106,14 +106,17 @@ class BusinessEntityDAO @Inject() (protected val dbConfigProvider:DatabaseConfig
     }
   }
   
-  def listStats(searchStr:String, start:Int, pageSize:Int, sortBy:StatsSortKey.Value=StatsSortKey.Accidents, isAsc:Boolean=false):Future[Seq[BusinessEntityStats]] = {
+  def listStats(searchStr:String, knownOnly:Boolean, start:Int, pageSize:Int, sortBy:StatsSortKey.Value=StatsSortKey.Accidents, isAsc:Boolean=false):Future[Seq[BusinessEntityStats]] = {
     val base = if ( searchStr.isBlank ) Stats else Stats.filter(r=>r.name.like("%"+searchStr+"%"))
-    db.run(base.sortBy(makeStatsSorter(sortBy, isAsc)).drop(start).take(pageSize).result)
+    val p2 = if ( knownOnly ) base.filter( _.isKnownContractor === true ) else base
+    db.run(p2.sortBy(makeStatsSorter(sortBy, isAsc)).drop(start).take(pageSize).result)
   }
   
-  def countStats(searchStr:String):Future[Int] = db.run(
-    (if (searchStr.isBlank) Stats else Stats.filter(r=>r.name.like("%"+searchStr+"%"))).length.result
-  )
+  def countStats(searchStr:String, knownOnly:Boolean):Future[Int] = {
+    val base = if (searchStr.isBlank) Stats else Stats.filter(r => r.name.like("%" + searchStr + "%"))
+    val p2 = if (knownOnly) base.filter(_.isKnownContractor === true) else base
+    db.run(p2.length.result)
+  }
   
   private def makeStatsSorter( sk:StatsSortKey.Value, asc:Boolean ) = sk match {
     case StatsSortKey.Name      => (r:BusinessEntityStatsTable) => if (asc) r.name.asc else r.name.desc

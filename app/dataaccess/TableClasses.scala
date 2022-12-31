@@ -73,11 +73,12 @@ class BusinessEntityTable(tag:Tag) extends Table[BusinessEntity](tag, "business_
 class BusinessEntityStatsTable(tag:Tag) extends Table[BusinessEntityStats](tag, "bizent_accident_stats") {
   def id = column[Long]("id")
   def name = column[String]("name")
+  def isKnownContractor = column[Boolean]("is_known_contractor")
   def accCnt = column[Long]("accident_count")
   def kldCnt = column[Long]("killed_count")
   def injCnt = column[Long]("injured_count")
   
-  def * = (id, name, accCnt, kldCnt, injCnt) <> (BusinessEntityStats.tupled, BusinessEntityStats.unapply)
+  def * = (id, name, isKnownContractor, accCnt, kldCnt, injCnt) <> (BusinessEntityStats.tupled, BusinessEntityStats.unapply)
 }
 
 class BusinessEntitySummaryTable(tag:Tag) extends Table[BusinessEntitySummary](tag, "business_entities") {
