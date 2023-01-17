@@ -1,7 +1,7 @@
 package dataaccess
 
 import java.sql.Timestamp
-import models.{BusinessEntity, BusinessEntityMapping, BusinessEntityStats, BusinessEntitySummary, Citizenship, CountByCategoryAndYear, ExecutorCountPerYearRow, ExecutorCountRow, Industry, IndustryMapping, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, SafetyWarrant, User, WorkAccidentSummary}
+import models.{BusinessEntity, BusinessEntityMapping, BusinessEntityStats, BusinessEntitySummary, Citizenship, CountByCategoryAndYear, ExecutorCountPerYearRow, ExecutorCountRow, Industry, IndustryMapping, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, SafetyWarrant, Sanction, User, WorkAccidentSummary}
 import slick.lifted.Tag
 import slick.jdbc.PostgresProfile.api._
 
@@ -89,6 +89,19 @@ class BusinessEntitySummaryTable(tag:Tag) extends Table[BusinessEntitySummary](t
   
 }
 
+class SanctionTable(t:Tag) extends Table[Sanction](t, "sanctions"){
+  def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+  def businessEntityId = column[Long]("business_entity_id")
+  def authority = column[String]("authority")
+  def sanctionType = column[String]("sanction_type")
+  def reason = column[String]("reason")
+  def applicationDate = column[LocalDateTime]("application_date")
+  def remarks = column[String]("remarks")
+  
+  def * = (id, businessEntityId, authority, sanctionType, reason, applicationDate, remarks) <> (Sanction.tupled, Sanction.unapply)
+  
+  def fkBizEnt = foreignKey("fk_wa_ent", businessEntityId, TableRefs.businessEntities)(_.id)
+}
 
 class IdNameTable[T](tag: Tag, tableName: String, apply: (Int, String) => T, unapply: T => Option[(Int, String)])
                     (implicit classTag: ClassTag[T]) extends Table[T](tag, tableName) {

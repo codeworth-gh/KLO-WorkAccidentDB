@@ -1,10 +1,16 @@
 @import be.objectify.deadbolt.scala.AuthenticatedRequest
-@(frm:Form[BusinessEntity])(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
+@(frm:Form[BusinessEntity], sanctions:Map[String,Seq[String]])(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
 
 @extraHead={
+  <script src="@routes.Assets.versioned("js/businessEntitiesEditor.js")"></script>
   <script>
     const deleteMsg="@Messages("businessEntitiesEditor.deleteMsg")";
     const subMsg="@Messages("businessEntitiesEditor.deleteMsgSub")";
+    const SANCTIONS = {
+      @for( auth <- sanctions.keys ){
+        "@auth": [@Html(sanctions(auth).mkString("\"", "\",\"","\""))],
+      }
+    }
     function kickoffDeleteEntity(){
         Informationals.makeYesNo(deleteMsg, subMsg,
                 (res, info)=>{info.dismiss(); if (res){ doDelete();}},
@@ -29,53 +35,97 @@
   </script>
 }
 
-@templates.backEndBase(Messages("businessEntitiesEditor.title"), views.BackOfficeSections.BusinessEntities, extraHead) {
+@bottom={
+  <script>
+    UiUtils.documentReady( setup );
+  </script>
+}
+
+@templates.backEndBase(Messages("businessEntitiesEditor.title"), views.BackOfficeSections.BusinessEntities, extraHead, bottom) {
   @comps.pageTitleRow(Messages("businessEntitiesEditor.title")){
     @if( frm("id").value.getOrElse(0)!="0" ){
       <button type="button" onclick="kickoffDeleteEntity()" class="btn btn-danger">@comps.svg.trash() @Messages("delete")</button>
       <hr class="vr">
     }
-    <button type="button" onclick="document.getElementById('bizEntityForm').submit()" class="btn btn-primary">@comps.svg.check() @Messages("save")</button>
     <a class="btn btn-outline-danger" href="@routes.BusinessEntityCtrl.backofficeIndex(None, None, None, None)">@comps.svg.x() @Messages("cancel")</a>
   }
 
+  @if( frm("id").value.getOrElse(0)!="0" ) {
+    <div class="row my-2">
+      <div class="col">
+        <nav class="nav nav-tabs justify-content-center">
+          <a class="nav-link active" aria-current="page" data-bs-target="#detailsForm" data-bs-toggle="tab">@Messages("businessEntities.details")</a>
+          <a class="nav-link" aria-current="page"  data-bs-target="#sanctions" data-bs-toggle="tab">@Messages("businessEntities.sanctions")</a>
+        </nav>
+      </div>
+    </div>
+  }
   <div class="row my-2">
     <div class="col">
-      <form action="@routes.BusinessEntityCtrl.doSaveEntity()" method="post" id="bizEntityForm">
-        @helper.CSRF.formField
-        @if( frm("id").value.getOrElse(0)!="0" ){
-          @comps.bform.fieldHRow(frm, "id", isReadOnly = true )
-        }else{
-          <input type="hidden" name="id" value="0">
-        }
-        @comps.bform.fieldHRow(frm,"name", isRequired=true)
-        <div class="row mb-3">
-          <div class="col-7" style="padding-right: 14.5em;">
-            <div class="form-check">
-              @defining( frm("isPrivatePerson").value.contains("true")){ isPrPsn =>
-                <input type="checkbox" class="form-check-input" value="true" name="isPrivatePerson" id="fldPrivatePerson" @if(isPrPsn){checked="checked"}>
-              }
-              <label for="fldPrivatePerson" class="form-check-label">@Messages("businessEntities.isPrivatePerson")</label>
+      <div class="tab-content">
+        <div class="tab-pane active" id="detailsForm">
+          <form action="@routes.BusinessEntityCtrl.doSaveEntity()" method="post" id="bizEntityForm">
+            @helper.CSRF.formField
+            @if( frm("id").value.getOrElse(0)!="0" ){
+              @comps.bform.fieldHRow(frm, "id", isReadOnly = true )
+            }else{
+              <input type="hidden" name="id" value="0">
+            }
+            @comps.bform.fieldHRow(frm,"name", isRequired=true)
+            <div class="row mb-3">
+              <div class="col-7" style="padding-right: 14.5em;">
+                <div class="form-check">
+                  @defining( frm("isPrivatePerson").value.contains("true")){ isPrPsn =>
+                    <input type="checkbox" class="form-check-input" value="true" name="isPrivatePerson" id="fldPrivatePerson" @if(isPrPsn){checked="checked"}>
+                  }
+                  <label for="fldPrivatePerson" class="form-check-label">@Messages("businessEntities.isPrivatePerson")</label>
+                </div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-7" style="padding-right: 14.5em;">
+                <div class="form-check">
+                  @defining( frm("isKnownContractor").value.contains("true")){ isPrPsn =>
+                    <input type="checkbox" class="form-check-input" value="true" name="isKnownContractor" id="fldKnownContractor" @if(isPrPsn){checked="checked"}>
+                  }
+                  <label for="fldKnownContractor" class="form-check-label">@Messages("businessEntities.knownContractor")</label>
+                </div>
+              </div>
+            </div>
+            @comps.bform.fieldHRow(frm, "phone")
+            @comps.bform.fieldHRow(frm, "email", inputType="email")
+            @comps.bform.fieldHRow(frm, "website", inputType="url")
+            @comps.bform.textareaHRow(frm, "memo")
+            @comps.bform.submitRow(routes.BusinessEntityCtrl.backofficeIndex(None, None, None, None))
+          </form>
+        </div>
+        <div class="tab-pane" id="sanctions">
+          <div class="row mt-2">
+            <div class="col-5">
+              <select class="form-select" name="authority" id="sltAuthority" onchange="updateSanction(this.value)">
+              </select>
+            </div>
+            <div class="col-4">
+              <select class="form-select" name="sanction" id="sltSanction">
+              </select>
+            </div>
+            <div class="col-3">
+              <input type="date" class="form-control">
+            </div>
+          </div>
+          <div class="row mt-1">
+            <div class="col-5">
+              <input class="form-control" type="text" placeholder="reason">
+            </div>
+            <div class="col-5">
+              <input class="form-control" type="text" placeholder="remarks">
+            </div>
+            <div class="col-2 text-end">
+              <button class="btn btn-primary">@comps.svg.add() @Messages("businessEntities.addSanction")</button>
             </div>
           </div>
         </div>
-        @comps.bform.fieldHRow(frm, "phone")
-        @comps.bform.fieldHRow(frm, "email", inputType="email")
-        @comps.bform.fieldHRow(frm, "website", inputType="url")
-        <div class="row mb-3">
-          <div class="col-7" style="padding-right: 14.5em;">
-            <div class="form-check">
-              @defining( frm("isKnownContractor").value.contains("true")){ isPrPsn =>
-                <input type="checkbox" class="form-check-input" value="true" name="isKnownContractor" id="fldKnownContractor" @if(isPrPsn){checked="checked"}>
-              }
-              <label for="fldKnownContractor" class="form-check-label">@Messages("businessEntities.knownContractor")</label>
-            </div>
-          </div>
-        </div>
-        @comps.bform.textareaHRow(frm, "memo")
-        @comps.bform.submitRow(routes.BusinessEntityCtrl.backofficeIndex(None, None, None, None))
-
-      </form>
+      </div>
     </div>
-  </div>
+ </div>
 }

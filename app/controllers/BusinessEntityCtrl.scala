@@ -3,7 +3,7 @@ package controllers
 import be.objectify.deadbolt.scala.DeadboltActions
 import dataaccess.BusinessEntityDAO
 import models.BusinessEntity
-import play.api.Logger
+import play.api.{Configuration, Logger}
 import play.api.data._
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
@@ -19,10 +19,13 @@ object BusinessEntityCtrl {
 }
 
 class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponents,
-                                   businessEntities:BusinessEntityDAO)
+                                   businessEntities:BusinessEntityDAO,
+                                   conf:Configuration
+                                  )
           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport with JsonApiHelper {
   
   private val log = Logger(classOf[BusinessEntityCtrl])
+  private val sanctionOptions:Map[String, Seq[String]] = loadSanctions(conf.get[String]("klo.sanctions"))
   
   def backofficeIndex(pName:Option[String], pSortBy:Option[String]=None, pAsc:Option[String]=None, pStart:Option[Int]=None) = deadbolt.SubjectPresent()() { implicit req =>
     val start = pStart.getOrElse(1)
@@ -50,7 +53,7 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
  
   def showNew() = deadbolt.SubjectPresent()() { implicit req =>
     Future( Ok(
-      views.html.backoffice.businessEntitiesEditor(bizEntityForm.fill(new BusinessEntity(0,"",None, None, None, false, false, None)))
+      views.html.backoffice.businessEntitiesEditor(bizEntityForm.fill(new BusinessEntity(0,"",None, None, None, false, false, None)), sanctionOptions)
     ))
   }
   
@@ -60,7 +63,7 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
     } yield {
       nttOpt match {
         case None => NotFound("Business Entity not found.")
-        case Some(ntt) => Ok(views.html.backoffice.businessEntitiesEditor(bizEntityForm.fill(ntt)))
+        case Some(ntt) => Ok(views.html.backoffice.businessEntitiesEditor(bizEntityForm.fill(ntt), sanctionOptions))
       }
     }
   }
@@ -69,7 +72,7 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
     bizEntityForm.bindFromRequest().fold(
       fwe => {
         fwe.errors.foreach( fe => log.info(fe.key + ": " + fe.message) )
-        Future(BadRequest(views.html.backoffice.businessEntitiesEditor(fwe)))
+        Future(BadRequest(views.html.backoffice.businessEntitiesEditor(fwe, sanctionOptions)))
       },
       bizEnt => {
         val msgs = request2Messages(req)
@@ -87,6 +90,27 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
         internalServerErrorJson(exception.getMessage)
       case Success(value) => okJson("deleted");
     })
+  }
+  
+  private def loadSanctions(raw:String):Map[String,Seq[String]] = {
+    val lines = raw.split("\n").map(_.trim).filter(_.nonEmpty)
+    val agg = collection.mutable.Map[String, Seq[String]]()
+    var curAuth:String=null
+    var curReasons:collection.mutable.Buffer[String] = collection.mutable.Buffer[String]()
+    
+    for ( line <- lines ) {
+      if ( line.startsWith("+") ) {
+        if ( curAuth != null ) {
+          agg(curAuth) = curReasons.toSeq;
+          curReasons = collection.mutable.Buffer[String]();
+        }
+        curAuth = line.substring(2).trim
+      } else {
+        curReasons += line.trim
+      }
+    }
+    agg(curAuth) = curReasons.toSeq;
+    agg.toMap
   }
   
 }

@@ -10,7 +10,7 @@ version := "1.2-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := "2.13.8"
+scalaVersion := "2.13.7"
 
 // Targeting JDK11, which is the current LTS
 javacOptions ++= Seq("-source", "11", "-target", "11")
