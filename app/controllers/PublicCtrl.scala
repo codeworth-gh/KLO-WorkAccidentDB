@@ -8,7 +8,7 @@ import com.github.jferard.fastods.attribute.SimpleLength
 import com.github.jferard.fastods.datastyle.{DataStyle, FloatStyleBuilder}
 import com.github.jferard.fastods.style.TableRowStyle
 import dataaccess.BusinessEntityDAO.StatsSortKey
-import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, SafetyWarrantDAO, SettingDAO, SettingKey, TableRefs, WorkAccidentDAO}
+import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, SafetyWarrantDAO, SanctionsDAO, SettingDAO, SettingKey, TableRefs, WorkAccidentDAO}
 import models.{Column, InjuredWorker, InjuredWorkerRow, Severity, WorkAccidentSummary}
 import play.api.{Configuration, Logger}
 import play.api.cache.Cached
@@ -43,7 +43,7 @@ object PublicCtrl {
 class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, regions:RegionsDAO,
                            relations:RelationToAccidentDAO, industries:IndustriesDAO, deadbolt:DeadboltActions,
                            businessEntities:BusinessEntityDAO, causes:InjuryCausesDAO, citizenships: CitizenshipsDAO,
-                           safetyWarrants:SafetyWarrantDAO,
+                           safetyWarrants:SafetyWarrantDAO, sanctionsDAO: SanctionsDAO,
                            settings:SettingDAO, cached:Cached, conf:Configuration)
                           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport {
   
@@ -180,13 +180,14 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     for {
       bizEntOpt <- businessEntities.get(id)
       accidents <- accidents.accidentsForBizEnt(id)
+      sanctions <- sanctionsDAO.sanctionsForEntity(id)
     } yield {
       bizEntOpt match {
         case None => {
           val msgs = request2Messages(req)
           NotFound(views.html.errorPage(404, msgs("error.businessNotFound"), Some(msgs("error.businessNotFound.explanation")), None, req, msgs) )
         }
-        case Some(bizEnt) => Ok( views.html.publicside.bizEntDetails(bizEnt, accidents))
+        case Some(bizEnt) => Ok( views.html.publicside.bizEntDetails(bizEnt, accidents, sanctions))
       }
     }
   }

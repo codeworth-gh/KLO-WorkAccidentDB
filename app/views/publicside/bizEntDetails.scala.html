@@ -1,4 +1,5 @@
-@(bizEnt:BusinessEntity, accidents:Map[WorkAccidentSummary, Set[RelationToAccident]])(implicit request:Request[_], msgs:MessagesProvider)
+@(bizEnt:BusinessEntity, accidents:Map[WorkAccidentSummary, Set[RelationToAccident]],
+        sanctions:Seq[Sanction])(implicit request:Request[_], msgs:MessagesProvider)
 
 @templates.frontEndBase(Messages("businessEntities.title") + "-" + bizEnt.name, views.PublicSections.BizEntList) {
   @comps.pageTitleRow( bizEnt.name + (if(bizEnt.isKnownContractor){ " <span class='badge text-bg-warning'>" + Messages("businessEntities.knownContractor") + "</span>"} else "") )(Html(""))
@@ -28,7 +29,7 @@
       <div class="col-10">@bizEnt.memo.get</div>
     </div>
   }
-  <div class="row mt-3">
+  <div class="row mt-5">
     <div class="col">
       <h2>@Messages("businessEntities.relatedAccidents")</h2>
       <p>@defining( accidents.keys.toSeq.map(a => (a.killedCount, a.injuredCount) ).fold((0,0))((a,b)=>(a._1+b._1, a._2+b._2)) ){ cnts =>
@@ -53,5 +54,34 @@
         }
       </ul>
     </div>
+    @if( sanctions.nonEmpty ){
+      <div class="row mt-5">
+        <div class="col">
+          <h2>@Messages("businessEntities.registeredSanctions")</h2>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>@Messages("businessEntities.sanctionAuthority")</th>
+                <th>@Messages("date")</th>
+                <th>@Messages("businessEntities.reason")</th>
+                <th>@Messages("businessEntities.sanctionDetails")</th>
+                <th>@Messages("businessEntities.remarks")</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for( snc <- sanctions ) {
+                <tr>
+                  <td>@snc.authority</td>
+                  <td>@snc.applicationDate</td>
+                  <td>@snc.reason</td>
+                  <td>@snc.sanctionType</td>
+                  <td>@snc.remarks</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
   </div>
 }
