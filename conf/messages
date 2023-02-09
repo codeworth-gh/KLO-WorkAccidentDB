@@ -124,6 +124,7 @@ businessEntities.sanctions=סנקציות
 businessEntities.addSanction=הוסף סנקציה
 businessEntities.isPrivatePerson=אדם פרטי
 businessEntities.knownContractor=קבלן מוכר
+businessEntities.knownContractorShort=[מוכר]
 businessEntities.saved=הגורם המעורב ״{0}״ נשמר
 businessEntities.name=שם
 businessEntities.noData=אין פרטים

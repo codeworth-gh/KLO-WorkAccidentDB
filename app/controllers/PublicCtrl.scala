@@ -12,7 +12,7 @@ import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCaus
 import models.{Column, InjuredWorker, InjuredWorkerRow, Severity, WorkAccidentSummary}
 import play.api.{Configuration, Logger}
 import play.api.cache.Cached
-import play.api.i18n.I18nSupport
+import play.api.i18n.{I18nSupport, Lang, MessagesApi}
 import play.api.mvc.{AbstractController, ControllerComponents}
 import views.{Helpers, PaginationInfo}
 
@@ -51,6 +51,7 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
   import Column._
   
   private val logger = Logger(classOf[PublicCtrl])
+  private val knownBizEntShort = messagesApi("businessEntities.knownContractorShort")(Lang("en"))
   
   val accidentsDatasetCols:Seq[Column[WorkAccidentSummary]] = Seq(
     Column("id", (v:WorkAccidentSummary,w:TableCellWalker) => printInt(v.id, w)),
@@ -62,9 +63,12 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     Column("region_id", (v,w)=> printIntOption( v.regionId, w)),
     Column("region_name", (v,w)=> w.setStringValue(v.regionId.flatMap( r => regions(r).map(_.name)).getOrElse(""))),
     Column("location", (v,w)=>w.setStringValue(v.location) ),
-    Column("related_entities", (v,w)=>w.setStringValue(
-      v.relateds.map( r=>s"${r._2.id} ${r._2.name} (${relations(r._1.id).map(_.name).getOrElse("")})")
-        .mkString(", "))
+    Column("related_entities", (v,w)=>{
+      val knownBizEts = v.relateds.map( k => k._2.id->(if(k._2.knownContractor){knownBizEntShort}else{""}) ).toMap
+      w.setStringValue(
+        v.relateds.map( r=>s"${r._2.id} ${r._2.name} ${knownBizEts(r._2.id)} (${relations(r._1.id).map(_.name).getOrElse("")})")
+          .mkString(", "))
+    }
     ),
     Column("details", (v,w)=>w.setStringValue(v.details)),
     Column("investigation", (v,w)=>w.setStringValue(v.investigation)),
@@ -75,6 +79,7 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
   val injuredDatasetCols:Seq[Column[InjuredWorkerRow]] = Seq(
     Column[InjuredWorkerRow]("id", (v,w)=>printInt(v.worker.id, w) ),
     Column[InjuredWorkerRow]("accident_id", (v,w)=>printInt(v.accidentId, w)),
+    Column[InjuredWorkerRow]("accident_region", (v,w)=>printStrOption(v.regionId.flatMap( regions(_) ).map(_.name), w)),
     Column[InjuredWorkerRow]("date", (v,w) => printDate(v.accidentDate, w)),
     Column[InjuredWorkerRow]("name", (v,w) => w.setStringValue( if (v.worker.injurySeverity.contains(Severity.fatal)) v.worker.name else "") ),
     Column[InjuredWorkerRow]("age", (v,w)  => printIntOption(v.worker.age, w)),
