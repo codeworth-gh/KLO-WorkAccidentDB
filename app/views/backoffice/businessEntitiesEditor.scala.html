@@ -2,10 +2,14 @@
 @(frm:Form[BusinessEntity], sanctions:Map[String,Seq[String]])(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
 
 @extraHead={
+  @Helpers.registerWebComponent("table-comp")
   <script src="@routes.Assets.versioned("js/businessEntitiesEditor.js")"></script>
   <script>
     const deleteMsg="@Messages("businessEntitiesEditor.deleteMsg")";
     const subMsg="@Messages("businessEntitiesEditor.deleteMsgSub")";
+    const TITLES = ["@Messages("businessEntities.sanctionAuthority")", "@Messages("date")", "@Messages("businessEntities.reason")",
+      "@Messages("businessEntities.sanctionDetails")", "@Messages("businessEntities.remarks")", "@Messages("actions")"];
+    const ENTITY_ID=@frm("id").value.getOrElse(-1);
     const SANCTIONS = {
       @for( auth <- sanctions.keys ){
         "@auth": [@Html(sanctions(auth).mkString("\"", "\",\"","\""))],
@@ -101,28 +105,38 @@
         </div>
         <div class="tab-pane" id="sanctions">
           <div class="row mt-2">
-            <div class="col-5">
-              <select class="form-select" name="authority" id="sltAuthority" onchange="updateSanction(this.value)">
+            <div class="col-6">
+              <label for="sltAuthority" class="form-label">@Messages("businessEntities.sanctionAuthority")</label>
+              <select class="form-select mb-1" name="authority" id="sltAuthority" onchange="updateSanctionUi(this.value)" required>
               </select>
+              <label for="fldDate" class="form-label">@Messages("businessEntities.sanctionDate")</label>
+              <input type="date" class="form-control mb-1" id="fldDate" autocomplete="off" required>
+              <label for="fldReason" class="form-label">@Messages("businessEntities.reason")</label>
+              <input class="form-control mb-1" type="text" id="fldReason" placeholder="@Messages("businessEntities.reason")" autocomplete="off">
             </div>
             <div class="col-4">
-              <select class="form-select" name="sanction" id="sltSanction">
-              </select>
+              <label for="" class="form-label">@Messages("businessEntities.sanctionDetails")</label>
+              <ul id="ulSanctionTypes" class="list-unstyled">
+
+              </ul>
             </div>
-            <div class="col-3">
-              <input type="date" class="form-control">
+            <div class="col-2 d-flex flex-column flex-">
+              <button id="btnSave" class="btn my-1 btn-primary" onclick="addSanction()">@comps.svg.add() @Messages("businessEntities.addSanction")</button>
+              <button id="btnUpdate" class="btn my-1 btn-primary d-none" onclick="updateSanction()">@comps.svg.check() @Messages("businessEntities.updateSanction")</button>
+              <button id="btnDelete" class="btn my-1 btn-danger d-none" onclick="deleteSanction()">@comps.svg.trash() @Messages("businessEntities.deleteSanction")</button>
+              <hr>
+              <button id="btnClear" class="btn my-1  btn-secondary" onclick="clearCurrentSanction()">@comps.svg.x() @Messages("businessEntities.clear")</button>
             </div>
           </div>
-          <div class="row mt-1">
-            <div class="col-5">
-              <input class="form-control" type="text" placeholder="reason">
+          <div class="row">
+            <div class="col-10">
+              <label for="fldDate" class="form-label mt-2">@Messages("businessEntities.remarks")</label>
+              <input class="form-control" type="text" id="fldRemarks" placeholder="@Messages("businessEntities.remarks")" autocomplete="off">
             </div>
-            <div class="col-5">
-              <input class="form-control" type="text" placeholder="remarks">
-            </div>
-            <div class="col-2 text-end">
-              <button class="btn btn-primary">@comps.svg.add() @Messages("businessEntities.addSanction")</button>
-            </div>
+          </div>
+          <div class="row mt-2">
+            <h2>@Messages("businessEntities.registeredSanctions")</h2>
+            <table-comp id="tblRegisteredSanctions" cssClasses="table,table-striped,table-sm"></table-comp>
           </div>
         </div>
       </div>

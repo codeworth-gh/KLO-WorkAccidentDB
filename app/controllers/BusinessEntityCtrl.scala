@@ -1,14 +1,15 @@
 package controllers
 
 import be.objectify.deadbolt.scala.DeadboltActions
-import dataaccess.BusinessEntityDAO
-import models.BusinessEntity
+import dataaccess.{BusinessEntityDAO, SanctionsDAO}
+import models.{BusinessEntity, Sanction}
 import play.api.{Configuration, Logger}
 import play.api.data._
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
+import play.api.libs.json.{JsError, JsSuccess, Json}
 import play.api.mvc.{AbstractController, ControllerComponents}
-import views.PaginationInfo
+import views.{JsonConverters, PaginationInfo}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -19,7 +20,7 @@ object BusinessEntityCtrl {
 }
 
 class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponents,
-                                   businessEntities:BusinessEntityDAO,
+                                   businessEntities:BusinessEntityDAO, sanctions:SanctionsDAO,
                                    conf:Configuration
                                   )
           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport with JsonApiHelper {
@@ -91,6 +92,36 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
       case Success(value) => okJson("deleted");
     })
   }
+  
+  def apiStoreSanction( entId:Long ) = deadbolt.SubjectPresent()(cc.parsers.tolerantJson){ req =>
+    import views.JsonConverters.sanctionFmt
+    
+    req.body.validate[Sanction] match {
+      case JsError(errors) =>
+        log.warn(s"Error parsing sanction: " + (errors.mkString("\n")))
+        Future(badRequestJson("Parse Error"))
+      case JsSuccess(sanction, _) =>
+        sanctions.store(sanction).map( r => Ok(Json.toJson(r)))
+    }
+  }
+  
+  def apiDeleteSanction( entId:String, sanctionId:Long ) = deadbolt.SubjectPresent()() { req =>
+    for {
+      _ <- sanctions.delete(sanctionId)
+    } yield {
+      okJson("deleted")
+    }
+  }
+  
+  def apiListSanctionsFor( entId:Long ) = Action.async{ implicit req =>
+    import JsonConverters.sanctionFmt
+    for {
+      sancs <- sanctions.sanctionsForEntity(entId)
+    } yield {
+      Ok( Json.toJson(sancs) )
+    }
+  }
+  
   
   private def loadSanctions(raw:String):Map[String,Seq[String]] = {
     val lines = raw.split("\n").map(_.trim).filter(_.nonEmpty)

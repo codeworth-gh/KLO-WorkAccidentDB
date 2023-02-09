@@ -192,6 +192,16 @@ const UiUtils = (function () {
         }
     }
 
+    /**
+     * Clear all child elements in the passed emt
+     * @param emt the element to be cleaned.
+     */
+    function clearEmt( emt ) {
+        while ( emt.hasChildNodes() ){
+            emt.childNodes.item(0).remove();
+        }
+    }
+
     return {
         makeElement: makeElement,
         makeA: makeA,
@@ -216,7 +226,8 @@ const UiUtils = (function () {
         highlight:highlight,
         onEnter:onEnter,
         documentReady:documentReady,
-        toggleViz:toggleViz
+        toggleViz:toggleViz,
+        clearEmt:clearEmt
 
     };
 }());

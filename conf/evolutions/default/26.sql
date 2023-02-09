@@ -7,7 +7,7 @@ CREATE TABLE sanctions (
        authority varchar(1024),
        sanction_type varchar(1024),
        reason text,
-       application_date timestamp,
+       application_date date,
        remarks text,
 
        constraint fk_wa_ent foreign key(business_entity_id) references business_entities(id) on delete cascade

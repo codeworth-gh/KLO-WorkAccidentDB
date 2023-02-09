@@ -95,5 +95,18 @@ object Helpers {
     } else Html("")
   }
   
+  def registerWebComponent(jsFilename: String, additions: Seq[String] = Seq()): Html = {
+    val url = routes.Assets.versioned(s"js/comps/$jsFilename.js").url
+    val className = jsFilename.split("-").map(_.capitalize).mkString
+    val additionalClasses = additions.map(t => (t, t.split("-").map(_.capitalize).mkString))
+      .map(tc => s" window.customElements.define('${tc._1}',${tc._2});").mkString
+    Html(
+      s"""
+      <script src="$url"></script>
+      <script>window.customElements.define("$jsFilename",$className);$additionalClasses</script>
+    """
+    )
+  }
+  
   
 }

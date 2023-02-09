@@ -18,10 +18,10 @@ class SanctionsDAO @Inject() (protected val dbConfigProvider:DatabaseConfigProvi
   private val sanctions = TableQuery[SanctionTable]
   
   def store(s:Sanction):Future[Sanction] = {
-    if ( s.id == 0 ) {
+    if ( s.id <= 0 ) {
       db.run( sanctions.returning( sanctions.map(_.id) ).into( (s,newId)=>s.copy(id=newId) ) += s )
     } else {
-      db.run( sanctions.update(s) ).map( _ => s )
+      db.run( sanctions.filter(_.id === s.id).update(s) ).map( _ => s )
     }
   }
   
@@ -31,7 +31,7 @@ class SanctionsDAO @Inject() (protected val dbConfigProvider:DatabaseConfigProvi
   
   def sanctionsForEntity( entityId:Long ):Future[Seq[Sanction]] = db.run(
     sanctions.filter( _.businessEntityId === entityId )
-      .sortBy(_.applicationDate.desc )
+      .sortBy( _.applicationDate.desc )
       .result
   )
   

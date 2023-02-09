@@ -95,7 +95,7 @@ class SanctionTable(t:Tag) extends Table[Sanction](t, "sanctions"){
   def authority = column[String]("authority")
   def sanctionType = column[String]("sanction_type")
   def reason = column[String]("reason")
-  def applicationDate = column[LocalDateTime]("application_date")
+  def applicationDate = column[LocalDate]("application_date")
   def remarks = column[String]("remarks")
   
   def * = (id, businessEntityId, authority, sanctionType, reason, applicationDate, remarks) <> (Sanction.tupled, Sanction.unapply)

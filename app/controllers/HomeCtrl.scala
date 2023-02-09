@@ -22,7 +22,8 @@ object HomeCtrl {
 
   val feRouteSeq = Seq(
     routes.javascript.HelperTableCtrl.apiListRegions,
-    routes.javascript.HelperTableCtrl.apiGetRegion
+    routes.javascript.HelperTableCtrl.apiGetRegion,
+    routes.javascript.BusinessEntityCtrl.apiListSanctionsFor
   )
 
   val feRouteHash:Int = Math.abs(feRouteSeq.map( r => r.f + r.name ).map( _.hashCode ).sum)
@@ -49,6 +50,9 @@ object HomeCtrl {
     routes.javascript.UserCtrl.doDeleteUser,
     routes.javascript.WorkAccidentCtrl.doDeleteEntity,
     routes.javascript.WorkAccidentCtrl.backofficeIndex,
+    routes.javascript.BusinessEntityCtrl.apiStoreSanction,
+    routes.javascript.BusinessEntityCtrl.apiDeleteSanction,
+    routes.javascript.BusinessEntityCtrl.apiListSanctionsFor,
     routes.javascript.BusinessEntityCtrl.doDeleteEntity,
     routes.javascript.BusinessEntityCtrl.backofficeIndex
   )
