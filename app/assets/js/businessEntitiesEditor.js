@@ -156,6 +156,7 @@ function addSanction(){
                 res.json().then( data => {
                    sanctionTable.data.push(data);
                    sanctionTable.refreshRows();
+                   clearCurrentSanction();
                 });
             } else {
                 bkgDialog.dismiss();
