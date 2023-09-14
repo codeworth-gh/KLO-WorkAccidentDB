@@ -6,7 +6,7 @@ organization := "il.org.kavlaoved"
 
 maintainer := "michael@codeworth.io"
 
-version := "1.2-SNAPSHOT"
+version := "1.3-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
@@ -25,16 +25,16 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-slick-evolutions" % "5.1.0",
   "com.typesafe.play" %% "play-mailer" % "8.0.1",
   "com.typesafe.play" %% "play-mailer-guice" % "8.0.1",
-  "io.methvin" % "directory-watcher" % "0.17.1",
+  "io.methvin" % "directory-watcher" % "0.18.0",
   "be.objectify" %% "deadbolt-scala" % "2.8.2",
   "org.mindrot" % "jbcrypt" % "0.4",
-  "org.postgresql" % "postgresql" % "42.5.1",
+  "org.postgresql" % "postgresql" % "42.5.4",
   "com.github.jferard"% "fastods"%"0.8.1",
   "org.webjars" % "jquery" % "3.2.1",
   "org.webjars" % "jquery-ui" % "1.12.1",
   "org.webjars" % "tether" % "1.4.0",
   "org.webjars" % "sweetalert" % "2.1.0",
-  "org.webjars" % "bootstrap" % "5.2.3",
+  "org.webjars.npm" % "bootstrap" % "5.3.0",
   "org.webjars.bower" % "fontawesome" % "4.7.0",
   "org.webjars" % "d3js" % "5.16.0",
   "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % Test,
