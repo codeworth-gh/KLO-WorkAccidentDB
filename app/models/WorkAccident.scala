@@ -16,7 +16,8 @@ case class WorkAccident(
                        publicRemarks:String,
                        sensitiveRemarks:String,
                        injured:Set[InjuredWorker],
-                       requiresUpdate:Boolean
+                       requiresUpdate:Boolean,
+                       officiallyRecognized:Option[Boolean]
 ){
   def addWorkers( iws:Set[InjuredWorker] ) = copy(injured=injured++iws)
   def hasTime = (when.getHour|when.getMinute)>0
@@ -51,7 +52,8 @@ case class WorkAccidentSummary(
   regionId: Option[Int], location:String,
   details:String, investigation:String,
   injuredCount:Int, killedCount:Int,
-  requiresUpdate:Boolean
+  requiresUpdate:Boolean,
+  officiallyRecognized: Option[Boolean]
 ){
   def date:LocalDate=dateTime.toLocalDate
   lazy val hasTime = (dateTime.getHour|dateTime.getMinute)>0

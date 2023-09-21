@@ -69,11 +69,11 @@ $inputGroupBorderRadius: 0.25rem;
 }
 
 .btn-group.rtl-aware {
-  .btn:first-child {
-    border-radius: 0 $inputGroupBorderRadius $inputGroupBorderRadius 0;
+  .btn:first-of-type {
+    border-radius: 0 $inputGroupBorderRadius $inputGroupBorderRadius 0 !important;
   }
   .btn:last-child, .btn.dropdown-toggle {
-    border-radius: $inputGroupBorderRadius 0 0 $inputGroupBorderRadius;
+    border-radius: $inputGroupBorderRadius 0 0 $inputGroupBorderRadius !important;;
   }
 }
 

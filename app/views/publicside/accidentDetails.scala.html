@@ -13,6 +13,15 @@
       <a class="btn btn-outline-klo-blue" href="@routes.WorkAccidentCtrl.showEdit(acc.id)">@comps.svg.edit() @Messages("edit")</a>
     }
   }
+  @acc.officiallyRecognized match {
+    case None => {}
+    case Some(false) => {
+      <div class="row mb-2"><div class="col"><div class="alert alert-warning">@Html(Messages("workAccidents.recognition.no"))</div></div></div>
+    }
+    case Some(true) => {
+      <div class="row mb-2"><div class="col"><div class="alert alert-info">@Messages("workAccidents.recognition.yes")</div></div></div>
+    }
+  }
   <div class="row mb-2">
     @if(acc.hasTime) {
       <div class="col-sm-2 text-klo-dg">@Messages("dateTime")</div>

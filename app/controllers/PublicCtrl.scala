@@ -63,6 +63,7 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     Column("region_id", (v,w)=> printIntOption( v.regionId, w)),
     Column("region_name", (v,w)=> w.setStringValue(v.regionId.flatMap( r => regions(r).map(_.name)).getOrElse(""))),
     Column("location", (v,w)=>w.setStringValue(v.location) ),
+    Column("officially_recognized", (v,w)=>w.setStringValue(v.officiallyRecognized.map( b => if (b) "Yes" else "No").getOrElse(""))),
     Column("related_entities", (v,w)=>{
       val knownBizEts = v.relateds.map( k => k._2.id->(if(k._2.knownContractor){knownBizEntShort}else{""}) ).toMap
       w.setStringValue(

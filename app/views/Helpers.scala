@@ -12,6 +12,8 @@ import controllers.routes
 import play.api.i18n.MessagesProvider
 import play.twirl.api.Html
 import play.utils.UriEncoding
+import play.api.data.format.Formatter
+import play.api.data.format.Formats._
 
 /**
   * Information required to show a pager component.
@@ -107,6 +109,28 @@ object Helpers {
     """
     )
   }
+  
+  implicit object OptionalBooleanFormatter extends Formatter[Option[Boolean]] {
+    override val format = Some(("format.optionBool", Nil))
+  
+    override def bind(key: String, data: Map[String, String]) = {
+      val raw = data.get(key)
+      raw match {
+        case None      => Right(None)
+        case Some("?") => Right(None)
+        case Some("t") => Right(Some(true))
+        case Some("f") => Right(Some(false))
+        case _ => Left(Seq(FormError(key, s"Illegal value $raw. Use t,f,? or don't submit the value at all")))
+      }
+    }
+  
+    override def unbind(key: String, value: Option[Boolean]): Map[String, String] = Map(key -> (value match {
+      case None => "?"
+      case Some(true) => "t"
+      case Some(false) => "f"
+    }))
+  }
+  
   
   
 }

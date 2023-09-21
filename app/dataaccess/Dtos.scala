@@ -19,7 +19,8 @@ case class WorkAccidentRecord(
                          mediaReports:String,
                          publicRemarks:String,
                          sensitiveRemarks:String,
-                         requiresUpdate:Boolean
+                         requiresUpdate:Boolean,
+                         officiallyRecognized: Option[Boolean]
                        )
 
 case class WorkAccidentSummaryRecord(
@@ -27,10 +28,10 @@ case class WorkAccidentSummaryRecord(
   regionId: Option[Int], location:String,
   details:String, investigation:String,
   injuredCount:Int, killedCount:Int,
-  requiresUpdate:Boolean
+  requiresUpdate:Boolean, officiallyRecognized: Option[Boolean]
 ) {
   def toObject( relateds:Set[(RelationToAccident, BusinessEntitySummary)] ):WorkAccidentSummary={
-    WorkAccidentSummary(id,dateTime, relateds, regionId, location, details, investigation, injuredCount, killedCount, requiresUpdate)
+    WorkAccidentSummary(id,dateTime, relateds, regionId, location, details, investigation, injuredCount, killedCount, requiresUpdate, officiallyRecognized)
   }
 }
 

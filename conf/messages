@@ -172,6 +172,10 @@ injuredCounts.singleKilledSingleWounded=הרוג ופצוע
 accidentCount.single=תאונה אחת
 accidentCount.multi={0} תאונות
 
+officialRecognition.unknown=לא ידוע
+officialRecognition.recognized=הוכרה
+officialRecognition.notRecognized=לא הוכרה
+
 userHome.title=ניהול האתר
 userHome.help=מסך זה הוא הכניסה לאזור ניהול האתר. אפשר לראות פה סטטיסטיקות בסיסיות, וכן לבצע פעולות שכיחות.
 userHome.statistics=נתוני תאונות במערכת
@@ -193,6 +197,8 @@ workAccidents.details=פרטים
 workAccidents.foundCount=נמצאו {0} תאונות
 workAccidents.foundOne=נמצאה תאונה אחת
 workAccidents.foundNone=לא נמצאו תאונות
+workAccidents.recognition.yes=תאונה זו הוכרה כתאונת עבודה על ידי מדינת ישראל
+workAccidents.recognition.no=תאונה זו <strong>לא</strong> הוכרה כתאונת עבודה על ידי מדינת ישראל
 
 workAccident.saved=תאונת העבודה {0} נשמרה
 
@@ -224,6 +230,7 @@ workAccidentEditor.mediaReports.help=לינקים לדיווחים על התאו
 workAccidentEditor.deleteMsg=האם למחוק את תאונה זו מהמאגר?
 workAccidentEditor.deleteMsgSub=לאחר המחיקה לא ניתן יהיה לשחזר את הנתונים
 workAccidentEditor.deletionFailed=המחיקה נכשלה
+workAccidentEditor.officialRecognition=הכרה רשמית
 
 publicIndex.hero=תאונות עבודה בישראל
 publicIndex.sub=פרוייקט תעוד תאונות עבודה של עמותת קו לעובד

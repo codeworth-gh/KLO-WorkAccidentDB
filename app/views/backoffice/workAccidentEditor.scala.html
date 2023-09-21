@@ -97,7 +97,7 @@
             @Messages("id"): <code>@accId</code>
           }
         }
-        <div class="row">
+        <div class="row my-2">
           <div class="col-sm-4">
             @comps.bform.fieldHRow(frm, "date", "workAccidentEditor.", inputType="date", isRequired=true, labelWidth=3)
           </div>
@@ -108,8 +108,7 @@
             @comps.bform.selectHRow(frm, "region", options=regions.map(r=>r.id.toString->r.name))
           </div>
         </div>
-        <div class="row">
-          <div class="col-sm-8">@comps.bform.fieldHRow(frm, "location", "workAccidentEditor.")</div>
+        <div class="row my-2">
           <div class="col-sm-4">
             <div class="form-check form-switch" style="margin-top: 0.5em">
               <input class="form-check-input" name="requiresUpdate" value="true" autocomplete="off"
@@ -117,7 +116,21 @@
               <label class="form-check-label" for="cbRequiresUpdate">@Messages("workAccidentEditor.requiresUpdate")</label>
             </div>
           </div>
+          <div class="col-sm-8">
+            <label for="">@Messages("workAccidentEditor.officialRecognition")</label>
+            <div class="btn-group rtl-aware" role="group" aria-label="Official recognition status">
+              <input type="radio" class="btn-check" name="officiallyRecognized" id="btnOrU" autocomplete="off" value="?" @if(frm("officiallyRecognized").value.contains("?")){checked}>
+              <label class="btn btn-outline-secondary" for="btnOrU">@Messages("officialRecognition.unknown")</label>
+
+              <input type="radio" class="btn-check" name="officiallyRecognized" id="btnOrT" autocomplete="off" value="t" @if(frm("officiallyRecognized").value.contains("t")){checked}>
+              <label class="btn btn-outline-secondary" for="btnOrT">@Messages("officialRecognition.recognized")</label>
+
+              <input type="radio" class="btn-check" name="officiallyRecognized" id="btnOrF" autocomplete="off" value="f" @if(frm("officiallyRecognized").value.contains("f")){checked}>
+              <label class="btn btn-outline-secondary" for="btnOrF">@Messages("officialRecognition.notRecognized")</label>
+            </div>
+          </div>
         </div>
+        @comps.bform.fieldHRow(frm, "location", "workAccidentEditor.")
         @comps.bform.formHRow(frm, "relatedBusinessEntities", "workAccidentEditor."){
           <ul id="relatedEntitiesList" class="list-unstyled p-0 m-0">
             @for( idx <- frm("relatedEntities").indexes ){

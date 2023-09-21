@@ -135,10 +135,11 @@ class WorkAccidentsTable(t:Tag) extends Table[WorkAccidentRecord](t, "work_accid
   def publicRemarks = column[String]("public_remarks")
   def sensitiveRemarks = column[String]("sensitive_remarks")
   def requiresUpdate = column[Boolean]("requires_update")
+  def officiallyRecognized = column[Option[Boolean]]("officially_recognized")
   
   def * = (id, date_time, location, regionId, blogPostUrl,
     details, investigation, initialSource, mediaReports, publicRemarks,
-    sensitiveRemarks, requiresUpdate
+    sensitiveRemarks, requiresUpdate, officiallyRecognized
   )<>(WorkAccidentRecord.tupled, WorkAccidentRecord.unapply)
   
   def fkRgn = foreignKey("fk_wa_rgn", regionId, TableRefs.regions)(_.id.?)
@@ -180,11 +181,14 @@ class WorkAccidentSummaryTable(t:Tag) extends Table[WorkAccidentSummaryRecord](t
   def injuredCount  = column[Int]("injured_count")
   def killedCount   = column[Int]("killed_count")
   def requiresUpdate = column[Boolean]("requires_update")
+  def officiallyRecognized = column[Option[Boolean]]("officially_recognized")
   
   def * = (id, dateTime, regionId, location,
            details, investigation, injuredCount,
-            killedCount, requiresUpdate)<>(WorkAccidentSummaryRecord.tupled, WorkAccidentSummaryRecord.unapply)
+            killedCount, requiresUpdate, officiallyRecognized)<>(WorkAccidentSummaryRecord.tupled, WorkAccidentSummaryRecord.unapply)
 }
+
+
 
 class AccidentToBusinessEntityTable(t:Tag) extends Table[RelationToAccidentRecord](t, "bart_accident"){
   def accidentId = column[Long]("accident_id")

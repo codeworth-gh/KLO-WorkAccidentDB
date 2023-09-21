@@ -10,6 +10,7 @@ import play.api.i18n.{I18nSupport, MessagesProvider}
 import play.api.mvc.{AbstractController, ControllerComponents}
 import play.api.data._
 import play.api.data.Forms.{optional, _}
+import views.Helpers.OptionalBooleanFormatter
 import views.PaginationInfo
 
 import java.time.{LocalDate, LocalTime, ZoneId}
@@ -53,7 +54,8 @@ case class WorkAccidentFD(
                            publicRemarks:String,
                            sensitiveRemarks:String,
                            injured:Seq[InjuredWorkerFD],
-                           requiresUpdate:Boolean
+                           requiresUpdate:Boolean,
+                           officiallyRecognized: Option[Boolean]
 )
 object WorkAccidentFD{
   def make(wa: WorkAccident):WorkAccidentFD = {
@@ -63,7 +65,7 @@ object WorkAccidentFD{
       wa.relatedEntities.filter(_._1.id < RelationToAccidentDAO.DIRECT_EMPLOYMENT_ID).map(r=>RelatedEntityFD(r._2.name, r._1.id)).toSeq,
       wa.location, wa.region.map(_.id),
       wa.blogPostUrl, wa.details, wa.investigation, wa.initialSource, wa.mediaReports.toSeq.sorted, wa.publicRemarks,
-      wa.sensitiveRemarks, wa.injured.toSeq.map(InjuredWorkerFD.make), wa.requiresUpdate
+      wa.sensitiveRemarks, wa.injured.toSeq.map(InjuredWorkerFD.make), wa.requiresUpdate, wa.officiallyRecognized
     )
   }
 }
@@ -118,7 +120,8 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
     "publicRemarks"->text,
     "sensitiveRemarks"->text,
     "injured"->seq(injuredWorkerMapping),
-    "requiresUpdate"->boolean
+    "requiresUpdate"->boolean,
+    "officiallyRecognized" -> of[Option[Boolean]]
   )(WorkAccidentFD.apply)(WorkAccidentFD.unapply))
   
   def backofficeIndex(pSortBy:Option[String]=None, pAsc:Option[String]=None, pPage:Option[Int]=None ) = deadbolt.SubjectPresent()() { implicit req =>
@@ -149,7 +152,7 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
       None, Seq(), "", None, "", "", "", "", Seq(), "","",Seq(
         InjuredWorkerFD(0, "", None, None, None, None, "", None, None, "", "", "")
       ),
-      requiresUpdate = false
+      requiresUpdate = false, None
     )
     showEditAccidentForm(workAccidentForm.fill(wa))
   }
@@ -224,7 +227,8 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
       wafd.location, wafd.region.flatMap( regions.apply ),
       wafd.blogPostUrl, wafd.details, wafd.investigation, wafd.initialSource,
       wafd.mediaReports.toSet, wafd.publicRemarks, wafd.sensitiveRemarks,
-      wafd.injured.toSet.map( iwfd=>constructInjuredWorker(iwfd, bizEntMap)), requiresUpdate=wafd.requiresUpdate
+      wafd.injured.toSet.map( iwfd=>constructInjuredWorker(iwfd, bizEntMap)),
+      requiresUpdate=wafd.requiresUpdate, wafd.officiallyRecognized
     )
   }
   

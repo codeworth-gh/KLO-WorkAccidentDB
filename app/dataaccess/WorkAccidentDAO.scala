@@ -401,7 +401,7 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     waRow.id, waRow.when, relateds, waRow.location, waRow.regionId.flatMap( regions.apply ),
     waRow.blogPostUrl, waRow.details, waRow.investigation, waRow.initialSource,
     waRow.mediaReports.split("\n").toSet, waRow.publicRemarks, waRow.sensitiveRemarks,
-    iws, waRow.requiresUpdate
+    iws, waRow.requiresUpdate, waRow.officiallyRecognized
   )
   
   private def toDto( wa:WorkAccident ) = WorkAccidentRecord(
@@ -415,7 +415,8 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
       mediaReports = wa.mediaReports.mkString("\n"),
       publicRemarks = wa.publicRemarks,
       sensitiveRemarks = wa.sensitiveRemarks,
-      requiresUpdate = wa.requiresUpdate
+      requiresUpdate = wa.requiresUpdate,
+      wa.officiallyRecognized
   )
   
   private def toRelationRecords( wa:WorkAccident ) = {
