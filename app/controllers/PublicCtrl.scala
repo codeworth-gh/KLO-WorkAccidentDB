@@ -78,10 +78,12 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
   )
   
   val injuredDatasetCols:Seq[Column[InjuredWorkerRow]] = Seq(
-    Column[InjuredWorkerRow]("id", (v,w)=>printInt(v.worker.id, w) ),
+    Column[InjuredWorkerRow]("worker_id", (v,w)=>printInt(v.worker.id, w) ),
     Column[InjuredWorkerRow]("accident_id", (v,w)=>printInt(v.accidentId, w)),
-    Column[InjuredWorkerRow]("accident_region", (v,w)=>printStrOption(v.regionId.flatMap( regions(_) ).map(_.name), w)),
     Column[InjuredWorkerRow]("date", (v,w) => printDate(v.accidentDate, w)),
+    Column[InjuredWorkerRow]("accident_region", (v,w)=>printStrOption(v.regionId.flatMap( regions(_) ).map(_.name), w)),
+    Column[InjuredWorkerRow]("accident_location", (v,w)=>printStrOption(Some(v.accidentLocation), w)),
+    Column[InjuredWorkerRow]("officially_recognized", (v,w)=>printStrOption(v.recognition.map( b => if (b) "Yes" else "No"), w)),
     Column[InjuredWorkerRow]("name", (v,w) => w.setStringValue( if (v.worker.injurySeverity.contains(Severity.fatal)) v.worker.name else "") ),
     Column[InjuredWorkerRow]("age", (v,w)  => printIntOption(v.worker.age, w)),
     Column[InjuredWorkerRow]("citizenship_id",   (v,w) => printIntOption(v.worker.citizenship.map(_.id), w)),

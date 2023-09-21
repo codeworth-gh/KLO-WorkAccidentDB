@@ -339,13 +339,13 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   def listAllInjuredWorkers: Future[Seq[InjuredWorkerRow]] = db.run(
     workersAndEmployers.join(workAccidents).on((wae,acc)=>wae._1.accident_id === acc.id)
       .sortBy( _._2.date_time.desc ).result
-  ).map( _.map( r => InjuredWorkerRow(fromDto(r._1._1, r._1._2), r._2.id, r._2.regionId, r._2.when.toLocalDate)) )
+  ).map( _.map( r => InjuredWorkerRow(fromDto(r._1._1, r._1._2), r._2.id, r._2.regionId, r._2.when.toLocalDate, r._2.location, r._2.officiallyRecognized)) )
   
   def listRecentInjuredWorkers(count:Int): Future[Seq[InjuredWorkerRow]] = db.run(
     workersAndEmployers.join(workAccidents).on((wae,acc)=>wae._1.accident_id === acc.id)
       .sortBy( _._2.date_time.desc )
       .take(count).result
-  ).map( _.map( r => InjuredWorkerRow(fromDto(r._1._1, r._1._2), r._2.id, r._2.regionId, r._2.when.toLocalDate)) )
+  ).map( _.map( r => InjuredWorkerRow(fromDto(r._1._1, r._1._2), r._2.id, r._2.regionId, r._2.when.toLocalDate, r._2.location, r._2.officiallyRecognized)) )
   
   private def makeSeverityMap(k: Option[Industry], numbers: Seq[(Option[Int], Option[Int], Int)]):Map[Option[Severity.Value], Int] = {
     val relevantRows = numbers.filter( _._1 == k.map(_.id) )

@@ -38,7 +38,7 @@ case class InjuredWorker(
                         sensitiveRemarks:String
                         )
 
-case class InjuredWorkerRow(worker:InjuredWorker, accidentId:Long, regionId: Option[Int], accidentDate:LocalDate)
+case class InjuredWorkerRow(worker:InjuredWorker, accidentId:Long, regionId: Option[Int], accidentDate:LocalDate, accidentLocation:String, recognition:Option[Boolean])
 
 case class BusinessEntitySummary(
   id: Long,
