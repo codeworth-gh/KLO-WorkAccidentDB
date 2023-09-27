@@ -1,11 +1,12 @@
 package dataaccess
 
 import java.sql.Timestamp
-import models.{BusinessEntity, BusinessEntityMapping, BusinessEntityStats, BusinessEntitySummary, Citizenship, CountByCategoryAndYear, ExecutorCountPerYearRow, ExecutorCountRow, Industry, IndustryMapping, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, SafetyWarrant, Sanction, User, WorkAccidentSummary}
+import models.{BusinessEntity, BusinessEntityMapping, BusinessEntityStats, BusinessEntitySummary, Citizenship, CountByCategoryAndYear, EntityMergeLogEntry, ExecutorCountPerYearRow, ExecutorCountRow, Industry, IndustryMapping, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, SafetyWarrant, Sanction, User, WorkAccidentSummary}
 import slick.lifted.Tag
 import slick.jdbc.PostgresProfile.api._
 
 import java.time.{LocalDate, LocalDateTime}
+import java.util.UUID
 import scala.reflect.ClassTag
 
 class SettingsTable(t:Tag) extends Table[Setting](t,"settings"){
@@ -300,12 +301,20 @@ class SWPerExecutor(t:Tag) extends Table[ExecutorCountRow](t, "safety_warrants_p
   def * = (execName, count)<> (ExecutorCountRow.tupled, ExecutorCountRow.unapply)
 }
 
+class EntityMergeLogRecordTable(t:Tag) extends Table[EntityMergeLogEntry](t, "entity_merge_log_record") {
+  def mergeId      = column[UUID]("merge_id")
+  def tableNameStr = column[String]("table_name")
+  def message      = column[String]("message")
+  
+  def * = (mergeId, tableNameStr, message ) <> (EntityMergeLogEntry.tupled, EntityMergeLogEntry.unapply)
+}
+
 object TableRefs {
-  val businessEntities = TableQuery[BusinessEntityTable]
-  val regions = TableQuery[RegionsTable]
-  val accidents = TableQuery[WorkAccidentsTable]
-  val citizenships = TableQuery[CitizenshipsTable]
-  val industries = TableQuery[IndustriesTable]
-  val injuryCauses = TableQuery[InjuryCausesTable]
   val relationsToAccidents = TableQuery[RelationToAccidentTable]
+  val businessEntities     = TableQuery[BusinessEntityTable]
+  val regions      = TableQuery[RegionsTable]
+  val accidents    = TableQuery[WorkAccidentsTable]
+  val citizenships = TableQuery[CitizenshipsTable]
+  val industries   = TableQuery[IndustriesTable]
+  val injuryCauses = TableQuery[InjuryCausesTable]
 }

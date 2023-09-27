@@ -3,6 +3,7 @@
 let sanctionTable;
 let currentSanctionId;
 let btnSave, btnUpdate, btnDelete;
+let similarBizEnts, similarBizEntsNotFound, btnSearch, fldSearch;
 
 function setup(){
     const sltAuth = document.getElementById("sltAuthority");
@@ -17,6 +18,11 @@ function setup(){
     btnSave = document.getElementById("btnSave");
     btnDelete = document.getElementById("btnDelete");
     btnUpdate = document.getElementById("btnUpdate");
+    btnSearch = document.getElementById("btnSimilarSearch");
+    similarBizEnts = document.getElementById("similarBizEnts");
+    similarBizEntsNotFound = document.getElementById("similarBizEntsNotFound");
+    fldSearch = document.getElementById("similarBizEntName");
+    UiUtils.onEnter(fldSearch, searchSimilarEntities);
 
     if ( ENTITY_ID !== -1 ) {
         sanctionTable = document.getElementById("tblRegisteredSanctions");
@@ -227,4 +233,95 @@ function clearCurrentSanction(){
     document.getElementById("fldDate").value = new Date();
     document.getElementById("fldRemarks").value = "";
     adjustButtons(false);
+}
+
+function searchSimilarEntities() {
+    const name = fldSearch.value.trim();
+    if ( name.length > 0 ) {
+        Playjax(beRoutes).using(c=>c.BusinessEntityCtrl.getSimilarlyNamedEntities(name))
+            .fetch()
+            .then( res => {
+              if ( res.ok ){
+                  res.json().then( data=> {
+                      if (data.length === 0) {
+                        similarBizEntsNotFound.classList.remove("d-none");
+                        similarBizEnts.classList.add("d-none");
+                      } else {
+                          similarBizEnts.classList.remove("d-none");
+                          similarBizEntsNotFound.classList.add("d-none");
+                          UiUtils.clearEmt(similarBizEnts);
+                          data.forEach( bizEnt => {
+                              if ( bizEnt.id === ENTITY_ID ) return; // don't merge with self
+
+                              const li = UiUtils.makeLi({}, bizEnt.name);
+                              const url = UiUtils.makeA(beRoutes.controllers.PublicCtrl.bizEntDetails(bizEnt.id).url,
+                                  {target:"_blank"}, "&nwarr;");
+                              const btn = UiUtils.makeButton(()=>mergeEntity(bizEnt), {classes:"btn btn-outline-danger btn-sm"}, "איחוד");
+
+                              li.appendChild(url);
+                              li.appendChild(btn);
+                              similarBizEnts.appendChild(li);
+                          });
+                      }
+                  });
+              } else {
+                  console.error(res);
+                  res.text().then( text => {
+                    Informationals.makeDanger("Error: " + res.statusText + " (" + res.status + ")", text ).show();
+                  });
+              }
+            });
+    }
+}
+
+function mergeEntity( entity ) {
+    const m1 = mergeWarning.replaceAll("XXX", entity.name);
+    const m2 = mergeWarning2.replaceAll("XXX", entity.name);
+    swal({
+        title: m1,
+        text: m2,
+        icon: "warning",
+        buttons: true,
+        dangerMode: true,
+    })
+        .then((okToMerge) => {
+            if (okToMerge) {
+                Informationals.loader("מאחד");
+                Playjax(beRoutes).using( c=>c.BusinessEntityCtrl.apiMergeEntities(entity.id, ENTITY_ID) )
+                    .fetch()
+                    .then( r => {
+                        if ( r.ok ) {
+                            r.json().then( data => {
+                                Informationals.loader("האיחוד החל. זיהוי: " + data.mergeId );
+                                window.setTimeout( ()=>monitorMerge( data.mergeId ), 1000 );
+                            });
+                        }
+                    });
+            } else {
+                Informationals.makeSuccess("האיחוד בוטל", "", 2000).show();
+            }
+        });
+}
+
+function monitorMerge( mergeId ) {
+    Informationals.loader("מתעדכן");
+    console.info(`Checking merge ${mergeId}`);
+    Playjax(beRoutes).using( c=>c.BusinessEntityCtrl.apiGetEntityMergeStatus(mergeId) )
+        .fetch()
+        .then( res => {
+            console.info(` - status: ${res.status}`);
+            if ( res.ok ) {
+                res.json().then( data => {
+                    if ( data.status === "DONE" ) {
+                        Informationals.loader.dismiss();
+                        window.location.reload();
+                    } else {
+                        window.setTimeout( ()=>monitorMerge( mergeId ), 3000 );
+                    }
+                });
+            } else {
+                console.error(`Error checking on the merge:  ${res.status}`);
+                res.text().then( t => console.error(t) );
+            }
+        });
 }

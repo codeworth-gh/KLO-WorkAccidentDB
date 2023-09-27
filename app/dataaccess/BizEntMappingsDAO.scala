@@ -9,6 +9,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * DAO for mappings from .gov strings to klo ids.
+ *
+ * FIXME: If this ever gets used, update EntityMergeActor to fix the mappings as well.
  */
 class BizEntMappingsDAO @Inject() (protected val dbConfigProvider:DatabaseConfigProvider)(implicit ec:ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile]  {
   import slick.jdbc.PostgresProfile.api._

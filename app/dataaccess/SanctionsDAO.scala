@@ -35,4 +35,8 @@ class SanctionsDAO @Inject() (protected val dbConfigProvider:DatabaseConfigProvi
       .result
   )
   
+  def batchUpdateEntities( from:Long, into:Long ):Future[Int] = db.run(
+    sanctions.filter( _.businessEntityId === from ).map( _.businessEntityId ).update(into)
+  )
+  
 }

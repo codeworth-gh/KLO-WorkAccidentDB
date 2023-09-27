@@ -1,6 +1,8 @@
 package controllers
 
+import akka.actor.ActorRef
 import be.objectify.deadbolt.scala.DeadboltActions
+import controllers.BusinessEntityCtrl.ACTIVE_ENTITY_MERGES
 import dataaccess.{BusinessEntityDAO, SanctionsDAO}
 import models.{BusinessEntity, Sanction}
 import play.api.{Configuration, Logger}
@@ -11,16 +13,22 @@ import play.api.libs.json.{JsError, JsSuccess, Json}
 import play.api.mvc.{AbstractController, ControllerComponents}
 import views.{JsonConverters, PaginationInfo}
 
-import javax.inject.Inject
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
+import javax.inject.{Inject, Named}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.util.{Failure, Success}
+import actors.EntityMergeActor
 
 object BusinessEntityCtrl {
   val PAGE_SIZE=30
+  val ACTIVE_ENTITY_MERGES = new ConcurrentHashMap[UUID,String]()
 }
 
 class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponents,
                                    businessEntities:BusinessEntityDAO, sanctions:SanctionsDAO,
+                                   @Named("EntityMergeActor") entityMergeActor:ActorRef,
                                    conf:Configuration
                                   )
           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport with JsonApiHelper {
@@ -93,6 +101,16 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
     })
   }
   
+  def getSimilarlyNamedEntities( baseName:String ) = deadbolt.SubjectPresent()(){ req =>
+    for {
+      names <- businessEntities.findSimilarNames(baseName)
+    } yield {
+      Ok(
+        Json.toJson( names.map( p => Json.obj("id"->p._1, "name"->p._2) ) )
+      ).as("application/json")
+    }
+  }
+  
   def apiStoreSanction( entId:Long ) = deadbolt.SubjectPresent()(cc.parsers.tolerantJson){ req =>
     import views.JsonConverters.sanctionFmt
     
@@ -120,6 +138,38 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
     } yield {
       Ok( Json.toJson(sancs) )
     }
+  }
+  
+  def apiMergeEntities( from:Long, into:Long ) = deadbolt.SubjectPresent()() { req =>
+    val mergeId = UUID.randomUUID()
+    ACTIVE_ENTITY_MERGES.put( mergeId, "START")
+    log.info(s"Starting entity merge: $from into $into under id $mergeId")
+    entityMergeActor ! EntityMergeActor.MergeEntities(from, into, mergeId)
+    
+    Future(Accepted(Json.obj("mergeId"->mergeId)))
+  }
+  
+  def apiGetEntityMergeStatus( id:String ) = deadbolt.SubjectPresent()() { req =>
+    Future(
+      try {
+        val uuid = UUID.fromString(id)
+        if ( ACTIVE_ENTITY_MERGES.containsKey(uuid) ) {
+          ACTIVE_ENTITY_MERGES.get(uuid) match {
+            case "DONE" => {
+              ACTIVE_ENTITY_MERGES.remove(uuid)
+              Ok(Json.obj("status"->"DONE"))
+            }
+            case x:String => Ok(Json.obj("status"->x))
+          }
+        } else {
+          log.info( ACTIVE_ENTITY_MERGES.entrySet().asScala.map( p => p.getKey->p.getValue).mkString(" , ") )
+          log.info(s"Requested: -$uuid-")
+          NotFound("not in map")
+        }
+      } catch {
+        case e:Exception => NotFound("invalid id")
+      }
+    )
   }
   
   

@@ -7,6 +7,8 @@
   <script>
     const deleteMsg="@Messages("businessEntitiesEditor.deleteMsg")";
     const subMsg="@Messages("businessEntitiesEditor.deleteMsgSub")";
+    const mergeWarning = "@Html(Messages("businessEntitiesEditor.mergeWarning"))";
+    const mergeWarning2 = "@Html(Messages("businessEntitiesEditor.mergeWarning2"))";
     const TITLES = ["@Messages("businessEntities.sanctionAuthority")", "@Messages("date")", "@Messages("businessEntities.reason")",
       "@Messages("businessEntities.sanctionDetails")", "@Messages("businessEntities.remarks")", "@Messages("actions")"];
     const ENTITY_ID=@frm("id").value.getOrElse(-1);
@@ -37,6 +39,31 @@
                 });
     }
   </script>
+  <style>
+    #similarBizEnts {
+      padding: 0;
+    }
+    #similarBizEnts li {
+      display: flex;
+      flex-direction:row;
+      margin: .1em 0;
+    }
+    #similarBizEnts li:hover {
+      background-color: #EEE;
+    }
+    #similarBizEnts li a {
+      display: block;
+      padding: 0 .2em;
+      margin-right: auto;
+      margin-left: .5em;
+      border-radius: 4px;
+      border: 1px solid #00F;
+      text-decoration: none;
+    }
+    #similarBizEnts li a:hover {
+      background: #FF0;
+    }
+  </style>
 }
 
 @bottom={
@@ -60,6 +87,7 @@
         <nav class="nav nav-tabs justify-content-center">
           <a class="nav-link active" aria-current="page" data-bs-target="#detailsForm" data-bs-toggle="tab">@Messages("businessEntities.details")</a>
           <a class="nav-link" aria-current="page"  data-bs-target="#sanctions" data-bs-toggle="tab">@Messages("businessEntities.sanctions")</a>
+          <a class="nav-link" aria-current="page"  data-bs-target="#union" data-bs-toggle="tab">@Messages("businessEntitiesEditor.union")</a>
         </nav>
       </div>
     </div>
@@ -134,9 +162,33 @@
               <input class="form-control" type="text" id="fldRemarks" placeholder="@Messages("businessEntities.remarks")" autocomplete="off">
             </div>
           </div>
-          <div class="row mt-2">
+          <div class="row my-3">
             <h2>@Messages("businessEntities.registeredSanctions")</h2>
             <table-comp id="tblRegisteredSanctions" cssClasses="table,table-striped,table-sm"></table-comp>
+          </div>
+        </div>
+        <div class="tab-pane" id="union">
+          <div class="row mt-2">
+            <div class="alert alert-info">@Messages("businessEntitiesEditor.union.explanation")</div>
+            <div class="alert alert-danger">@Messages("businessEntitiesEditor.union.warning")</div>
+          </div>
+          <div class="row mt-2">
+            <div class="col-10">
+              <input type="text" class="form-control" value="@frm("name").value.getOrElse("")" placeholder="@Messages("name")" id="similarBizEntName" autocomplete="off">
+            </div>
+            <div class="col-2">
+              <button class="btn btn-outline-klo-blue" onclick="searchSimilarEntities()" type="button" id="btnSimilarSearch">@comps.svg.search() @Messages("search")</button>
+            </div>
+          </div>
+          <div class="row mt-2">
+            <div class="col">
+              <ul id="similarBizEnts">
+
+              </ul>
+              <div id="similarBizEntsNotFound" class="noData d-none">
+                @Messages("businessEntitiesEditor.union.noneFound")
+              </div>
+            </div>
           </div>
         </div>
       </div>

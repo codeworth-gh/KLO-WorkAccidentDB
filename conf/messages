@@ -119,7 +119,6 @@ businessEntities.title=גורמים עסקיים מעורבים
 businessEntities.help=גורמים עסקיים המעורבים בתאונות, כגון מעסיקים, קבלנים, ויזמי פרוייקטים
 businessEntities.addNew=גורם חדש
 businessEntities.noData=לא רשומים במערכת גורמים מעורבים
-businessEntities.details=פרטים
 businessEntities.sanctions=סנקציות
 businessEntities.addSanction=הוסף סנקציה
 businessEntities.isPrivatePerson=אדם פרטי
@@ -142,11 +141,18 @@ businessEntities.remarks=הערות
 businessEntities.deleteSanction=מחיקת סנקציה
 businessEntities.updateSanction=עדכון סנקציה
 businessEntities.clear=ניקוי נתונים
+businessEntities.memo=הערות
 
 businessEntitiesEditor.title=עריכת גורם מעורב
 businessEntitiesEditor.deleteMsg=למחוק את הגורם המעורב?
 businessEntitiesEditor.deleteMsgSub=לא ניתן יהיה לשחזר את הנתונים לאחר מכן
 businessEntitiesEditor.deletionFailed=המחיקה נכשלה
+businessEntitiesEditor.union=איחוד
+businessEntitiesEditor.union.explanation=כאשר גורם עסקי אחד מופיע מספר פעמים בבסיס הנתונים, ניתן לאחד את הרשומות שלו לרשומה אחת
+businessEntitiesEditor.union.warning=לא ניתן לבטל פעולה זו! יש לוודא היטב כי איחוד הרשומות מתבצע בין רשומות נכונות.
+businessEntitiesEditor.union.noneFound=לא נמצאו גורמים עסקיים מתאימים
+businessEntitiesEditor.mergeWarning=האם להעביר את כל הרישומים של ''XXX'' לגורם העסקי הנוכחי?
+businessEntitiesEditor.mergeWarning2=לאחר הפעולה הגורם ''XXX'' ימחק מהמערכת. שימו לב - לא ניתן לבטל פעולה זו.
 
 fatalities.noData=לא נמצאו מקרי מוות.
 

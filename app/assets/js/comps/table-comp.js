@@ -219,5 +219,5 @@ class TableComp extends HTMLElement {
 }
 
 /** Use Bootstrap as a default css link */
-TableComp.DEFAULT_CSS_HREF="/assets/lib/bootstrap/css/bootstrap.min.css";
+TableComp.DEFAULT_CSS_HREF="/assets/lib/bootstrap/dist/css/bootstrap.min.css";
 TableComp.DEFAULT_NO_DATA_TEXT="NO DATA";

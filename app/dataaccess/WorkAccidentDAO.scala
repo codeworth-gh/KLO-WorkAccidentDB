@@ -314,11 +314,28 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
       iws <- db.run(injuredWorkers.sortBy(_.injury_severity.desc).result )
       ems <- db.run( businessEntities.result )
     } yield {
-      val emsMap:Map[Long, BusinessEntity] = ems.map(e=>e.id->e).toMap
-      iws.map( iwr=>fromDto(iwr, iwr.employer.flatMap(id=>emsMap.get(id))) )
+      val emsMap: Map[Long, BusinessEntity] = ems.map(e => e.id -> e).toMap
+      iws.map(iwr => fromDto(iwr, iwr.employer.flatMap(id => emsMap.get(id))))
     }
-    
   }
+  
+  def listWorkersForBizEnt( bizEnt:Long ):Future[Seq[InjuredWorkerRecord]] = db.run(
+    injuredWorkers.filter( _.employer_id === bizEnt ).result
+  )
+  
+  def batchUpdateEmployerId( from:Long, to:Long ):Future[Int] = db.run(
+    injuredWorkers.filter( _.employer_id === from ).map( _.employer_id ).update(Some(to))
+  )
+  
+  /**
+   * Batch update the business-accident relation table
+   * @param from id of entity being removed
+   * @param into id of entity that will get the accidents
+   * @return number of records updated
+   */
+  def batchUpdateBart( from:Long, into:Long ):Future[Int] = db.run(
+    accidentBizEntRelations.filter( _.bizEntId === from ).map(_.bizEntId).update(into)
+  )
   
   /**
    *

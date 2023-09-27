@@ -1,8 +1,8 @@
 package dataaccess
 
 import dataaccess.BusinessEntityDAO.StatsSortKey
-import models.{BusinessEntity, BusinessEntityStats}
-import play.api.Logger
+import models.{BusinessEntity, BusinessEntityStats, EntityMergeLogEntry}
+import play.api.{Configuration, Logger}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 
@@ -41,13 +41,15 @@ object BusinessEntityDAO {
   }
 }
 
-class BusinessEntityDAO @Inject() (protected val dbConfigProvider:DatabaseConfigProvider)(implicit ec:ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
+class BusinessEntityDAO @Inject()(protected val dbConfigProvider:DatabaseConfigProvider, conf:Configuration)(implicit ec:ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
   
   import profile.api._
   private val Entities = TableQuery[BusinessEntityTable]
   private val Stats = TableQuery[BusinessEntityStatsTable]
+  private val MergeRecs = TableQuery[EntityMergeLogRecordTable]
   
   private val log = Logger(classOf[BusinessEntityDAO])
+  private val stopWords = conf.get[Seq[String]]("klo.bizEntStopWords").toSet
   
   def store( bizEnt:BusinessEntity ):Future[BusinessEntity] = {
     bizEnt.id match {
@@ -131,4 +133,33 @@ class BusinessEntityDAO @Inject() (protected val dbConfigProvider:DatabaseConfig
          r.name.endsWith(namePart)
   }
   
+  def findSimilarNames(name:String):Future[Seq[(Long, String)]] = {
+    val effName = name.trim()
+    if ( effName.isEmpty ) return Future(Seq())
+    
+    val lvnQuery = sql"""select id, name
+                         |from business_entities be
+                         |where (levenshtein(be.name, ${effName}::varchar)::real)/(greatest(length(be.name), length(${effName}))::real) < 0.55;
+                         |""".stripMargin.as[(Long, String)]
+    val baseWords = effName.split(" ").filter(s => !s.isBlank)
+    val words = baseWords.filter(w => !stopWords(w))
+    val likeQueries = words.filter( _.length > 2 ).map( w => {
+      val likeClause = s"%$w%"
+      sql"""select id, name from business_entities where name like ${likeClause}""".as[(Long, String)]
+    })
+    val dbCmd = DBIO.sequence(likeQueries.toVector)
+    for {
+      l1 <- db.run(lvnQuery)
+      l2 <- if ( likeQueries.nonEmpty) db.run(dbCmd) else Future(Seq())
+    } yield {
+      val pairSet:Set[(Long,String)] = (l1 ++ l2.flatten).toSet
+      pairSet.toSeq.sortBy( p=>p._2 )
+    }
+  }
+  
+  def store( emr:EntityMergeLogEntry ):Future[Int] = {
+    db.run(
+      MergeRecs += emr
+    )
+  }
 }

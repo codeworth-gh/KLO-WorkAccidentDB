@@ -25,9 +25,9 @@ const UiUtils = (function () {
         return height;
     }
 
-    var makeElement = function (type, options, content) {
-        var emt = document.createElement(type);
-        var $emt = $(emt);
+    const makeElement = function (type, options, content) {
+        const emt = document.createElement(type);
+        const $emt = $(emt);
         if (typeof options === 'string') {
             options = {
                 classes: [options]
@@ -59,7 +59,7 @@ const UiUtils = (function () {
             }
             $(content).each( function(i,sub) {
                 if (typeof sub === 'string') {
-                    if ( sub.indexOf("<") >= 0 ) {
+                    if ( sub.indexOf("<") >= 0 || (sub.startsWith("&")&&sub.endsWith(";")) ) {
                         $emt.html(sub);
                     } else {
                         $emt.append(document.createTextNode(sub));
@@ -72,8 +72,8 @@ const UiUtils = (function () {
         return emt;
     };
 
-    var makeA = function (href, options, content) {
-        var emt = makeElement("a", options, content);
+    const makeA = function (href, options, content) {
+        const emt = makeElement("a", options, content);
         emt.href = href;
         if ( options.target ) {
             emt.target = options.target;

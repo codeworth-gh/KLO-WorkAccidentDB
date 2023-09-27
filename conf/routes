@@ -94,6 +94,9 @@ POST    /bkofc/api/users/invitations/:uuid/resend controllers.UserCtrl.apiReInvi
 DELETE  /bkofc/api/users/invitations/:uuid        controllers.UserCtrl.apiDeleteInvitation(uuid)
 
 POST   /bkofc/api/businessEntities/:id/sanctions/ controllers.BusinessEntityCtrl.apiStoreSanction(id:Long)
+GET    /bkofc/api/businessEntities/search/similar controllers.BusinessEntityCtrl.getSimilarlyNamedEntities(name:String)
+POST   /bkofc/api/businessEntities/merges/        controllers.BusinessEntityCtrl.apiMergeEntities(from:Long, into:Long)
+GET    /bkofc/api/businessEntities/merges/:id     controllers.BusinessEntityCtrl.apiGetEntityMergeStatus(id:String)
 GET    /api/businessEntities/:id/sanctions/       controllers.BusinessEntityCtrl.apiListSanctionsFor(id:Long)
 DELETE /api/businessEntities/:id/sanctions/:sid   controllers.BusinessEntityCtrl.apiDeleteSanction(id, sid:Long)
 

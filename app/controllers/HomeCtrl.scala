@@ -54,7 +54,11 @@ object HomeCtrl {
     routes.javascript.BusinessEntityCtrl.apiDeleteSanction,
     routes.javascript.BusinessEntityCtrl.apiListSanctionsFor,
     routes.javascript.BusinessEntityCtrl.doDeleteEntity,
-    routes.javascript.BusinessEntityCtrl.backofficeIndex
+    routes.javascript.BusinessEntityCtrl.getSimilarlyNamedEntities,
+    routes.javascript.BusinessEntityCtrl.backofficeIndex,
+    routes.javascript.BusinessEntityCtrl.apiMergeEntities,
+    routes.javascript.BusinessEntityCtrl.apiGetEntityMergeStatus,
+    routes.javascript.PublicCtrl.bizEntDetails
   )
 
   val beRouteHash:Int = Math.abs(beRouteSeq.map( r => r.f + r.name ).map( _.hashCode ).sum)

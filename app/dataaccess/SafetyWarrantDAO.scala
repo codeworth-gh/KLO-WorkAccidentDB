@@ -68,6 +68,13 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
     )
   }
   
+  def batchUpdateBizEnts( from:Long, into:Long ):Future[Unit] = db.run(
+    DBIO.seq(
+      safetyWarrantTbl.filter( _.kloExecutorId===from).map(_.kloExecutorId).update(Some(into)),
+      safetyWarrantTbl.filter( _.kloOperatorId===from).map(_.kloOperatorId).update(Some(into))
+    )
+  )
+  
   /**
    * List of warrants that are not yet bound to business entities.
    * @param skip
