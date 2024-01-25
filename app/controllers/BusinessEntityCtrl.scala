@@ -1,6 +1,6 @@
 package controllers
 
-import akka.actor.ActorRef
+import org.apache.pekko.actor.ActorRef
 import be.objectify.deadbolt.scala.DeadboltActions
 import controllers.BusinessEntityCtrl.ACTIVE_ENTITY_MERGES
 import dataaccess.{BusinessEntityDAO, SanctionsDAO}

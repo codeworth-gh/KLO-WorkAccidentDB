@@ -2,7 +2,7 @@ package modules
 
 
 import actors.{DataProductsActor, WarrantScrapingActor}
-import akka.actor.{ActorRef, ActorSystem}
+import org.apache.pekko.actor.{ActorRef, ActorSystem}
 import play.api.{Configuration, Logger}
 import play.api.inject.SimpleModule
 import play.api.inject._

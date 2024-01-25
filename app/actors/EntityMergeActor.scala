@@ -1,6 +1,6 @@
 package actors
 
-import akka.actor.{Actor, Props}
+import org.apache.pekko.actor.{Actor, Props}
 import controllers.BusinessEntityCtrl
 import dataaccess.{BusinessEntityDAO, SafetyWarrantDAO, SanctionsDAO, SettingDAO, WorkAccidentDAO}
 import models.EntityMergeLogEntry

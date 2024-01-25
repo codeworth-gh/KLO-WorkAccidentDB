@@ -2,7 +2,7 @@ package controllers
 
 import actors.{DataProductsActor, ImportDataActor}
 import actors.WarrantScrapingActor.StartScrapingSafety
-import akka.actor.ActorRef
+import org.apache.pekko.actor.ActorRef
 import be.objectify.deadbolt.scala.DeadboltActions
 import play.api._
 import play.api.i18n.I18nSupport

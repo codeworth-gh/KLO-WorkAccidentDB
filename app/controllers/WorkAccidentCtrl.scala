@@ -1,7 +1,7 @@
 package controllers
 
 import actors.ImportDataActor
-import akka.actor.ActorRef
+import org.apache.pekko.actor.ActorRef
 import be.objectify.deadbolt.scala.{AuthenticatedRequest, DeadboltActions}
 import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, WorkAccidentDAO}
 import models.{BusinessEntity, InjuredWorker, Severity, WorkAccident}

@@ -1,6 +1,6 @@
 package actors
 
-import akka.actor.{Actor, Props}
+import org.apache.pekko.actor.{Actor, Props}
 import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, WorkAccidentDAO}
 import models.{BusinessEntity, Citizenship, Industry, InjuredWorker, InjuryCause, Region, RelationToAccident, Severity, WorkAccident}
 import play.api.Logger

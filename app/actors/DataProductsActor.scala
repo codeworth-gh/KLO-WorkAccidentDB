@@ -1,6 +1,6 @@
 package actors
 
-import akka.actor.{Actor, Props}
+import org.apache.pekko.actor.{Actor, Props}
 import com.github.jferard.fastods.OdsFactory
 import controllers.PublicCtrl.{rowStyle, titleStyle}
 import dataaccess.{SafetyWarrantDAO, SettingDAO, SettingKey}

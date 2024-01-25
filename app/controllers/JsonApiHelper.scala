@@ -1,6 +1,5 @@
 package controllers
 
-import akka.serialization.JSerializer
 import play.api.libs.json.{JsError, JsPath, Json, JsonValidationError}
 import play.api.mvc.{ControllerHelpers, Result}
 

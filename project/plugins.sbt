@@ -1,4 +1,4 @@
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.8.20")
+addSbtPlugin("org.playframework" % "sbt-plugin" % "3.0.1")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.6")
 

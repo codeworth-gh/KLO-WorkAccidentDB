@@ -1,7 +1,7 @@
 package actors
 
 import actors.WarrantScrapingActor.{StartScrapingSafety, ldtFmt}
-import akka.actor.{Actor, Props}
+import org.apache.pekko.actor.{Actor, Props}
 import controllers.Assets
 import dataaccess.{SafetyWarrantDAO, SettingDAO, SettingKey}
 import models.SafetyWarrant
