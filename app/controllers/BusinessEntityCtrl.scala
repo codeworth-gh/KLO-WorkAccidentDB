@@ -29,7 +29,7 @@ object BusinessEntityCtrl {
 class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponents,
                                    businessEntities:BusinessEntityDAO, sanctions:SanctionsDAO,
                                    @Named("EntityMergeActor") entityMergeActor:ActorRef,
-                                   conf:Configuration
+                                   conf:Configuration, localAction:LocalAction
                                   )
           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport with JsonApiHelper {
   
@@ -51,6 +51,7 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
   private val bizEntityForm = Form(mapping(
     "id"->longNumber,
     "name" -> nonEmptyText,
+    "pcNumber" -> optional(longNumber),
     "phone" -> optional(text),
     "email" -> optional(text),
     "website" -> optional(text),
@@ -62,7 +63,7 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
  
   def showNew() = deadbolt.SubjectPresent()() { implicit req =>
     Future( Ok(
-      views.html.backoffice.businessEntitiesEditor(bizEntityForm.fill(new BusinessEntity(0,"",None, None, None, false, false, None)), sanctionOptions)
+      views.html.backoffice.businessEntitiesEditor(bizEntityForm.fill(new BusinessEntity(0,"",None, None, None, None, false, false, None)), sanctionOptions)
     ))
   }
   
@@ -172,6 +173,10 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
     )
   }
   
+  def apiEnrichPCNums() = localAction(cc.parsers.anyContent(None)){ req=>
+    businessEntities.enrichPCNums()
+    Accepted("Enriching")
+  }
   
   private def loadSanctions(raw:String):Map[String,Seq[String]] = {
     val lines = raw.split("\n").map(_.trim).filter(_.nonEmpty)

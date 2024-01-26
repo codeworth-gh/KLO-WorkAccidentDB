@@ -9,7 +9,7 @@ import play.api.{Configuration, Logger}
 import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.{Await, ExecutionContext, Future, duration}
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 object EntityMergeActor {
   def props:Props = Props[EntityMergeActor]()
@@ -22,7 +22,7 @@ class EntityMergeActor @Inject() (settings:SettingDAO, accidentsDao:WorkAccident
                                   safetyWarrantDao:SafetyWarrantDAO,
                                   config:Configuration)(implicit anEc:ExecutionContext) extends Actor {
   import EntityMergeActor._
-  implicit private val D = Duration(5, duration.MINUTES)
+  implicit private val D: FiniteDuration = Duration(5, duration.MINUTES)
   private val log = Logger(classOf[EntityMergeActor])
   
   override def receive: Receive = {

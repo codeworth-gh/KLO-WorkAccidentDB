@@ -7,7 +7,8 @@ import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.{Await, ExecutionContext, Future, duration}
 import scala.util.Try
 
 object BusinessEntityDAO {
@@ -50,6 +51,7 @@ class BusinessEntityDAO @Inject()(protected val dbConfigProvider:DatabaseConfigP
   
   private val log = Logger(classOf[BusinessEntityDAO])
   private val stopWords = conf.get[Seq[String]]("klo.bizEntStopWords").toSet
+  implicit private val D: FiniteDuration = Duration(5, duration.MINUTES)
   
   def store( bizEnt:BusinessEntity ):Future[BusinessEntity] = {
     bizEnt.id match {
@@ -101,7 +103,8 @@ class BusinessEntityDAO @Inject()(protected val dbConfigProvider:DatabaseConfigP
     for {
       existing <- db.run( Entities.filter( _.name inSet cleanNames ).result )
       missingNames  = cleanNames.removedAll( existing.map(_.name) )
-      toAdd = missingNames.map( name => BusinessEntity(0, name, None, None, None, false, false, None) )
+      toAdd = missingNames.map( name => BusinessEntity(0, name, None, None, None, None,
+                                                          isPrivatePerson = false, isKnownContractor = false, None) )
       added <- db.run( (Entities returning Entities)++=toAdd )
     } yield {
       (existing++added).map( a => a.name -> a ).toMap
@@ -161,5 +164,27 @@ class BusinessEntityDAO @Inject()(protected val dbConfigProvider:DatabaseConfigP
     db.run(
       MergeRecs += emr
     )
+  }
+  
+  def enrichPCNums():Unit = {
+    val counter = new java.util.concurrent.atomic.AtomicInteger(0)
+    val possiblyUpdateable = Await.result(db.run(
+      Entities.filter( rec => !rec.pcNumber.isDefined || rec.pcNumber.isEmpty )
+        .filter( rec => ! rec.memo.isEmpty ).result
+    ), D)
+    val pcNumDetector = "(ח.פ.|חפ|ח.פ|ח\"פ)\\s*([0-9]+)".r
+    possiblyUpdateable.filter(ent => ent.memo.nonEmpty && !ent.memo.get.isBlank)
+      .map( ent  => (ent, pcNumDetector.findAllMatchIn(ent.memo.get).toSeq))
+      .filter( p => p._2.size == 1)
+      .map( p    => (p._1, p._2.head) )
+      .filter( p => p._2.groupCount==2 )
+      .map( p => (p._1, p._2.group(2)) ) // now it's (entity, new pcNum)
+      .map( p => p._1.copy( pcNumber = Some(p._2.toLong)))
+      .foreach( p=> {
+        log.info(s"Updating ${p.id} with pcNumber ${p.pcNumber.get}. Memo: '${p.memo}'")
+        store( p )
+        counter.incrementAndGet()
+      })
+      log.info(s"Updated ${counter.get()} records.")
   }
 }

@@ -55,17 +55,18 @@ class PasswordResetRequestsTable(tag:Tag) extends Table[PasswordResetRequest](ta
 }
 
 class BusinessEntityTable(tag:Tag) extends Table[BusinessEntity](tag, "business_entities") {
-  def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
-  def name = column[String]("name")
-  def phone = column[Option[String]]("phone")
-  def email = column[Option[String]]("email")
-  def website = column[Option[String]]("website")
-  def isPrivatePerson = column[Boolean]("is_private_person")
+  def id                = column[Long]("id", O.AutoInc, O.PrimaryKey)
+  def name              = column[String]("name")
+  def pcNumber          = column[Option[Long]]("pc_number")
+  def phone             = column[Option[String]]("phone")
+  def email             = column[Option[String]]("email")
+  def website           = column[Option[String]]("website")
+  def isPrivatePerson   = column[Boolean]("is_private_person")
   def isKnownContractor = column[Boolean]("is_known_contractor")
-  def memo = column[Option[String]]("memo")
+  def memo              = column[Option[String]]("memo")
   
   def * = (
-    id, name, phone, email, website, isPrivatePerson, isKnownContractor, memo
+    id, name, pcNumber, phone, email, website, isPrivatePerson, isKnownContractor, memo
   ) <> (BusinessEntity.tupled, BusinessEntity.unapply)
   
   def nameIdx = index("business_entities_name", name)
@@ -224,9 +225,9 @@ abstract class BaseSafetyWarrantsTable(t:Tag, tableName:String) extends Table[Sa
     felony, law, clause, scrapeDate, kloOperatorId, kloExecutorId, kloIndustryId
    ) <> (SafetyWarrant.tupled, SafetyWarrant.unapply)
   
-  def fkComp = foreignKey("fk_operator_id", kloOperatorId, TableRefs.businessEntities)(_.id)
-  def fkExec = foreignKey("fk_executor_id", kloExecutorId, TableRefs.businessEntities)(_.id)
-  def fkInds = foreignKey("fk_industry_id", kloIndustryId, TableRefs.industries)(_.id)
+  def fkComp = foreignKey("fk_operator_id", kloOperatorId, TableRefs.businessEntities)(_.id.?)
+  def fkExec = foreignKey("fk_executor_id", kloExecutorId, TableRefs.businessEntities)(_.id.?)
+  def fkInds = foreignKey("fk_industry_id", kloIndustryId, TableRefs.industries)(_.id.?)
 }
 
 class SafetyWarrantsTable(t:Tag) extends BaseSafetyWarrantsTable(t, "safety_warrants")

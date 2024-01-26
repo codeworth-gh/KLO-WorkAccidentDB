@@ -9,6 +9,8 @@ import java.util.UUID
 case class BusinessEntity(
   id:   Long,
   name: String,
+  /** Private Company number (מספר ח.פ.) */
+  pcNumber: Option[Long],
   phone:   Option[String],
   email:   Option[String],
   website: Option[String],
