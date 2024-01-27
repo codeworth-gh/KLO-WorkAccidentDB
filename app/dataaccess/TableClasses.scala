@@ -1,7 +1,7 @@
 package dataaccess
 
 import java.sql.Timestamp
-import models.{BusinessEntity, BusinessEntityMapping, BusinessEntityStats, BusinessEntitySummary, Citizenship, CountByCategoryAndYear, EntityMergeLogEntry, ExecutorCountPerYearRow, ExecutorCountRow, Industry, IndustryMapping, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, SafetyWarrant, Sanction, User, WorkAccidentSummary}
+import models.{BusinessEntity, BusinessEntityMapping, BusinessEntityStats, BusinessEntitySummary, Citizenship, CountByCategoryAndYear, EntityMergeLogEntry, ExecutorCountPerYearRow, ExecutorCountRow, Industry, IndustryMapping, InjuryCause, Invitation, PasswordResetRequest, Region, RelationToAccident, SafetyViolationSanction, SafetyWarrant, Sanction, User, WorkAccidentSummary}
 import slick.lifted.Tag
 import slick.jdbc.PostgresProfile.api._
 
@@ -308,6 +308,24 @@ class EntityMergeLogRecordTable(t:Tag) extends Table[EntityMergeLogEntry](t, "en
   def message      = column[String]("message")
   
   def * = (mergeId, tableNameStr, message ) <> (EntityMergeLogEntry.tupled, EntityMergeLogEntry.unapply)
+}
+
+class SafetyViolationSanctionTable(t:Tag) extends Table[SafetyViolationSanction](t, "safety_violations_sanctions") {
+  def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
+  def govId = column[Int]("gov_id")
+  def sanctionNumber = column[Int]("sanction_number")
+  def sanctionDate = column[LocalDate]("sanction_date")
+  def companyName = column[String]("company_name")
+  def pcNumber = column[Option[Long]]("pc_number")
+  def violationSite = column[String]("violation_site")
+  def violationClause = column[String]("violation_clause")
+  def sum = column[Int]("sum")
+  def commissionersDecision = column[Option[String]]("commissioners_decision")
+  def klo_businessEntityId = column[Option[Long]]("klo_business_entity_id")
+  
+  def * = ( id, govId, sanctionNumber, sanctionDate, companyName, pcNumber, violationSite,
+            violationClause, sum, commissionersDecision, klo_businessEntityId ) <> (SafetyViolationSanction.tupled, SafetyViolationSanction.unapply)
+  
 }
 
 object TableRefs {
