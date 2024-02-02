@@ -25,7 +25,8 @@ case class BusinessEntityStats(
   isKnownContractor: Boolean,
   accidentCount: Long,
   killedCount:   Long,
-  injuredCount:  Long
+  injuredCount:  Long,
+  safetyViolationSanctionCount: Long
 )
 
 case class ExecutorCountRow(name:String, count:Int)

@@ -31,6 +31,7 @@ object BusinessEntityDAO {
     val Accidents = Value
     val Killed    = Value
     val Injured   = Value
+    val SafetySanctions = Value
     
     def named(name:String):Option[StatsSortKey.Value] = {
       try {
@@ -111,6 +112,16 @@ class BusinessEntityDAO @Inject()(protected val dbConfigProvider:DatabaseConfigP
     }
   }
   
+  def findByPcNumOrName( pcNum:Long, name:String):Future[Option[BusinessEntity]] = {
+    for {
+      byPc <- db.run( Entities.filter(_.pcNumber === pcNum).result.headOption )
+      byName <- byPc match {
+        case None =>  db.run( Entities.filter(_.name === name).result.headOption )
+        case Some(b) => Future(byPc)
+      }
+    } yield byName
+  }
+  
   def listStats(searchStr:String, knownOnly:Boolean, start:Int, pageSize:Int, sortBy:StatsSortKey.Value=StatsSortKey.Accidents, isAsc:Boolean=false):Future[Seq[BusinessEntityStats]] = {
     val base = if ( searchStr.isBlank ) Stats else Stats.filter(r=>r.name.like("%"+searchStr+"%"))
     val p2 = if ( knownOnly ) base.filter( _.isKnownContractor === true ) else base
@@ -128,6 +139,7 @@ class BusinessEntityDAO @Inject()(protected val dbConfigProvider:DatabaseConfigP
     case StatsSortKey.Accidents => (r:BusinessEntityStatsTable) => if (asc) r.accCnt.asc else r.accCnt.desc
     case StatsSortKey.Killed    => (r:BusinessEntityStatsTable) => if (asc) r.kldCnt.asc else r.kldCnt.desc
     case StatsSortKey.Injured   => (r:BusinessEntityStatsTable) => if (asc) r.injCnt.asc else r.injCnt.desc
+    case StatsSortKey.SafetySanctions   => (r:BusinessEntityStatsTable) => if (asc) r.svsCnt.asc else r.svsCnt.desc
   }
   
   private def makeNameFilter(namePart: String) = {
@@ -172,7 +184,7 @@ class BusinessEntityDAO @Inject()(protected val dbConfigProvider:DatabaseConfigP
       Entities.filter( rec => !rec.pcNumber.isDefined || rec.pcNumber.isEmpty )
         .filter( rec => ! rec.memo.isEmpty ).result
     ), D)
-    val pcNumDetector = "(ח.פ.|חפ|ח.פ|ח\"פ)\\s*([0-9]+)".r
+    val pcNumDetector = "(ח.פ.|חפ|ח.פ|ח\"פ)\\s*([0-9]+)s*".r
     possiblyUpdateable.filter(ent => ent.memo.nonEmpty && !ent.memo.get.isBlank)
       .map( ent  => (ent, pcNumDetector.findAllMatchIn(ent.memo.get).toSeq))
       .filter( p => p._2.size == 1)

@@ -17,12 +17,12 @@ class SafetyViolationSanctionDAO @Inject()(protected val dbConfigProvider:Databa
   import profile.api._
   implicit private val D: FiniteDuration = Duration(5, duration.MINUTES)
   
-  val svsTable = TableQuery[SafetyViolationSanctionTable]
+  private val svsTable = TableQuery[SafetyViolationSanctionTable]
   
   def store(svs:SafetyViolationSanction):Future[SafetyViolationSanction] = {
     svs.id match {
       case 0 => db.run( (svsTable.returning( svsTable.map(_.id) ).into( (svs, newId)=>svs.copy(id=newId) )) += svs )
-      case existingId:Int => db.run( svsTable.update(svs) ).map( _ => svs )
+      case existingId:Int => db.run( svsTable.filter(_.id===svs.id).update(svs) ).map( _ => svs )
     }
   }
   
@@ -39,7 +39,7 @@ class SafetyViolationSanctionDAO @Inject()(protected val dbConfigProvider:Databa
   )
   
   def isScraped( sanctionGovId:Int ): Future[Boolean] = db.run(
-    svsTable.filter( _.govId === sanctionGovId ).exists.result
+    svsTable.filter( _.sanctionNumber === sanctionGovId ).exists.result
   )
   
 }

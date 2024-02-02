@@ -113,7 +113,7 @@ bizEntList.th.name=שם
 bizEntList.th.accidents=מספר תאונות
 bizEntList.th.injuredCount=כמות נפגעים
 bizEntList.th.killedCount=כמות הרוגים (מתוך הנפגעים)
-
+bizEntList.th.safetySanction=ליקויי בטיחות
 businessEntities.details=פרטים
 businessEntities.title=גורמים עסקיים מעורבים
 businessEntities.help=גורמים עסקיים המעורבים בתאונות, כגון מעסיקים, קבלנים, ויזמי פרוייקטים
@@ -142,6 +142,13 @@ businessEntities.deleteSanction=מחיקת סנקציה
 businessEntities.updateSanction=עדכון סנקציה
 businessEntities.clear=ניקוי נתונים
 businessEntities.memo=הערות
+businessEntities.safetyViolationSanctions=עיצומים כספיים על ליקויי בטיחות
+businessEntities.svs.sanctionNumber=מספר מזהה
+businessEntities.svs.violationSite=אתר
+businessEntities.svs.violationClause=סעיף הפרה
+businessEntities.svs.sum=סכום קנס
+businessEntities.svs.commissionersDecision=תוצאת ערעור
+
 
 businessEntitiesEditor.title=עריכת גורם מעורב
 businessEntitiesEditor.deleteMsg=למחוק את הגורם המעורב?

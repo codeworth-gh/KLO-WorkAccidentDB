@@ -3,7 +3,6 @@
 -- !Ups
 CREATE TABLE safety_violations_sanctions(
     id serial primary key,
-    gov_id int,
     sanction_number int,
     sanction_date date,
     company_name varchar,
@@ -16,9 +15,9 @@ CREATE TABLE safety_violations_sanctions(
 );
 
 CREATE INDEX svs_by_biz_ent on safety_violations_sanctions(klo_business_entity_id);
-CREATE INDEX svs_by_gov_id on safety_violations_sanctions(gov_id);
+CREATE INDEX svs_by_sanction_number on safety_violations_sanctions(sanction_number);
 
 -- !Downs
-DROP INDEX svs_by_gov_id;
+DROP INDEX svs_by_sanction_number;
 DROP INDEX svs_by_biz_ent;
 DROP TABLE safety_violations_sanctions;

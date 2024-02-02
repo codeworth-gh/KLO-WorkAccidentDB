@@ -25,7 +25,7 @@ object WarrantScrapingActor {
 }
 
 @Singleton
-class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:SettingDAO, ws:WSClient, assets:Assets,
+class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:SettingDAO, ws:WSClient,
                                       config:Configuration)(implicit anEc:ExecutionContext) extends Actor {
   private val log = Logger(classOf[WarrantScrapingActor])
   private val D = Duration(5, duration.MINUTES)

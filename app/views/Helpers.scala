@@ -47,7 +47,7 @@ object Helpers {
   def format(fmtName:DateFmt.Value, ldt: LocalDate ):String = ldt.format( dateFormats(fmtName) )
   def format(fmtName:DateFmt.Value, ldt: LocalTime ):String = ldt.format( dateFormats(fmtName) )
   def format(fmtName:DateFmt.Value, ldt: Timestamp ):String = format( fmtName, LocalDateTime.ofInstant(Instant.ofEpochMilli(ldt.getTime), TimeZone.getDefault.toZoneId))
-  
+  def formatAsCurrency(sum:Int) = String.format("%,d.00", sum)
   
   def encodeUriComponent( s:String ):String = UriEncoding.encodePathSegment(s, java.nio.charset.StandardCharsets.UTF_8)
   def stripHtmlTags(s:String):String = s.replaceAll("<.*?>","")

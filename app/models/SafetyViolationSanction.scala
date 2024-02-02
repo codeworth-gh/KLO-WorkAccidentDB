@@ -9,8 +9,6 @@ import java.time.LocalDate
 case class SafetyViolationSanction(
   /** ID in KLO's system  */
   id: Int,
-  /** ID in data.gov.il system (for backtracking) */
-  govId: Int,
   /** Sanction id  */
   sanctionNumber: Int,
   date: LocalDate,

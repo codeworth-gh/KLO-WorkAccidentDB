@@ -51,6 +51,9 @@
                 @comps.sortingTH(Messages("bizEntList.th.name"),
                   b=>th("Name", sortKey, StatsSortKey.Name, isAsc),
                   sortKey, StatsSortKey.Name, isAsc)
+                @comps.sortingTH(Messages("bizEntList.th.safetySanction"),
+                  b=>th("SafetySanctions", sortKey, StatsSortKey.SafetySanctions, isAsc),
+                  sortKey, StatsSortKey.SafetySanctions, isAsc)
                 @comps.sortingTH(Messages("bizEntList.th.accidents"),
                   b=>th("AccidentCount", sortKey, StatsSortKey.Accidents, isAsc),
                   sortKey, StatsSortKey.Accidents, isAsc)
@@ -71,6 +74,7 @@
                     @if( bes.isKnownContractor ){ <span class="badge text-bg-warning">@Messages("businessEntities.knownContractor")</span>}
                   </a>
                 </td>
+                <td>@String.format("%,d",bes.safetyViolationSanctionCount)</td>
                 <td>@String.format("%,d",bes.accidentCount)</td>
                 <td>@String.format("%,d",bes.injuredCount)</td>
                 <td>@String.format("%,d",bes.killedCount)</td>

@@ -19,7 +19,7 @@ import javax.inject.{Inject, Named}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.util.{Failure, Success}
-import actors.EntityMergeActor
+import actors.{EntityMergeActor, SafetyViolationSanctionScrapingActor}
 
 object BusinessEntityCtrl {
   val PAGE_SIZE=30
@@ -29,6 +29,7 @@ object BusinessEntityCtrl {
 class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponents,
                                    businessEntities:BusinessEntityDAO, sanctions:SanctionsDAO,
                                    @Named("EntityMergeActor") entityMergeActor:ActorRef,
+                                   @Named("svsScrapingActor") svsScrapeActor:ActorRef,
                                    conf:Configuration, localAction:LocalAction
                                   )
           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport with JsonApiHelper {
@@ -176,6 +177,11 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
   def apiEnrichPCNums() = localAction(cc.parsers.anyContent(None)){ req=>
     businessEntities.enrichPCNums()
     Accepted("Enriching")
+  }
+  
+  def apiScrapeSvs() = localAction(cc.parsers.anyContent(None)) { req =>
+    svsScrapeActor ! SafetyViolationSanctionScrapingActor.StartScrape
+    Accepted("Scraping")
   }
   
   private def loadSanctions(raw:String):Map[String,Seq[String]] = {

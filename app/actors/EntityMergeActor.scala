@@ -2,7 +2,7 @@ package actors
 
 import org.apache.pekko.actor.{Actor, Props}
 import controllers.BusinessEntityCtrl
-import dataaccess.{BusinessEntityDAO, SafetyWarrantDAO, SanctionsDAO, SettingDAO, WorkAccidentDAO}
+import dataaccess.{BusinessEntityDAO, SafetyViolationSanctionDAO, SafetyWarrantDAO, SanctionsDAO, SettingDAO, WorkAccidentDAO}
 import models.EntityMergeLogEntry
 import play.api.{Configuration, Logger}
 
@@ -20,6 +20,7 @@ class EntityMergeActor @Inject() (settings:SettingDAO, accidentsDao:WorkAccident
                                   sanctionsDao:SanctionsDAO,
                                   bizEntDao: BusinessEntityDAO,
                                   safetyWarrantDao:SafetyWarrantDAO,
+                                  svsDAO:SafetyViolationSanctionDAO,
                                   config:Configuration)(implicit anEc:ExecutionContext) extends Actor {
   import EntityMergeActor._
   implicit private val D: FiniteDuration = Duration(5, duration.MINUTES)
@@ -64,6 +65,12 @@ class EntityMergeActor @Inject() (settings:SettingDAO, accidentsDao:WorkAccident
       w(accidentsDao.batchUpdateBart(from, into))
       
     } else log.info( s"$mergeId: No accidents found")
+    
+    // safety violation sanctions
+    val svs = w(svsDAO.getForBusinessEntity(from))
+    if ( svs.nonEmpty ) {
+      svs.map( s => s.copy(kloBizEntId = Some(into)) ).foreach( s => w(svsDAO.store(s)) )
+    } else log.info(s"$mergeId: No safety violation sanctions found")
     
     // business entities
     val doomedOpt = w(bizEntDao.get(from))

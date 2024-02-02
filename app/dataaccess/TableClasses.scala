@@ -79,8 +79,9 @@ class BusinessEntityStatsTable(tag:Tag) extends Table[BusinessEntityStats](tag, 
   def accCnt = column[Long]("accident_count")
   def kldCnt = column[Long]("killed_count")
   def injCnt = column[Long]("injured_count")
+  def svsCnt = column[Long]("safety_violation_sanction_count")
   
-  def * = (id, name, isKnownContractor, accCnt, kldCnt, injCnt) <> (BusinessEntityStats.tupled, BusinessEntityStats.unapply)
+  def * = (id, name, isKnownContractor, accCnt, kldCnt, injCnt, svsCnt) <> (BusinessEntityStats.tupled, BusinessEntityStats.unapply)
 }
 
 class BusinessEntitySummaryTable(tag:Tag) extends Table[BusinessEntitySummary](tag, "business_entities") {
@@ -312,7 +313,6 @@ class EntityMergeLogRecordTable(t:Tag) extends Table[EntityMergeLogEntry](t, "en
 
 class SafetyViolationSanctionTable(t:Tag) extends Table[SafetyViolationSanction](t, "safety_violations_sanctions") {
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
-  def govId = column[Int]("gov_id")
   def sanctionNumber = column[Int]("sanction_number")
   def sanctionDate = column[LocalDate]("sanction_date")
   def companyName = column[String]("company_name")
@@ -323,7 +323,7 @@ class SafetyViolationSanctionTable(t:Tag) extends Table[SafetyViolationSanction]
   def commissionersDecision = column[Option[String]]("commissioners_decision")
   def klo_businessEntityId = column[Option[Long]]("klo_business_entity_id")
   
-  def * = ( id, govId, sanctionNumber, sanctionDate, companyName, pcNumber, violationSite,
+  def * = ( id, sanctionNumber, sanctionDate, companyName, pcNumber, violationSite,
             violationClause, sum, commissionersDecision, klo_businessEntityId ) <> (SafetyViolationSanction.tupled, SafetyViolationSanction.unapply)
   
 }

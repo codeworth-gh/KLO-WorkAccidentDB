@@ -1,5 +1,5 @@
 @(bizEnt:BusinessEntity, accidents:Map[WorkAccidentSummary, Set[RelationToAccident]],
-        sanctions:Seq[Sanction])(implicit request:Request[_], msgs:MessagesProvider)
+        sanctions:Seq[Sanction], violationSanctions:Seq[SafetyViolationSanction])(implicit request:Request[_], msgs:MessagesProvider)
 
 @templates.frontEndBase(Messages("businessEntities.title") + "-" + bizEnt.name, views.PublicSections.BizEntList) {
   @comps.pageTitleRow( bizEnt.name + (if(bizEnt.isKnownContractor){ " <span class='badge text-bg-warning'>" + Messages("businessEntities.knownContractor") + "</span>"} else "") )(Html(""))
@@ -13,6 +13,12 @@
     <div class="col-2">@Messages("businessEntities.name")</div>
     <div class="col-10">
       @bizEnt.name
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-2">@Messages("pcNumber")</div>
+    <div class="col-10">
+      @Helpers.nonEmptyOrElse(bizEnt.pcNumber.map(_.toString))(s=> Html(s)){ <div class="noDataLight">@Messages("businessEntities.noData")</div> }
     </div>
   </div>
   <div class="row">
@@ -78,6 +84,37 @@
                   <td>@snc.remarks</td>
                 </tr>
               }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+    @if( violationSanctions.nonEmpty ) {
+      <div class="row mt-5">
+        <div class="col">
+          <h2>@Messages("businessEntities.safetyViolationSanctions")</h2>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>@Messages("businessEntities.svs.sanctionNumber")</th>
+                <th>@Messages("date")</th>
+                <th>@Messages("businessEntities.svs.violationSite")</th>
+                <th>@Messages("businessEntities.svs.violationClause")</th>
+                <th>@Messages("businessEntities.svs.sum")</th>
+                <th>@Messages("businessEntities.svs.commissionersDecision")</th>
+              </tr>
+            </thead>
+            <tbody>
+            @for( snc <- violationSanctions ) {
+              <tr>
+                <td>@snc.sanctionNumber</td>
+                <td>@Helpers.format(Helpers.DateFmt.HR_Date, snc.date)</td>
+                <td>@snc.violationSite</td>
+                <td>@snc.violationClause</td>
+                <td>@Helpers.formatAsCurrency(snc.sum) ₪</td>
+                <td>@snc.commissionersDecision</td>
+              </tr>
+            }
             </tbody>
           </table>
         </div>
