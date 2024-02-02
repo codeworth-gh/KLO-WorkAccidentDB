@@ -51,9 +51,10 @@
       data: {
           x:'x',
         columns: [
-            ['x', @Html(prevYears.toSeq.map(_._1).map(_.toString).mkString("'","','","'"))],
-            @for( r <- prevYears.toSeq.flatMap(p=>p._2.toSeq.map(m=>(m._1, p._1, m._2))).groupBy(_._1).map(p=>p._1->p._2.map(_._3)).toSeq.sortBy(_._1.map(_.id).getOrElse(-1)) ){
-                ['@r._1.map(s=>Messages("severity.s."+s.toString)).getOrElse(Messages("unknown"))', @r._2.mkString(",")],}
+            ['x', @Html(prevYears.toSeq.sortBy(_._1).map(_._1).map(_.toString).mkString("'","','","'"))],
+            @for( r <- prevYears.toSeq.sortBy(_._1).flatMap(p=>p._2.toSeq.map(m=>(m._1, p._1, m._2))).groupBy(_._1).map(p=>p._1->p._2.map(_._3)).toSeq.sortBy(_._1.map(_.id).getOrElse(-1)) ){
+                ['@r._1.map(s=>Messages("severity.s."+s.toString)).getOrElse(Messages("unknown"))', @r._2.mkString(",")],
+          }
         ],
         type: 'bar',
         groups: [

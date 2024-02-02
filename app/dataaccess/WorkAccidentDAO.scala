@@ -394,10 +394,23 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
       numbers <- db.run(qry)
     } yield {
       val years = numbers.map(_._1).distinct
-      years.map( y => y ->
-                      numbers.filter(_._1==y).map(row=>row._2.map(v=>Severity(v))->row._3).toMap
-      ).toMap
+      val sevByYear = years.map( y => y ->
+                      numbers.filter(_._1==y).map(row=>row._2.map(v=>Severity(v))->row._3).toMap).toMap
+      sevByYear.map( year => year._1 -> completeSet(year._2) )
     }
+  }
+  
+  private def completeSet(value: Map[Option[Severity.Value], Int]):Map[Option[Severity.Value], Int] = {
+    var retVal = value
+    for ( sev <- Severity.values ) {
+      if ( !retVal.keySet(Some(sev)) ) {
+        retVal = retVal + (Some(sev)->0)
+      }
+    }
+    if ( !retVal.keySet(None) ) {
+      retVal = retVal + (None->0)
+    }
+    retVal
   }
   
   // FIXME: Cache this forever, invalidate on write.
