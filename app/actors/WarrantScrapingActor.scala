@@ -1,16 +1,17 @@
 package actors
 
-import actors.WarrantScrapingActor.{StartScrapingSafety, ldtFmt}
-import org.apache.pekko.actor.{Actor, Props}
+import actors.WarrantScrapingActor.ldtFmt
+import org.apache.pekko.actor.{Actor, ActorSystem, Props}
 import controllers.Assets
 import dataaccess.{SafetyWarrantDAO, SettingDAO, SettingKey}
 import models.SafetyWarrant
-import play.api.libs.json.{JsArray, JsDefined, JsObject, JsString, JsUndefined, JsValue}
+import play.api.libs.json.{JsArray, JsBoolean, JsDefined, JsNull, JsNumber, JsObject, JsString, JsUndefined, JsValue}
 import play.api.libs.ws.WSClient
 import play.api.{Configuration, Logger}
 
 import java.time.{LocalDate, LocalDateTime}
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{Await, ExecutionContext, Future, duration}
 import scala.concurrent.duration.Duration
@@ -21,89 +22,130 @@ object WarrantScrapingActor {
   
   val dateFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
   val ldtFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-  case class StartScrapingSafety( skip:Int )
+  case object StartScrape
+  case class ScrapeRecords( endpoint:String )
 }
 
 @Singleton
 class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:SettingDAO, ws:WSClient,
+                                      actorSystem:ActorSystem,
                                       config:Configuration)(implicit anEc:ExecutionContext) extends Actor {
   private val log = Logger(classOf[WarrantScrapingActor])
   private val D = Duration(5, duration.MINUTES)
+  import WarrantScrapingActor._
+  private val mutedCategories = config.get[Seq[String]]("scraper.safety.mutedCategories").toSet
   
   
   override def receive: Receive = {
-    case StartScrapingSafety( skip ) => {
-      if ( config.get[Boolean]("scraper.safety.active") ) {
-        scrapeSafety( skip )
-      } else {
-        log.info( s"Ignoring call to scrape from $skip - actor deactivated (scraper.safety.active != true)")
-      }
-    }
+    case StartScrape => scrape(
+      config.get[String]("scraper.safety.endpoint") + "&limit=" + config.get[String]("scraper.safety.limit") + "&sort=send_date desc"
+    )
+    case ScrapeRecords( url ) => scrape(url)
   }
 
-  def scrapeSafety(skip: Int):Unit = {
-    log.info(s"Safety warrant scraping with skip: $skip")
+  def scrape(endpoint:String ):Unit  = {
+    val server = config.get[String]("scraper.safety.server")
+    if ( !config.get[Boolean]("scraper.safety.active") ) {
+      log.info(s"Ignoring call to scrape safety warrants from $endpoint - actor deactivated (scraper.safety.active != true)")
+      return
+    }
     
-    // prepare call
-    val payloadSrc = Source.fromResource("public/warrant-safety-payload.json").getLines().mkString("\n")
-    val payload = eval( skip, payloadSrc )
-    val url = eval( skip, config.get[String]("scraper.safety.url") )
+    log.info( s"Scraping safety warrants. Url: ${server}${endpoint}")
     
-    log.info("payload: " + payload)
-    
-    val request = ws.url(url).withHttpHeaders("Content-Type"->"application/json")
-      .withHttpHeaders("Accept"->"application/json")
+    // Query service
+    val response = ws.url(server+endpoint).withHttpHeaders("Content-Type" -> "application/json")
+      .withHttpHeaders("Accept" -> "application/json")
       .withHttpHeaders("User-Agent" -> "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:95.0) Gecko/20100101 Firefox/95.0")
       .withFollowRedirects(true)
-      .addQueryStringParameters("skip"->eval(skip, "SKIP"))
+    val result = Await.result( response.get(), D )
     
-    log.info("URL: " + request.uri.toString)
-    
-    log.info("Submitting request")
-    val timestamp = LocalDateTime.now()
-    val res = Await.result( request.post(payload), D )
-    log.info("Got response")
-    
-    // parse
+    // Parse result
     try {
-      val json = res.json.asInstanceOf[JsObject]
-      val records = parse(json, timestamp)
-  
-      // See if we have new records
-      val newRecs = records.filter(r => !Await.result(safetyWarrants.exists(r.id), D))
-      
-      // TODO apply mappings
-  
-      if (newRecs.nonEmpty) {
-        settings.set(SettingKey.SafetyWarrantProductsNeedUpdate, "pending")
-        val fw = newRecs.map(r => safetyWarrants.store(r))
-        Await.result(Future.sequence(fw), D) // wait until all entries are done
-        log.info(s"${newRecs.size} new records found, requesting another scrape")
+      // parse and decide whether we need to go back
+      parse(result.json.asInstanceOf[JsObject]) match {
+        case Some(nextUrl) =>
+          val minSeconds = config.get[Int]("scraper.safety.minDelay")
+          val maxSeconds = config.get[Int]("scraper.safety.maxDelay")
+          val seconds = minSeconds + util.Random.nextInt(maxSeconds-minSeconds)
+          log.info(s"Scheduling next warrants scrape in $seconds sec.")
+          actorSystem.scheduler.scheduleOnce(Duration( seconds, TimeUnit.SECONDS), self, ScrapeRecords(nextUrl))
         
-        // skip +20 if new found
-        val newSkip = skip + config.get[Int]("scraper.safety.skipDelta")
-        delay()
-        self ! StartScrapingSafety(newSkip)
-    
-      } else {
-        if ( settings.get(SettingKey.SafetyWarrantProductsNeedUpdate).contains("pending") ) {
-          settings.set(SettingKey.SafetyWarrantProductsNeedUpdate, "yes")
-        }
-        log.info("No new records found, scraping done")
+        case None =>
+          log.info(s"Scraping safety violation sanctions done for today")
+        
       }
-      settings.set(SettingKey.LastSafetyWarrantScrapeTime, ldtFmt.format(LocalDateTime.now()))
-      
     } catch {
       case e:Exception => {
-        log.warn("Error scraping safety warrants: " + e.getMessage, e)
-        log.info( "=== Result body ===")
-        log.info( res.body )
-        log.info( "=== /Result body ===")
+        log.warn(s"Error parsing warrants response: ${e.getMessage}", e)
+        log.warn("Response:\n" + result.toString)
+        log.warn("Response Body:\n" + result.body)
       }
     }
   }
   
-  private def parse(jsRes:JsValue, timestamp:LocalDateTime):Seq[SafetyWarrant] = {
+  def parse( res:JsObject ):Option[String] = {
+    // check it's all ok
+    
+    val success = (res \ "success").get.as[JsBoolean].value
+    if ( ! success ) {
+      log.warn(s"Error scraping safety warrants: /success != true")
+      log.warn(s"Response JSON body: \n${res}")
+      return None
+    }
+    
+    // parse and store actual records
+    val records = (res \ "result" \ "records").as[JsArray]
+    val foundExisting = records.value.map( parseSingleRecord ).fold(false)(_||_)
+    
+    // if all records where new, return Some("_links/next") else return None.
+    if ( foundExisting )
+      None
+    else
+      Some((res \ "result" \ "_links"  \ "next").get.asInstanceOf[JsString].value)
+  }
+  
+  private def parseSingleRecord(jsVal:JsValue ):Boolean = {
+    val jsonRec = jsVal.asInstanceOf[JsObject]
+    // in case they fix spelling at some point
+    val warrantIdKey = if (jsonRec.keys("warrant_id")) "warrant_id" else "warrent_id"
+    val warrant = SafetyWarrant(
+      id = (jsonRec \ warrantIdKey ).get.asInstanceOf[JsString].value.trim.toLong,
+      sentDate = LocalDate.parse( (jsonRec \ "send_date").get.as[JsString].value, dateFmt ),
+      operatorTextId = (jsonRec \ "work_id").get.as[JsNumber].value.toString(),
+      operatorName   = (jsonRec \ "work_name").toOption.map( _.as[JsString].value ).getOrElse(""),
+      cityName = (jsonRec \ "city_name").toOption.map( _.as[JsString].value ).getOrElse(""),
+      executorName = (jsonRec \ "executor_name").toOption.map( _.as[JsString].value ).getOrElse(""),
+      categoryName = (jsonRec \ "category_name").toOption.map( _.as[JsString].value ).getOrElse(""),
+      felony       = (jsonRec \ "felony_name").toOption.map( _.as[JsString].value ).getOrElse(""),
+      law          = (jsonRec \ "law_name").toOption.map( _.as[JsString].value ).getOrElse(""),
+      clause       = (jsonRec \ "clause_name").toOption.map({
+        case JsNull => ""
+        case s: JsString => s.value
+      }).getOrElse(""),
+      scrapeDate = LocalDateTime.now(),
+      None, None, None
+    )
+    if ( mutedCategories(warrant.categoryName) ) {
+      log.info(s"Skipping scraped warrant ${warrant.id} since its category, ${warrant.categoryName} is muted.")
+      false
+      
+    } else {
+      if ( Await.result(safetyWarrants.exists(warrant.id), D) ) {
+        log.info(s"Warrant ${warrant.id} already scrapped.")
+        true
+        
+      } else {
+        Await.result(safetyWarrants.store(warrant), D)
+        settings.set(SettingKey.SafetyWarrantProductsNeedUpdate, "yes")
+        log.info(s"Adding scraped warrant ${warrant.id}.")
+        false
+      }
+    }
+  }
+  
+  // -- old
+  
+  private def parse_old(jsRes:JsValue, timestamp:LocalDateTime):Seq[SafetyWarrant] = {
     if ( ! jsRes.isInstanceOf[JsObject] ) {
       log.warn("Error scraping safety warrants: did not receive a JSON object. Value: '" + jsRes.toString + "'")
       return Seq()
@@ -127,6 +169,7 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
       }
     }
   }
+  
   
   private def delay():Unit = {
     val min = config.get[Int]("scraper.safety.minDelay")

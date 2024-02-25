@@ -61,7 +61,6 @@ POST  /bkofc/accidents/     controllers.WorkAccidentCtrl.doSaveAccident()
 GET   /bkofc/import/accidents controllers.WorkAccidentCtrl.showImport()
 POST  /bkofc/import/accidents controllers.WorkAccidentCtrl.doImport()
 
-POST /bkofc/import/safetyWarrants controllers.HomeCtrl.scrapeSafety(skip:Option[Int])
 PUT  /bkofc/dataProducts/update   controllers.HomeCtrl.updateSafetyWarrantsOds()
 
 # API
@@ -107,6 +106,7 @@ DELETE  /bkofc/api/workAccidents/:id     controllers.WorkAccidentCtrl.doDeleteEn
 PUT /bkofc/api/importFile      controllers.HomeCtrl.importDataFromFile
 POST /local/api/enrich/pcNums  controllers.BusinessEntityCtrl.apiEnrichPCNums
 POST /local/api/scrape/safetyViolationSanctions  controllers.BusinessEntityCtrl.apiScrapeSvs
+POST /local/api/scrape/warrants  controllers.BusinessEntityCtrl.apiScrapeWarrants
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

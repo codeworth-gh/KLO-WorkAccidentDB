@@ -1,7 +1,6 @@
 package controllers
 
 import actors.{DataProductsActor, ImportDataActor}
-import actors.WarrantScrapingActor.StartScrapingSafety
 import org.apache.pekko.actor.ActorRef
 import be.objectify.deadbolt.scala.DeadboltActions
 import play.api._
@@ -106,12 +105,6 @@ class HomeCtrl @Inject()(deadbolt:DeadboltActions, localAction:LocalAction,
     } else {
       BadRequest("Path not found on FS: " + path.toAbsolutePath.toString)
     }
-  }
-  
-  def scrapeSafety(skip:Option[Int]) = localAction(cc.parsers.byteString){ req =>
-    var msg = StartScrapingSafety(skip.getOrElse(0))
-    swActor ! msg
-    Accepted("Scraping started: " + msg)
   }
   
   def updateSafetyWarrantsOds() = localAction(cc.parsers.byteString){ req =>

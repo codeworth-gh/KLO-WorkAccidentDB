@@ -7,7 +7,7 @@ import models.{BusinessEntity, SafetyViolationSanction}
 import org.apache.pekko.actor.{Actor, ActorRef, ActorSystem, Props}
 import play.api.{Configuration, Logger}
 import play.api.libs.ws.WSClient
-import play.api.libs.json.{JsArray, JsBoolean, JsNumber, JsObject, JsString, JsValue}
+import play.api.libs.json.{JsArray, JsBoolean, JsNull, JsNumber, JsObject, JsString, JsValue}
 
 import java.time.LocalDate
 import javax.inject.{Inject, Named, Singleton}
@@ -30,7 +30,7 @@ class SafetyViolationSanctionScrapingActor @Inject() (svsDAO:SafetyViolationSanc
   
   override def receive: Receive = {
     case StartScrape => scrape(
-      config.get[String]("scraper.sanctions.endpoint") + "&limit=" + config.get[String]("scraper.sanctions.limit")
+      config.get[String]("scraper.sanctions.endpoint") + "&limit=" + config.get[String]("scraper.sanctions.limit") + "&sort=date desc"
     )
     case ScrapeRecords( url ) => scrape(url)
   }
@@ -59,7 +59,7 @@ class SafetyViolationSanctionScrapingActor @Inject() (svsDAO:SafetyViolationSanc
           val minSeconds = config.get[Int]("scraper.sanctions.minDelay")
           val maxSeconds = config.get[Int]("scraper.sanctions.maxDelay")
           val seconds = minSeconds + util.Random.nextInt(maxSeconds-minSeconds)
-          log.info(s"Scheduling next scrape in $seconds sec.")
+          log.info(s"Scheduling next safety violation sanction scrape in $seconds sec.")
           actorSystem.scheduler.scheduleOnce(Duration( seconds, SECONDS), self, ScrapeRecords(nextUrl))
         
         case None =>
@@ -110,11 +110,14 @@ class SafetyViolationSanctionScrapingActor @Inject() (svsDAO:SafetyViolationSanc
     val violationSiteKey = if (jsonRec.keys("adress")) "adress" else "address"
     val violationClauseKey = if (jsonRec.keys("volationclause")) "volationclause" else "violationclause"
     val decisionText = (jsonRec \ "commissionersdecision").get.asInstanceOf[JsString].value.trim
-    
+    val sanctionDate = (jsonRec\"date").get match {
+      case JsNull => LocalDate.of(1970,1,1)
+      case s:JsString => LocalDate.parse(s.value.trim.split("T")(0))
+    }
     val svsRec = SafetyViolationSanction(
       id = 0,
       sanctionNumber = (jsonRec \ "number").get.asInstanceOf[JsNumber].value.toInt,
-      date = LocalDate.parse((jsonRec \ "date").get.asInstanceOf[JsString].value.trim.split("T")(0)),
+      date = sanctionDate,
       companyName = (jsonRec \ "companyname").get.asInstanceOf[JsString].value.trim,
       pcNumber = (jsonRec \ "hpnumber").toOption.flatMap( _.asInstanceOf[JsString].value.toDoubleOption).map(_.toLong),
       violationSite = (jsonRec \ violationSiteKey).get.asInstanceOf[JsString].value.trim,
@@ -125,6 +128,7 @@ class SafetyViolationSanctionScrapingActor @Inject() (svsDAO:SafetyViolationSanc
     )
     
     if ( Await.result( svsDAO.isScraped(svsRec.sanctionNumber),D) ) {
+      log.info(s"Safety violation sanction ${svsRec.sanctionNumber} already scrapped.")
       true
       
     } else {
@@ -145,7 +149,6 @@ class SafetyViolationSanctionScrapingActor @Inject() (svsDAO:SafetyViolationSanc
           false
       }
     }
-    
   }
   
   private def getKloBizIdFor(sanction: SafetyViolationSanction):Option[Long] = {

@@ -26,19 +26,18 @@ class InitDataProductsUpdates @Inject() (actorSystem:ActorSystem, conf:Configura
     )
     log.info("DataProducts refresh scheduled")
     
-    val safetyWarrantScrapingInterval = conf.get[Int]("scraper.safety.scrapeInterval").minutes
     val now = LocalDateTime.now()
     val minutesToMidnight = (23-now.getHour)*60+(60-now.getMinute)
-    actorSystem.scheduler.scheduleAtFixedRate(minutesToMidnight.minutes, safetyWarrantScrapingInterval,
-      swsActor, WarrantScrapingActor.StartScrapingSafety(0)
-    )
-    log.info( s"Safety warrant scraping scheduled, staring $minutesToMidnight from now." )
-    actorSystem.scheduler.scheduleAtFixedRate(minutesToMidnight.minutes, 24.hours, dpActor, DataProductsActor.UpdateTemporalViews())
-    log.info( s"Temporal views update scheduled, staring $minutesToMidnight from now." )
     
-    val hourAfterMidnight = minutesToMidnight+60
-    actorSystem.scheduler.scheduleAtFixedRate(hourAfterMidnight.minutes, 24.hours, svsActor, SafetyViolationSanctionScrapingActor.StartScrape)
-    log.info(s"Safety violations sanctions scraping scheduled, staring $hourAfterMidnight from now.")
+    // Scheduling actors activations.
+    actorSystem.scheduler.scheduleAtFixedRate(minutesToMidnight.minutes, 24.hours, swsActor, WarrantScrapingActor.StartScrape)
+    log.info( s"Safety warrant scraping scheduled, staring $minutesToMidnight from now." )
+    
+    actorSystem.scheduler.scheduleAtFixedRate((minutesToMidnight+60).minutes, 24.hours, dpActor, DataProductsActor.UpdateTemporalViews())
+    log.info( s"Temporal views update scheduled, staring ${minutesToMidnight+60} from now." )
+    
+    actorSystem.scheduler.scheduleAtFixedRate((minutesToMidnight+120).minutes, 24.hours, svsActor, SafetyViolationSanctionScrapingActor.StartScrape)
+    log.info(s"Safety violations sanctions scraping scheduled, staring ${minutesToMidnight+120} from now.")
   
   }
   

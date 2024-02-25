@@ -19,7 +19,7 @@ import javax.inject.{Inject, Named}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.util.{Failure, Success}
-import actors.{EntityMergeActor, SafetyViolationSanctionScrapingActor}
+import actors.{EntityMergeActor, SafetyViolationSanctionScrapingActor, WarrantScrapingActor}
 
 object BusinessEntityCtrl {
   val PAGE_SIZE=30
@@ -30,6 +30,7 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
                                    businessEntities:BusinessEntityDAO, sanctions:SanctionsDAO,
                                    @Named("EntityMergeActor") entityMergeActor:ActorRef,
                                    @Named("svsScrapingActor") svsScrapeActor:ActorRef,
+                                   @Named("WarrantScrapingActor") warrantsScrapeActor:ActorRef,
                                    conf:Configuration, localAction:LocalAction
                                   )
           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport with JsonApiHelper {
@@ -181,7 +182,12 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
   
   def apiScrapeSvs() = localAction(cc.parsers.anyContent(None)) { req =>
     svsScrapeActor ! SafetyViolationSanctionScrapingActor.StartScrape
-    Accepted("Scraping")
+    Accepted("Scraping Safety Violations")
+  }
+  
+  def apiScrapeWarrants() = localAction(cc.parsers.anyContent(None)) { req =>
+    warrantsScrapeActor ! WarrantScrapingActor.StartScrape
+    Accepted("Scraping Warrants")
   }
   
   private def loadSanctions(raw:String):Map[String,Seq[String]] = {
