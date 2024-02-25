@@ -1,5 +1,6 @@
 package dataaccess
 
+import controllers.PublicCtrl
 import models.Sanction
 import play.api.{Configuration, Logger}
 import play.api.cache.AsyncCacheApi
@@ -37,6 +38,10 @@ class SanctionsDAO @Inject() (protected val dbConfigProvider:DatabaseConfigProvi
   
   def batchUpdateEntities( from:Long, into:Long ):Future[Int] = db.run(
     sanctions.filter( _.businessEntityId === from ).map( _.businessEntityId ).update(into)
+  )
+  
+  def listAll():Future[Seq[Sanction]] = db.run(
+    sanctions.sortBy(_.applicationDate.desc).result
   )
   
 }

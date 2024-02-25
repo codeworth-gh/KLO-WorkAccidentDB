@@ -9,7 +9,7 @@ import com.github.jferard.fastods.datastyle.{DataStyle, FloatStyleBuilder}
 import com.github.jferard.fastods.style.TableRowStyle
 import dataaccess.BusinessEntityDAO.StatsSortKey
 import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, SafetyViolationSanctionDAO, SafetyWarrantDAO, SanctionsDAO, SettingDAO, SettingKey, TableRefs, WorkAccidentDAO}
-import models.{Column, InjuredWorker, InjuredWorkerRow, Severity, WorkAccidentSummary}
+import models.{Column, InjuredWorker, InjuredWorkerRow, SafetyViolationSanction, Severity, WorkAccidentSummary}
 import play.api.{Configuration, Logger}
 import play.api.cache.Cached
 import play.api.i18n.{I18nSupport, Lang, MessagesApi}
@@ -20,8 +20,10 @@ import java.util.Locale
 import java.io.ByteArrayOutputStream
 import java.nio.file.Paths
 import java.time.{LocalDate, LocalDateTime, ZoneOffset}
+import java.util.concurrent.TimeUnit
 import java.util.{Date, Locale}
 import javax.inject.{Inject, Named}
+import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 import scala.util.{Try, Using}
@@ -33,6 +35,7 @@ object PublicCtrl {
   val PAGE_SIZE = 50
   val INDEX_PAGE_CACHE_KEY = "PublicCtrl::publicMain"
   val SW_INDEX_PAGE_CACHE_KEY = "PublicCtrl::SWIndex"
+  val DATA_PRODUCT_SANCTIONS_KEY = "PublicCtrl::DATA_PRODUCT_SANCTIONS_KEY"
   val integerDataStyle = new FloatStyleBuilder("int", Locale.US).decimalPlaces(0).groupThousands(false).build()
   val rowStyle = TableRowStyle.builder("okRow").rowHeight(SimpleLength.pt(16.0)).build()
   val titleStyle = TableCellStyle.builder("title").fontWeightBold().build()
@@ -54,7 +57,7 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
   private val knownBizEntShort = messagesApi("businessEntities.knownContractorShort")(Lang("en"))
   
   val accidentsDatasetCols:Seq[Column[WorkAccidentSummary]] = Seq(
-    Column("id", (v:WorkAccidentSummary,w:TableCellWalker) => printInt(v.id, w)),
+    Column("id", (v:WorkAccidentSummary,w:TableCellWalker) => printLong(v.id, w)),
     Column("date", (v,w) => printDate(v.date,w) ),
     Column("time", (v:WorkAccidentSummary,w:TableCellWalker) => v.time match {
       case None => w.setStringValue("")
@@ -73,13 +76,13 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     ),
     Column("details", (v,w)=>w.setStringValue(v.details)),
     Column("investigation", (v,w)=>w.setStringValue(v.investigation)),
-    Column("injured_count", (v,w)=>printInt(v.injuredCount,w)),
-    Column("killed_count",  (v,w)=>printInt(v.killedCount,w))
+    Column("injured_count", (v,w)=>printLong(v.injuredCount,w)),
+    Column("killed_count",  (v,w)=>printLong(v.killedCount,w))
   )
   
-  val injuredDatasetCols:Seq[Column[InjuredWorkerRow]] = Seq(
-    Column[InjuredWorkerRow]("worker_id", (v,w)=>printInt(v.worker.id, w) ),
-    Column[InjuredWorkerRow]("accident_id", (v,w)=>printInt(v.accidentId, w)),
+  private val injuredDatasetCols:Seq[Column[InjuredWorkerRow]] = Seq(
+    Column[InjuredWorkerRow]("worker_id", (v,w)=>printLong(v.worker.id, w) ),
+    Column[InjuredWorkerRow]("accident_id", (v,w)=>printLong(v.accidentId, w)),
     Column[InjuredWorkerRow]("date", (v,w) => printDate(v.accidentDate, w)),
     Column[InjuredWorkerRow]("accident_region", (v,w)=>printStrOption(v.regionId.flatMap( regions(_) ).map(_.name), w)),
     Column[InjuredWorkerRow]("accident_location", (v,w)=>printStrOption(Some(v.accidentLocation), w)),
@@ -98,6 +101,20 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     Column[InjuredWorkerRow]("injury_severity_name", (v,w) => printStrOption(v.worker.injurySeverity.map(_.toString), w) ),
     Column[InjuredWorkerRow]("injury_description",   (v,w) => w.setStringValue( v.worker.injuryDescription) ),
     Column[InjuredWorkerRow]("remarks", (v,w) => w.setStringValue(v.worker.publicRemarks) )
+  )
+  
+  val safetyViolationSanctionCols:Seq[Column[SafetyViolationSanction]] = Seq(
+    Column("official_id", (s,w)=>printLong(s.sanctionNumber, w)),
+    Column("date", (s,w)=>printDate(s.date, w)),
+    Column("company_name", (s,w)=>w.setStringValue(s.companyName)),
+    Column("private_company_num", (s,w)=>printLongOption(s.pcNumber, w)),
+    Column("violation_site", (s,w)=>w.setStringValue(s.violationSite)),
+    Column("violation_clause", (s,w)=>w.setStringValue(s.violationClause)),
+    Column("sum", (s,w)=>printLong(s.sum, w)),
+    Column("commissioners_decision", (s,w)=>printStrOption(s.commissionersDecision, w)),
+    Column("klo_internal_violation_id", (s,w)=>printLong(s.id, w)),
+    Column("klo_internal_company_id",   (s,w)=>printLongOption(s.kloBizEntId, w)),
+    
   )
   
 
@@ -315,7 +332,6 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     val table = document.addTable("Accidents")
     val walker = table.getWalker
     
-    
     // add title row
     val titleStyle = TableCellStyle.builder("title").fontWeightBold().build()
     accidentsDatasetCols.foreach( c => {
@@ -336,6 +352,36 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
         walker.nextRow()
       }
       fastOdsToOkFile(writer, "work-accidents.ods")
+    }
+  }
+  
+  def safetyViolationSanctionsDataset = cached( _=>PublicCtrl.DATA_PRODUCT_SANCTIONS_KEY, Duration(24, TimeUnit.HOURS)){
+    Action.async{ implicit req =>
+      val odsFactory = OdsFactory.create(java.util.logging.Logger.getLogger("public-ctrl"), Locale.US)
+      val writer = odsFactory.createWriter
+      val document = writer.document()
+      val table = document.addTable("Sanctions")
+      val walker = table.getWalker
+      // add title row
+      val titleStyle = TableCellStyle.builder("title").fontWeightBold().build()
+      safetyViolationSanctionCols.foreach( c => {
+        walker.setStringValue(c.name)
+        walker.setStyle(titleStyle)
+        walker.next()
+      } )
+      walker.setRowStyle(rowStyle)
+      walker.nextRow()
+      
+      for {
+        sanctions <- svsDAO.listAll()
+      } yield {
+        for ( snc <- sanctions ) {
+          safetyViolationSanctionCols.foreach( c => {c.write(snc, walker); walker.next()} )
+          walker.setRowStyle(rowStyle)
+          walker.nextRow()
+        }
+        fastOdsToOkFile(writer, "safety-sanctions.ods")
+      }
     }
   }
   

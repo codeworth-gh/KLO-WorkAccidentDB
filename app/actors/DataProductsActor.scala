@@ -20,7 +20,7 @@ object DataProductsActor {
   
   import Column._
   val safetyWarrantCols = Seq(
-    Column[SafetyWarrant]("id", (v,w)=>printInt(v.id, w)),
+    Column[SafetyWarrant]("id", (v,w)=>printLong(v.id, w)),
     Column[SafetyWarrant]("sent date", (v,w)=>printDate(v.sentDate, w)),
     Column[SafetyWarrant]("operator id", (v,w)=>w.setStringValue(v.operatorTextId)),
     Column[SafetyWarrant]("operator name", (v,w)=>w.setStringValue(v.operatorName)),

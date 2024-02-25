@@ -12,7 +12,7 @@ class Column[T](val name: String, writer: (T, TableCellWalker) => Any) {
 
 object Column {
   def apply[T](name: String, extractor: (T, TableCellWalker) => Any) = new Column[T](name, extractor)
-  def printInt( i:Long, w:TableCellWalker ):Unit = {
+  def printLong(i:Long, w:TableCellWalker ):Unit = {
     w.setFloatValue(i.toFloat)
     w.setDataStyle(integerDataStyle)
   }
@@ -25,10 +25,11 @@ object Column {
   }
   
   def printIntOption( os:Option[Int], w: TableCellWalker ):Unit = printOption(os.map(_.toLong), w)
+  def printLongOption( ol:Option[Long], w: TableCellWalker ):Unit = printOption(ol, w)
   def printOption( os:Option[Long], w: TableCellWalker ):Unit = {
     os match {
       case None => w.setStringValue("")
-      case Some(s) => printInt(s,w)
+      case Some(s) => printLong(s,w)
     }
   }
   

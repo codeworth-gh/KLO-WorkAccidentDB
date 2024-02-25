@@ -17,6 +17,7 @@ GET     /datasets/          controllers.PublicCtrl.datasets()
 GET     /datasets/accidents      controllers.PublicCtrl.accidentsDataset()
 GET     /datasets/injuries       controllers.PublicCtrl.injuriesDataset()
 GET     /datasets/safetyWarrants controllers.PublicCtrl.safetyWarrantsDataset()
+GET     /datasets/safetyViolationSanctions controllers.PublicCtrl.safetyViolationSanctionsDataset()
 GET     /businesses/      controllers.PublicCtrl.bizEntIndex(pPage:Option[Int], pSortBy:Option[String], pAsc:Option[String], searchStr?="", isKnownContractor?="")
 GET     /businesses/:id   controllers.PublicCtrl.bizEntDetails(id:Long)
 

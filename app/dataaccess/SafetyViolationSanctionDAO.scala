@@ -1,7 +1,9 @@
 package dataaccess
 
+import controllers.PublicCtrl
 import models.SafetyViolationSanction
 import play.api.Configuration
+import play.api.cache.AsyncCacheApi
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 
@@ -12,7 +14,11 @@ import scala.concurrent.{ExecutionContext, Future, duration}
 /**
  * DB I/O for SafetyViolationSanctions.
  */
-class SafetyViolationSanctionDAO @Inject()(protected val dbConfigProvider:DatabaseConfigProvider, conf:Configuration)(implicit ec:ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
+class SafetyViolationSanctionDAO @Inject()(
+                                            protected val dbConfigProvider:DatabaseConfigProvider,
+                                            cache:AsyncCacheApi,
+                                            conf:Configuration
+                                          )(implicit ec:ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
   
   import profile.api._
   implicit private val D: FiniteDuration = Duration(5, duration.MINUTES)
@@ -20,6 +26,7 @@ class SafetyViolationSanctionDAO @Inject()(protected val dbConfigProvider:Databa
   private val svsTable = TableQuery[SafetyViolationSanctionTable]
   
   def store(svs:SafetyViolationSanction):Future[SafetyViolationSanction] = {
+    cache.remove(PublicCtrl.DATA_PRODUCT_SANCTIONS_KEY)
     svs.id match {
       case 0 => db.run( (svsTable.returning( svsTable.map(_.id) ).into( (svs, newId)=>svs.copy(id=newId) )) += svs )
       case existingId:Int => db.run( svsTable.filter(_.id===svs.id).update(svs) ).map( _ => svs )
@@ -35,7 +42,7 @@ class SafetyViolationSanctionDAO @Inject()(protected val dbConfigProvider:Databa
   )
   
   def listAll():Future[Seq[SafetyViolationSanction]] = db.run(
-    svsTable.sortBy( _.sanctionDate ).result
+    svsTable.sortBy( _.sanctionDate.desc ).result
   )
   
   def isScraped( sanctionGovId:Int ): Future[Boolean] = db.run(
