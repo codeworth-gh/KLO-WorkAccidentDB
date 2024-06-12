@@ -116,13 +116,13 @@ class SafetyViolationSanctionScrapingActor @Inject() (svsDAO:SafetyViolationSanc
     }
     val svsRec = SafetyViolationSanction(
       id = 0,
-      sanctionNumber = (jsonRec \ "number").get.asInstanceOf[JsNumber].value.toInt,
+      sanctionNumber = safeLong( (jsonRec \ "number").get ).get.toInt,
       date = sanctionDate,
       companyName = (jsonRec \ "companyname").get.asInstanceOf[JsString].value.trim,
-      pcNumber = (jsonRec \ "hpnumber").toOption.flatMap( _.asInstanceOf[JsString].value.toDoubleOption).map(_.toLong),
+      pcNumber = (jsonRec \ "hpnumber").toOption.flatMap( safeLong ),
       violationSite = (jsonRec \ violationSiteKey).get.asInstanceOf[JsString].value.trim,
       violationClause = (jsonRec \ violationClauseKey).get.asInstanceOf[JsString].value.trim,
-      sum = (jsonRec \ "sum").get.asInstanceOf[JsNumber].value.toInt,
+      sum = safeLong( (jsonRec \ "sum").get ).get.toInt,
       commissionersDecision = if (decisionText.isBlank) None else Some(decisionText),
       kloBizEntId = None
     )
@@ -153,6 +153,24 @@ class SafetyViolationSanctionScrapingActor @Inject() (svsDAO:SafetyViolationSanc
   
   private def getKloBizIdFor(sanction: SafetyViolationSanction):Option[Long] = {
     Await.result( bizDAO.findByPcNumOrName(sanction.pcNumber.getOrElse(-1), sanction.companyName), D ).map(_.id)
+  }
+  
+  private def safeLong(jsVal:JsValue):Option[Long] = {
+    jsVal match {
+      case num:JsNumber => Some(num.value.toLong)
+      case str:JsString => try {
+        Some(str.value.toLong )
+      } catch {
+        case numberFormatException: NumberFormatException => {
+          log.warn(s"safeLong: Error converting string to long. String value: `${str.value}`")
+          None
+        }
+      }
+      case _ => {
+        log.warn(s"safeLong: Error converting json to long. Json value: `${jsVal}`")
+        None
+      }
+    }
   }
   
 }

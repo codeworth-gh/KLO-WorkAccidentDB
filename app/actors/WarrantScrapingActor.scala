@@ -23,7 +23,7 @@ object WarrantScrapingActor {
   val dateFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
   val ldtFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
   case object StartScrape
-  case class ScrapeRecords( endpoint:String )
+  case class ScrapeRecords( endpoint:String, preScrapeCount:Int )
 }
 
 @Singleton
@@ -38,12 +38,13 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
   
   override def receive: Receive = {
     case StartScrape => scrape(
-      config.get[String]("scraper.safety.endpoint") + "&limit=" + config.get[String]("scraper.safety.limit") + "&sort=send_date desc"
+      config.get[String]("scraper.safety.endpoint") + "&limit=" + config.get[String]("scraper.safety.limit"), //+ "&sort=send_date desc"
+      3
     )
-    case ScrapeRecords( url ) => scrape(url)
+    case ScrapeRecords( url, psCount ) => scrape(url, psCount )
   }
 
-  def scrape(endpoint:String ):Unit  = {
+  def scrape(endpoint:String, preScrapeCount:Int ):Unit  = {
     val server = config.get[String]("scraper.safety.server")
     if ( !config.get[Boolean]("scraper.safety.active") ) {
       log.info(s"Ignoring call to scrape safety warrants from $endpoint - actor deactivated (scraper.safety.active != true)")
@@ -62,13 +63,13 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
     // Parse result
     try {
       // parse and decide whether we need to go back
-      parse(result.json.asInstanceOf[JsObject]) match {
-        case Some(nextUrl) =>
+      parse(result.json.asInstanceOf[JsObject], preScrapeCount ) match {
+        case Some( (nextUrl, psc) ) =>
           val minSeconds = config.get[Int]("scraper.safety.minDelay")
           val maxSeconds = config.get[Int]("scraper.safety.maxDelay")
           val seconds = minSeconds + util.Random.nextInt(maxSeconds-minSeconds)
           log.info(s"Scheduling next warrants scrape in $seconds sec.")
-          actorSystem.scheduler.scheduleOnce(Duration( seconds, TimeUnit.SECONDS), self, ScrapeRecords(nextUrl))
+          actorSystem.scheduler.scheduleOnce(Duration( seconds, TimeUnit.SECONDS), self, ScrapeRecords(nextUrl, psc))
         
         case None =>
           log.info(s"Scraping safety violation sanctions done for today")
@@ -83,7 +84,7 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
     }
   }
   
-  def parse( res:JsObject ):Option[String] = {
+  def parse( res:JsObject, preScrapeCount:Int ):Option[(String, Int)] = {
     // check it's all ok
     
     val success = (res \ "success").get.as[JsBoolean].value
@@ -98,10 +99,16 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
     val foundExisting = records.value.map( parseSingleRecord ).fold(false)(_||_)
     
     // if all records where new, return Some("_links/next") else return None.
-    if ( foundExisting )
-      None
-    else
-      Some((res \ "result" \ "_links"  \ "next").get.asInstanceOf[JsString].value)
+    if ( foundExisting ) {
+      if ( preScrapeCount == 0 ) {
+        None
+      } else {
+        Some( ((res \ "result" \ "_links" \ "next").get.asInstanceOf[JsString].value, preScrapeCount-1) )
+      }
+    } else {
+      Some( ((res \ "result" \ "_links"  \ "next").get.asInstanceOf[JsString].value, preScrapeCount) )
+    }
+    
   }
   
   private def parseSingleRecord(jsVal:JsValue ):Boolean = {
