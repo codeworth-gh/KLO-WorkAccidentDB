@@ -6,11 +6,11 @@ import controllers.BusinessEntityCtrl.ACTIVE_ENTITY_MERGES
 import dataaccess.{BusinessEntityDAO, SanctionsDAO}
 import models.{BusinessEntity, Sanction}
 import play.api.{Configuration, Logger}
-import play.api.data._
-import play.api.data.Forms._
+import play.api.data.*
+import play.api.data.Forms.*
 import play.api.i18n.I18nSupport
 import play.api.libs.json.{JsError, JsSuccess, Json}
-import play.api.mvc.{AbstractController, ControllerComponents}
+import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import views.{JsonConverters, PaginationInfo}
 
 import java.util.UUID
@@ -175,17 +175,17 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
     )
   }
   
-  def apiEnrichPCNums() = localAction(cc.parsers.anyContent(None)){ req=>
+  def apiEnrichPCNums():Action[AnyContent] = localAction(cc.parsers.anyContent(None)){ req=>
     businessEntities.enrichPCNums()
     Accepted("Enriching")
   }
   
-  def apiScrapeSvs() = localAction(cc.parsers.anyContent(None)) { req =>
+  def apiScrapeSvs():Action[AnyContent] = localAction(cc.parsers.anyContent(None)) { req =>
     svsScrapeActor ! SafetyViolationSanctionScrapingActor.StartScrape
     Accepted("Scraping Safety Violations")
   }
   
-  def apiScrapeWarrants() = localAction(cc.parsers.anyContent(None)) { req =>
+  def apiScrapeWarrants():Action[AnyContent] = localAction(cc.parsers.anyContent(None)) { req =>
     warrantsScrapeActor ! WarrantScrapingActor.StartScrape
     Accepted("Scraping Warrants")
   }

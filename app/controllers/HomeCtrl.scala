@@ -3,12 +3,13 @@ package controllers
 import actors.{DataProductsActor, ImportDataActor}
 import org.apache.pekko.actor.ActorRef
 import be.objectify.deadbolt.scala.DeadboltActions
-import play.api._
+import org.apache.pekko.util.ByteString
+import play.api.*
 import play.api.i18n.I18nSupport
-import play.api.mvc._
+import play.api.mvc.*
 
 import java.nio.file.{Files, Paths}
-import javax.inject._
+import javax.inject.*
 import scala.concurrent.{ExecutionContext, Future}
 
 
@@ -19,7 +20,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object HomeCtrl {
 
-  val feRouteSeq = Seq(
+  private val feRouteSeq = Seq(
     routes.javascript.HelperTableCtrl.apiListRegions,
     routes.javascript.HelperTableCtrl.apiGetRegion,
     routes.javascript.BusinessEntityCtrl.apiListSanctionsFor
@@ -27,7 +28,7 @@ object HomeCtrl {
 
   val feRouteHash:Int = Math.abs(feRouteSeq.map( r => r.f + r.name ).map( _.hashCode ).sum)
 
-  val beRouteSeq = Seq(
+  private val beRouteSeq = Seq(
     routes.javascript.HelperTableCtrl.apiAddRegion,
     routes.javascript.HelperTableCtrl.apiEditRegion,
     routes.javascript.HelperTableCtrl.apiDeleteRegion,
@@ -76,7 +77,7 @@ class HomeCtrl @Inject()(deadbolt:DeadboltActions, localAction:LocalAction,
     * Routes for the public part
     * @return
     */
-  def frontEndRoutes =
+  def frontEndRoutes:Action[AnyContent] =
     Action { implicit request =>
       Ok(
         routing.JavaScriptReverseRouter("feRoutes")(
@@ -95,7 +96,7 @@ class HomeCtrl @Inject()(deadbolt:DeadboltActions, localAction:LocalAction,
         )).as("text/javascript"))
   }
 
-  def importDataFromFile = localAction(cc.parsers.byteString){req =>
+  def importDataFromFile:Action[ByteString] = localAction(cc.parsers.byteString){req =>
     val fileName = new String(req.body.toArray)
     val path = Paths.get(fileName)
     if ( Files.exists(path) ) {
@@ -107,7 +108,7 @@ class HomeCtrl @Inject()(deadbolt:DeadboltActions, localAction:LocalAction,
     }
   }
   
-  def updateSafetyWarrantsOds() = localAction(cc.parsers.byteString){ req =>
+  def updateSafetyWarrantsOds():Action[ByteString] = localAction(cc.parsers.byteString){ req =>
     
     dataProductActor ! DataProductsActor.PossiblyUpdateWarrantTable()
     

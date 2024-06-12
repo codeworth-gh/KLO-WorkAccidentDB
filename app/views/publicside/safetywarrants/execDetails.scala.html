@@ -24,7 +24,7 @@
               show: 'true',
               min: 0,
               padding:0,
-              @defining( yearlyCounts.map(_.count).max ){ m =>
+              @defining( yearlyCounts.map(_.count).maxOption.getOrElse(0) ){ m =>
                 @if( m<10 ){ max: @m, tick:{count:@{m+1}} }
               }
             }

@@ -103,10 +103,10 @@ DELETE /api/businessEntities/:id/sanctions/:sid   controllers.BusinessEntityCtrl
 DELETE  /bkofc/api/businessEntities/:id  controllers.BusinessEntityCtrl.doDeleteEntity(id:Long)
 DELETE  /bkofc/api/workAccidents/:id     controllers.WorkAccidentCtrl.doDeleteEntity(id:Long)
 
-PUT /bkofc/api/importFile      controllers.HomeCtrl.importDataFromFile
-POST /local/api/enrich/pcNums  controllers.BusinessEntityCtrl.apiEnrichPCNums
-POST /local/api/scrape/safetyViolationSanctions  controllers.BusinessEntityCtrl.apiScrapeSvs
-POST /local/api/scrape/warrants  controllers.BusinessEntityCtrl.apiScrapeWarrants
+PUT /bkofc/api/importFile      controllers.HomeCtrl.importDataFromFile()
+POST /local/api/enrich/pcNums  controllers.BusinessEntityCtrl.apiEnrichPCNums()
+POST /local/api/scrape/safetyViolationSanctions  controllers.BusinessEntityCtrl.apiScrapeSvs()
+POST /local/api/scrape/warrants  controllers.BusinessEntityCtrl.apiScrapeWarrants()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

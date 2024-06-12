@@ -20,10 +20,10 @@ class ErrorHandler @Inject() (
                                ec: ExecutionContext
                              ) extends DefaultHttpErrorHandler(env, config, sourceMapper, router) {
   
-  private implicit val execCtxt = ec
-  val accJson = play.api.mvc.Accepting(MimeTypes.JSON)
-  val accHtml = play.api.mvc.Accepting(MimeTypes.HTML)
-  val logger = Logger(classOf[ErrorHandler])
+  private implicit val execCtxt: ExecutionContext = ec
+  private val accJson = play.api.mvc.Accepting(MimeTypes.JSON)
+  private val accHtml = play.api.mvc.Accepting(MimeTypes.HTML)
+  val logger: Logger = Logger(classOf[ErrorHandler])
   
   private def logException( exception:UsefulException ) = {
     val incidentId = java.util.UUID.randomUUID.toString

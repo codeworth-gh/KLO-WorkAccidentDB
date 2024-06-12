@@ -10,7 +10,7 @@ version := "1.4-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := "2.13.12"
+scalaVersion := "3.3.3"
 
 // Targeting JDK11, which is the current LTS
 javacOptions ++= Seq("-source", "11", "-target", "11")
@@ -21,16 +21,16 @@ libraryDependencies ++= Seq(
   guice,
   "com.google.inject"            % "guice"                % "6.0.0", /* Needed for JDK17 */
 //  "com.google.inject.extensions" % "guice-assistedinject" % "5.1.0", /* Needed for JDK17 */
-  "org.playframework" %% "play-slick" % "6.0.0",
-  "org.playframework" %% "play-slick-evolutions" % "6.0.0",
+  "org.playframework" %% "play-slick" % "6.1.0",
+  "org.playframework" %% "play-slick-evolutions" % "6.1.0",
   "org.playframework" %% "play-mailer" % "10.0.0",
   "org.playframework" %% "play-mailer-guice" % "10.0.0",
-  "org.playframework" %% "play-pekko-http-server" % "3.0.0",
-  "org.playframework" %% "play-pekko-http2-support" % "3.0.0",
+  "org.playframework" %% "play-pekko-http-server" % "3.0.3",
+  "org.playframework" %% "play-pekko-http2-support" % "3.0.3",
 //  "io.methvin" % "directory-watcher" % "0.18.0",
   "be.objectify" %% "deadbolt-scala" % "2.9.0",
   "org.mindrot" % "jbcrypt" % "0.4",
-  "org.postgresql" % "postgresql" % "42.7.0",
+  "org.postgresql" % "postgresql" % "42.7.3",
   "com.github.jferard"% "fastods"%"0.8.1",
   "org.webjars" % "jquery" % "3.2.1",
   "org.webjars" % "jquery-ui" % "1.12.1",
@@ -39,8 +39,8 @@ libraryDependencies ++= Seq(
   "org.webjars.npm" % "bootstrap" % "5.3.2",
   "org.webjars.bower" % "fontawesome" % "4.7.0",
   "org.webjars" % "d3js" % "5.16.0",
-  "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % Test,
-  "org.seleniumhq.selenium" % "selenium-java" % "2.35.0" % Test,
+  "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1" % Test,
+  "org.seleniumhq.selenium" % "selenium-java" % "4.21.0" % Test,
 //  "org.scalamock" %% "scalamock" % "4.0.0" % Test,
 )
 

@@ -154,16 +154,16 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
   def refreshViews():Future[Unit] = {
     db.run(
       sql"""
-           |REFRESH MATERIALIZED VIEW safety_warrants_per_executor;
-           |REFRESH MATERIALIZED VIEW safety_warrants_per_executor_per_year;
-           |REFRESH MATERIALIZED VIEW safety_warrant_over_10_after_2018;
-           |REFRESH MATERIALIZED VIEW safety_warrants_top_20_executors;
-           |REFRESH MATERIALIZED VIEW executors_with_4_plus_24mo;
-           |REFRESH MATERIALIZED VIEW safety_warrant_by_category_24mo;
-           |REFRESH MATERIALIZED VIEW safety_warrant_by_category_all;
-           |REFRESH MATERIALIZED VIEW safety_warrant_by_law;
-           |REFRESH MATERIALIZED VIEW safety_warrant_by_category_and_year;
-         """.stripMargin.as[Int]
+           REFRESH MATERIALIZED VIEW safety_warrants_per_executor;
+           REFRESH MATERIALIZED VIEW safety_warrants_per_executor_per_year;
+           REFRESH MATERIALIZED VIEW safety_warrant_over_10_after_2018;
+           REFRESH MATERIALIZED VIEW safety_warrants_top_20_executors;
+           REFRESH MATERIALIZED VIEW executors_with_4_plus_24mo;
+           REFRESH MATERIALIZED VIEW safety_warrant_by_category_24mo;
+           REFRESH MATERIALIZED VIEW safety_warrant_by_category_all;
+           REFRESH MATERIALIZED VIEW safety_warrant_by_law;
+           REFRESH MATERIALIZED VIEW safety_warrant_by_category_and_year;
+         """.as[Int]
     ).map(_=>{
       cache.remove(PublicCtrl.SW_INDEX_PAGE_CACHE_KEY)
       ()})
@@ -171,9 +171,7 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
   
   
   def refreshTemporalViews():Future[Unit] = db.run(
-    sql"""
-         |REFRESH MATERIALIZED VIEW executors_with_4_plus_24mo;
-         """.stripMargin.as[Int]
+    sql"REFRESH MATERIALIZED VIEW executors_with_4_plus_24mo;".as[Int]
   ).map(_=>{
     cache.remove(PublicCtrl.SW_INDEX_PAGE_CACHE_KEY)
     ()})

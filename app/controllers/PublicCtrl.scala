@@ -13,7 +13,7 @@ import models.{Column, InjuredWorker, InjuredWorkerRow, SafetyViolationSanction,
 import play.api.{Configuration, Logger}
 import play.api.cache.Cached
 import play.api.i18n.{I18nSupport, Lang, MessagesApi}
-import play.api.mvc.{AbstractController, ControllerComponents}
+import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import views.{Helpers, PaginationInfo}
 
 import java.util.Locale
@@ -415,7 +415,7 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
     }
   }
   
-  def safetyWarrantsDataset = Action{ req =>
+  def safetyWarrantsDataset:Action[AnyContent] = Action{ req =>
     Ok.sendFile( Paths.get(conf.get[String]("klo.dataProductFolder")).resolve("safetyWarrants.ods").toFile)
       .as("application/vnd.oasis.opendocument.spreadsheet")
       .withHeaders("Content-Disposition"->s"attachment; filename=safety-warrants.ods")

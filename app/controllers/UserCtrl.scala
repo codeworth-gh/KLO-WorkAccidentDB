@@ -9,12 +9,12 @@ import javax.inject.Inject
 import models.{Invitation, PasswordResetRequest, Severity, User}
 import play.api.{Configuration, Logger, cache}
 import play.api.cache.Cached
-import play.api.data._
-import play.api.data.Forms._
-import play.api.i18n._
+import play.api.data.*
+import play.api.data.Forms.*
+import play.api.i18n.*
 import play.api.libs.json.{JsObject, JsString}
 import play.api.libs.mailer.{Email, MailerClient}
-import play.api.mvc.{Action, Call, ControllerComponents, InjectedController, Result}
+import play.api.mvc.{AbstractController, Action, AnyContent, Call, ControllerComponents, InjectedController, Result}
 import security.UserSubject
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,11 +33,32 @@ case class UserFormData( username:String,
 }
 object UserFormData {
   def of( u:User ): UserFormData = UserFormData(u.username, u.name, Option(u.email), u.isAdmin, Option(""), Option(""), None)
+  
+  def unapply(u: UserFormData): Option[(String, String, Option[String], Boolean, Option[String], Option[String], Option[String])] = Some(
+    u.username, u.name, u.email, u.isAdmin, u.pass1, u.pass2, u.uuid
+  )
 }
+
 case class LoginFormData( username:String, password:String )
+object LoginFormData {
+  def unapply(f: LoginFormData): Option[(String, String)] = Some(f.username, f.password)
+}
+
 case class ForgotPassFormData ( email:String )
+object ForgotPassFormData {
+  def unapply(f: ForgotPassFormData): Option[(String)] = Some(f.email)
+}
+
 case class ResetPassFormData ( password1:String, password2:String, uuid:String)
+object ResetPassFormData {
+  def unapply(f: ResetPassFormData): Option[(String, String, String)] = Some(f.password1, f.password2, f.uuid)
+}
+
 case class ChangePassFormData ( previousPassword:String, password1:String, password2:String)
+object ChangePassFormData {
+  def unapply(f: ChangePassFormData): Option[(String, String, String)] = Some(f.previousPassword, f.password1, f.password2)
+}
+
 
 /**
   * Controller for user-related actions (login, account mgmt...)
@@ -58,7 +79,7 @@ class UserCtrl @Inject()(deadbolt:DeadboltActions, conf:Configuration,
                          accidents:WorkAccidentDAO,
                          messagesApi:MessagesApi, localAction:LocalAction)(
                         implicit ec:ExecutionContext
-) extends InjectedController {
+) extends AbstractController(cc) {
 
   private val logger = Logger(classOf[UserCtrl])
 
@@ -105,7 +126,7 @@ class UserCtrl @Inject()(deadbolt:DeadboltActions, conf:Configuration,
   )
   
   
-  def showLogin = Action { implicit req =>
+  def showLogin:Action[AnyContent]  = Action{ implicit req =>
     Ok( views.html.users.login(loginForm) )
   }
   
@@ -123,7 +144,7 @@ class UserCtrl @Inject()(deadbolt:DeadboltActions, conf:Configuration,
     )
   }
 
-  def doLogout = Action { implicit req =>
+  def doLogout:Action[AnyContent] = Action { implicit req =>
     Redirect(routes.PublicCtrl.main()).withNewSession
       .flashing(FlashKeys.MESSAGE->Informational(Informational.Level.Success, Messages("login.logoutMessage"), "").encoded)
   }
@@ -207,7 +228,7 @@ class UserCtrl @Inject()(deadbolt:DeadboltActions, conf:Configuration,
     )
   }
 
-  def showNewUserInvitation(uuid:String) = Action { implicit req =>
+  def showNewUserInvitation(uuid:String):Action[AnyContent] = Action { implicit req =>
     Ok( views.html.users.userEditor( userForm.bind(Map("uuid"->uuid)).discardingErrors, routes.UserCtrl.doNewUserInvitation(),
       isNew=true, false, false)(new AuthenticatedRequest(req, None), messagesProvider))
   }
@@ -259,7 +280,7 @@ class UserCtrl @Inject()(deadbolt:DeadboltActions, conf:Configuration,
   
   private def notFound(userId:String) = NotFound("User with username '%s' does not exist.".format(userId))
 
-  def showForgotPassword = Action { implicit req =>
+  def showForgotPassword:Action[AnyContent] = Action { implicit req =>
     Ok( views.html.users.forgotPassword(None,None) )
   }
 

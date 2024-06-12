@@ -153,9 +153,9 @@ class BusinessEntityDAO @Inject()(protected val dbConfigProvider:DatabaseConfigP
     if ( effName.isEmpty ) return Future(Seq())
     
     val lvnQuery = sql"""select id, name
-                         |from business_entities be
-                         |where (levenshtein(be.name, ${effName}::varchar)::real)/(greatest(length(be.name), length(${effName}))::real) < 0.55;
-                         |""".stripMargin.as[(Long, String)]
+                         from business_entities be
+                         where (levenshtein(be.name, ${effName}::varchar)::real)/(greatest(length(be.name), length(${effName}))::real) < 0.55;
+                         """.as[(Long, String)]
     val baseWords = effName.split(" ").filter(s => !s.isBlank)
     val words = baseWords.filter(w => !stopWords(w))
     val likeQueries = words.filter( _.length > 2 ).map( w => {

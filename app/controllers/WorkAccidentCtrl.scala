@@ -37,6 +37,9 @@ object InjuredWorkerFD {
     iw.employer.map(_.name), iw.from, iw.injuryCause.map(_.id), iw.injurySeverity.map(_.id), iw.injuryDescription,
     iw.publicRemarks, iw.sensitiveRemarks
   )
+  
+  def unapply(i: InjuredWorkerFD): Option[(Long, String, Option[Int], Option[Int], Option[Int], Option[String], String, Option[Int], Option[Int], String, String, String)] =
+    Some((i.id, i.name, i.age, i.citizenship, i.industry, i.employerName, i.from, i.injuryCause, i.injurySeverity, i.injuryDescription, i.publicRemarks, i.sensitiveRemarks))
 }
 
 case class WorkAccidentFD(
@@ -68,12 +71,21 @@ object WorkAccidentFD{
       wa.sensitiveRemarks, wa.injured.toSeq.map(InjuredWorkerFD.make), wa.requiresUpdate, wa.officiallyRecognized
     )
   }
+  
+  def unapply(i: WorkAccidentFD): Option[(Long, LocalDate, Option[LocalTime], Seq[RelatedEntityFD], String, Option[Int],
+    String, String, String, String, Seq[String], String, String, Seq[InjuredWorkerFD], Boolean, Option[Boolean])] =
+    Some((i.id, i.date, i.time, i.relatedEntities, i.location, i.region,
+      i.blogPostUrl, i.details, i.investigation, i.initialSource, i.mediaReports, i.publicRemarks, i.sensitiveRemarks, i.injured,
+      i.requiresUpdate, i.officiallyRecognized))
 }
 
 case class RelatedEntityFD(
                           entityName:String,
                           relationId:Int
                           )
+object RelatedEntityFD {
+  def unapply( r:RelatedEntityFD):Option[(String, Int)] = Some((r.entityName, r.relationId))
+}
 
 class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponents, conf:Configuration,
                                  accidents:WorkAccidentDAO, regions:RegionsDAO, businesses:BusinessEntityDAO,

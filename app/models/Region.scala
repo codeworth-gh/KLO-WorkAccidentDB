@@ -6,3 +6,7 @@ package models
  * @param name  name of the region
  */
 case class Region(id: Int, name:String)
+
+object Region {
+  def unapply(r:Region):Option[(Int, String)] = Some((r.id, r.name))
+}

@@ -8,3 +8,6 @@ case class RelationToAccident (
   name: String
 )
 
+object RelationToAccident {
+  def unapply(r:RelationToAccident):Option[(Int, String)] = Some((r.id, r.name))
+}

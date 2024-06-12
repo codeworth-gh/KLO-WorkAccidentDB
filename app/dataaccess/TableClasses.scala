@@ -29,7 +29,7 @@ class UsersTable(tag:Tag) extends Table[User](tag,"users") {
   def encryptedPassword = column[String]("encrypted_password")
   def isAdmin           = column[Boolean]("is_admin")
 
-  def * = (id, username, name, email, encryptedPassword, isAdmin) <> (User.tupled, User.unapply)
+  def * = (id, username, name, email, encryptedPassword, isAdmin).mapTo[User]
 
 }
 
@@ -41,7 +41,7 @@ class InvitationsTable(tag:Tag) extends Table[Invitation](tag, "invitations") {
 
 //  def pk = primaryKey("invitation_pkey", (email, sender))
 
-  def * = (email, date, uuid, sender) <> (Invitation.tupled, Invitation.unapply)
+  def * = (email, date, uuid, sender).mapTo[Invitation]
 }
 
 class PasswordResetRequestsTable(tag:Tag) extends Table[PasswordResetRequest](tag, "password_reset_requests"){
@@ -51,7 +51,7 @@ class PasswordResetRequestsTable(tag:Tag) extends Table[PasswordResetRequest](ta
 
   def pk = primaryKey("uuid_for_forgot_password_pkey", (username, uuid))
 
-  def * = (username, uuid, reset_password_date) <> (PasswordResetRequest.tupled, PasswordResetRequest.unapply)
+  def * = (username, uuid, reset_password_date).mapTo[PasswordResetRequest]
 }
 
 class BusinessEntityTable(tag:Tag) extends Table[BusinessEntity](tag, "business_entities") {
@@ -67,7 +67,7 @@ class BusinessEntityTable(tag:Tag) extends Table[BusinessEntity](tag, "business_
   
   def * = (
     id, name, pcNumber, phone, email, website, isPrivatePerson, isKnownContractor, memo
-  ) <> (BusinessEntity.tupled, BusinessEntity.unapply)
+  ).mapTo[BusinessEntity]
   
   def nameIdx = index("business_entities_name", name)
 }
@@ -81,7 +81,7 @@ class BusinessEntityStatsTable(tag:Tag) extends Table[BusinessEntityStats](tag, 
   def injCnt = column[Long]("injured_count")
   def svsCnt = column[Long]("safety_violation_sanction_count")
   
-  def * = (id, name, isKnownContractor, accCnt, kldCnt, injCnt, svsCnt) <> (BusinessEntityStats.tupled, BusinessEntityStats.unapply)
+  def * = (id, name, isKnownContractor, accCnt, kldCnt, injCnt, svsCnt).mapTo[BusinessEntityStats]
 }
 
 class BusinessEntitySummaryTable(tag:Tag) extends Table[BusinessEntitySummary](tag, "business_entities") {
@@ -89,7 +89,7 @@ class BusinessEntitySummaryTable(tag:Tag) extends Table[BusinessEntitySummary](t
   def name = column[String]("name")
   def isKnownContractor = column[Boolean]("is_known_contractor")
   
-  def * = (id, name, isKnownContractor) <> (BusinessEntitySummary.tupled, BusinessEntitySummary.unapply)
+  def * = (id, name, isKnownContractor).mapTo[BusinessEntitySummary]
   
 }
 
@@ -102,7 +102,7 @@ class SanctionTable(t:Tag) extends Table[Sanction](t, "sanctions"){
   def applicationDate = column[LocalDate]("application_date")
   def remarks = column[String]("remarks")
   
-  def * = (id, businessEntityId, authority, sanctionType, reason, applicationDate, remarks) <> (Sanction.tupled, Sanction.unapply)
+  def * = (id, businessEntityId, authority, sanctionType, reason, applicationDate, remarks).mapTo[Sanction]
   
   def fkBizEnt = foreignKey("fk_wa_ent", businessEntityId, TableRefs.businessEntities)(_.id)
 }
@@ -116,13 +116,13 @@ class IdNameTable[T](tag: Tag, tableName: String, apply: (Int, String) => T, una
 
 class RegionsTable(tag: Tag) extends IdNameTable[Region](tag, "regions", Region.apply, Region.unapply)
 
-class CitizenshipsTable(tag:Tag) extends IdNameTable[Citizenship](tag, "citizenships", Citizenship, Citizenship.unapply)
+class CitizenshipsTable(tag:Tag) extends IdNameTable[Citizenship](tag, "citizenships", Citizenship.apply, Citizenship.unapply)
 
-class IndustriesTable(tag:Tag) extends IdNameTable[Industry](tag, "industries", Industry, Industry.unapply)
+class IndustriesTable(tag:Tag) extends IdNameTable[Industry](tag, "industries", Industry.apply, Industry.unapply)
 
-class InjuryCausesTable(tag:Tag) extends IdNameTable[InjuryCause](tag, "injury_causes", InjuryCause, InjuryCause.unapply)
+class InjuryCausesTable(tag:Tag) extends IdNameTable[InjuryCause](tag, "injury_causes", InjuryCause.apply, InjuryCause.unapply)
 
-class RelationToAccidentTable(tag:Tag) extends IdNameTable[RelationToAccident](tag, "bizent_accident_relation_type", RelationToAccident, RelationToAccident.unapply)
+class RelationToAccidentTable(tag:Tag) extends IdNameTable[RelationToAccident](tag, "bizent_accident_relation_type", RelationToAccident.apply, RelationToAccident.unapply)
 
 class WorkAccidentsTable(t:Tag) extends Table[WorkAccidentRecord](t, "work_accidents") {
   
@@ -143,7 +143,7 @@ class WorkAccidentsTable(t:Tag) extends Table[WorkAccidentRecord](t, "work_accid
   def * = (id, date_time, location, regionId, blogPostUrl,
     details, investigation, initialSource, mediaReports, publicRemarks,
     sensitiveRemarks, requiresUpdate, officiallyRecognized
-  )<>(WorkAccidentRecord.tupled, WorkAccidentRecord.unapply)
+  ).mapTo[WorkAccidentRecord]
   
   def fkRgn = foreignKey("fk_wa_rgn", regionId, TableRefs.regions)(_.id.?)
 }
@@ -165,7 +165,7 @@ class InjuredWorkersTable(t:Tag) extends Table[InjuredWorkerRecord](t, "injured_
   def sensitive_remarks = column[String]("sensitive_remarks")
   
   def * = (id, accident_id, name, age, citizenship_id, industry_id, employer_id, from_place, injury_cause_id, injury_severity,
-    injury_description, public_remarks, sensitive_remarks)<>(InjuredWorkerRecord.tupled, InjuredWorkerRecord.unapply)
+    injury_description, public_remarks, sensitive_remarks).mapTo[InjuredWorkerRecord]
   
   def fkAcc = foreignKey("fk_iw_wa", accident_id, TableRefs.accidents)(_.id)
   def fkCtz = foreignKey("fk_iw_cz", citizenship_id, TableRefs.citizenships)(_.id.?)
@@ -188,7 +188,7 @@ class WorkAccidentSummaryTable(t:Tag) extends Table[WorkAccidentSummaryRecord](t
   
   def * = (id, dateTime, regionId, location,
            details, investigation, injuredCount,
-            killedCount, requiresUpdate, officiallyRecognized)<>(WorkAccidentSummaryRecord.tupled, WorkAccidentSummaryRecord.unapply)
+            killedCount, requiresUpdate, officiallyRecognized).mapTo[WorkAccidentSummaryRecord]
 }
 
 
@@ -198,7 +198,7 @@ class AccidentToBusinessEntityTable(t:Tag) extends Table[RelationToAccidentRecor
   def relationId = column[Int]("bart_id")
   def bizEntId   = column[Long]("business_entity_id")
   
-  def * = (accidentId, relationId, bizEntId) <> (RelationToAccidentRecord.tupled, RelationToAccidentRecord.unapply )
+  def * = (accidentId, relationId, bizEntId).mapTo[RelationToAccidentRecord]
   
   def fkAcc = foreignKey("bart_accident_accident_id_fkey", accidentId, TableRefs.accidents)(_.id)
   def fkRel = foreignKey("bart_accident_bart_id_fkey", relationId, TableRefs.relationsToAccidents)(_.id)
@@ -224,7 +224,7 @@ abstract class BaseSafetyWarrantsTable(t:Tag, tableName:String) extends Table[Sa
 
   def * = (id, sentDate, operatorTextId, operatorName, cityName, executorName, categoryName,
     felony, law, clause, scrapeDate, kloOperatorId, kloExecutorId, kloIndustryId
-   ) <> (SafetyWarrant.tupled, SafetyWarrant.unapply)
+   ).mapTo[SafetyWarrant]
   
   def fkComp = foreignKey("fk_operator_id", kloOperatorId, TableRefs.businessEntities)(_.id.?)
   def fkExec = foreignKey("fk_executor_id", kloExecutorId, TableRefs.businessEntities)(_.id.?)
@@ -251,7 +251,7 @@ class BusinessEntityMappingTable(t:Tag) extends Table[BusinessEntityMapping](t,"
   def name = column[String]("name")
   def bizEntityId = column[Long]("biz_entity_id")
   
-  def * = (id, name, bizEntityId) <> (BusinessEntityMapping.tupled, BusinessEntityMapping.unapply )
+  def * = (id, name, bizEntityId).mapTo[BusinessEntityMapping]
   
   def fkBizEnt = foreignKey("fk_be_id", bizEntityId, TableRefs.businessEntities)(_.id)
 }
@@ -261,7 +261,7 @@ class IndustryMappingTable(t:Tag) extends Table[IndustryMapping](t,"industry_map
   def name = column[String]("name")
   def industryId = column[Int]("industry_id")
   
-  def * = (id, name, industryId) <> (IndustryMapping.tupled, IndustryMapping.unapply )
+  def * = (id, name, industryId).mapTo[IndustryMapping]
   
   def fkBizEnt = foreignKey("fk_be_id", industryId, TableRefs.industries)(_.id)
 }
@@ -270,14 +270,14 @@ class SWWorst20Table(t:Tag) extends Table[ExecutorCountRow](t, "safety_warrants_
   def execName = column[String]("executor_name")
   def count    = column[Int]("count")
   
-  def * = (execName, count)<> (ExecutorCountRow.tupled, ExecutorCountRow.unapply)
+  def * = (execName, count).mapTo[ExecutorCountRow]
 }
 
 class SWOver10After201820Table(t:Tag) extends Table[ExecutorCountRow](t, "safety_warrant_over_10_after_2018") {
   def execName = column[String]("executor_name")
   def count    = column[Int]("count")
   
-  def * = (execName, count)<> (ExecutorCountRow.tupled, ExecutorCountRow.unapply)
+  def * = (execName, count).mapTo[ExecutorCountRow]
 }
 
 class SWPerExecutorPerYear(t:Tag) extends Table[ExecutorCountPerYearRow](t, "safety_warrants_per_executor_per_year") {
@@ -285,7 +285,7 @@ class SWPerExecutorPerYear(t:Tag) extends Table[ExecutorCountPerYearRow](t, "saf
   def year     = column[Int]("year")
   def count    = column[Int]("count")
   
-  def * = (execName, year, count)<> (ExecutorCountPerYearRow.tupled, ExecutorCountPerYearRow.unapply)
+  def * = (execName, year, count).mapTo[ExecutorCountPerYearRow]
 }
 
 class SWPerCategoryPerYear(t:Tag) extends Table[CountByCategoryAndYear](t, "safety_warrant_by_category_and_year") {
@@ -293,14 +293,14 @@ class SWPerCategoryPerYear(t:Tag) extends Table[CountByCategoryAndYear](t, "safe
   def year  = column[Int]("year")
   def count = column[Int]("count")
   
-  def * = (name, year, count)<> (CountByCategoryAndYear.tupled, CountByCategoryAndYear.unapply)
+  def * = (name, year, count).mapTo[CountByCategoryAndYear]
 }
 
 class SWPerExecutor(t:Tag) extends Table[ExecutorCountRow](t, "safety_warrants_per_executor") {
   def execName = column[String]("executor_name")
   def count    = column[Int]("count")
   
-  def * = (execName, count)<> (ExecutorCountRow.tupled, ExecutorCountRow.unapply)
+  def * = (execName, count).mapTo[ExecutorCountRow]
 }
 
 class EntityMergeLogRecordTable(t:Tag) extends Table[EntityMergeLogEntry](t, "entity_merge_log_record") {
@@ -308,7 +308,7 @@ class EntityMergeLogRecordTable(t:Tag) extends Table[EntityMergeLogEntry](t, "en
   def tableNameStr = column[String]("table_name")
   def message      = column[String]("message")
   
-  def * = (mergeId, tableNameStr, message ) <> (EntityMergeLogEntry.tupled, EntityMergeLogEntry.unapply)
+  def * = (mergeId, tableNameStr, message ).mapTo[EntityMergeLogEntry]
 }
 
 class SafetyViolationSanctionTable(t:Tag) extends Table[SafetyViolationSanction](t, "safety_violations_sanctions") {
@@ -324,7 +324,7 @@ class SafetyViolationSanctionTable(t:Tag) extends Table[SafetyViolationSanction]
   def klo_businessEntityId = column[Option[Long]]("klo_business_entity_id")
   
   def * = ( id, sanctionNumber, sanctionDate, companyName, pcNumber, violationSite,
-            violationClause, sum, commissionersDecision, klo_businessEntityId ) <> (SafetyViolationSanction.tupled, SafetyViolationSanction.unapply)
+            violationClause, sum, commissionersDecision, klo_businessEntityId ).mapTo[SafetyViolationSanction]
   
 }
 

@@ -18,6 +18,11 @@ case class BusinessEntity(
   isKnownContractor: Boolean,
   memo: Option[String]
 )
+object BusinessEntity {
+  def unapply(b:BusinessEntity):Option[(Long, String, Option[Long],Option[String],Option[String],Option[String],Boolean,Boolean,Option[String])] = Some(
+    b.id, b.name, b.pcNumber, b.phone, b.email, b.website, b.isPrivatePerson, b.isKnownContractor, b.memo
+  )
+}
 
 case class BusinessEntityStats(
   id:   Long,
@@ -28,6 +33,12 @@ case class BusinessEntityStats(
   injuredCount:  Long,
   safetyViolationSanctionCount: Long
 )
+
+object BusinessEntityStats {
+  def unapply(b:BusinessEntityStats):Option[(Long, String, Boolean, Long, Long, Long, Long)] = Some(
+    b.id, b.name, b.isKnownContractor, b.accidentCount, b.killedCount, b.injuredCount, b.safetyViolationSanctionCount
+  )
+}
 
 case class ExecutorCountRow(name:String, count:Int)
 case class ExecutorCountPerYearRow(name:String, year:Int, count:Int)
