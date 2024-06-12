@@ -1,6 +1,7 @@
 package controllers
 
 import actors.WarrantScrapingActor
+import actors.DataProductsActor.ForceUpdateWarrantTable
 import be.objectify.deadbolt.scala.DeadboltActions
 import com.github.jferard.fastods.{AnonymousOdsFileWriter, ObjectToCellValueConverter, OdsFactory, Table, TableCellWalker}
 import com.github.jferard.fastods.style.TableCellStyle
@@ -10,6 +11,9 @@ import com.github.jferard.fastods.style.TableRowStyle
 import dataaccess.BusinessEntityDAO.StatsSortKey
 import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, SafetyViolationSanctionDAO, SafetyWarrantDAO, SanctionsDAO, SettingDAO, SettingKey, TableRefs, WorkAccidentDAO}
 import models.{Column, InjuredWorker, InjuredWorkerRow, SafetyViolationSanction, Severity, WorkAccidentSummary}
+import org.apache.pekko.actor.ActorRef
+import org.apache.pekko.pattern.ask
+import org.apache.pekko.util.Timeout
 import play.api.{Configuration, Logger}
 import play.api.cache.Cached
 import play.api.i18n.{I18nSupport, Lang, MessagesApi}
@@ -18,13 +22,13 @@ import views.{Helpers, PaginationInfo}
 
 import java.util.Locale
 import java.io.ByteArrayOutputStream
-import java.nio.file.Paths
+import java.nio.file.{Files, Paths}
 import java.time.{LocalDate, LocalDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
 import java.util.{Date, Locale}
 import javax.inject.{Inject, Named}
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
 import scala.util.{Try, Using}
 
@@ -47,6 +51,7 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
                            relations:RelationToAccidentDAO, industries:IndustriesDAO, deadbolt:DeadboltActions,
                            businessEntities:BusinessEntityDAO, causes:InjuryCausesDAO, citizenships: CitizenshipsDAO,
                            safetyWarrants:SafetyWarrantDAO, sanctionsDAO: SanctionsDAO, svsDAO: SafetyViolationSanctionDAO,
+                           @Named("DataProductsActor") dpActor:ActorRef,
                            settings:SettingDAO, cached:Cached, conf:Configuration)
                           (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport {
   
@@ -416,7 +421,14 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
   }
   
   def safetyWarrantsDataset:Action[AnyContent] = Action{ req =>
-    Ok.sendFile( Paths.get(conf.get[String]("klo.dataProductFolder")).resolve("safetyWarrants.ods").toFile)
+    val odsFilePath = Paths.get(conf.get[String]("klo.dataProductFolder")).resolve("safetyWarrants.ods")
+    if ( ! Files.exists(odsFilePath) ) {
+      implicit val timeout: Timeout = org.apache.pekko.util.Timeout(30, TimeUnit.SECONDS)
+      logger.info("Warrants ODS missing, recreating...")
+      Await.result(dpActor ? ForceUpdateWarrantTable(), Duration(40, TimeUnit.SECONDS))
+      logger.info("Warrants ODS recreated")
+    }
+    Ok.sendFile(odsFilePath.toFile)
       .as("application/vnd.oasis.opendocument.spreadsheet")
       .withHeaders("Content-Disposition"->s"attachment; filename=safety-warrants.ods")
   }

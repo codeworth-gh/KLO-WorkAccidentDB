@@ -16,6 +16,7 @@ import scala.util.Using
 object DataProductsActor {
   def props:Props = Props[DataProductsActor]()
   case class PossiblyUpdateWarrantTable()
+  case class ForceUpdateWarrantTable()
   case class UpdateTemporalViews()
   
   import Column._
@@ -61,9 +62,16 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
         log.info("Done")
       }
     }
+    
     case UpdateTemporalViews() =>
       log.info("Refreshing temporal views")
       safetyWarrants.refreshTemporalViews()
+    
+    case ForceUpdateWarrantTable() =>
+      updateSafetyWarrantDownloadable()
+      safetyWarrants.refreshViews()
+      sender() ! "OK"
+      
   }
   
   private def updateSafetyWarrantDownloadable():Unit = {
