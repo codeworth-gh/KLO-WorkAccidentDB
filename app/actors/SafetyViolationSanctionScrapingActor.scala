@@ -1,6 +1,6 @@
 package actors
 
-import actors.SafetyViolationSanctionScrapingActor.{ScrapeRecords, StartScrape}
+import actors.SafetyViolationSanctionScrapingActor.{NO_FOUND_MAX, ScrapeRecords, StartScrape}
 import controllers.Assets
 import dataaccess.{BusinessEntityDAO, SafetyViolationSanctionDAO, SafetyWarrantDAO, SettingDAO}
 import models.{BusinessEntity, SafetyViolationSanction}
@@ -18,20 +18,25 @@ object SafetyViolationSanctionScrapingActor {
   def props:Props = Props[SafetyViolationSanctionScrapingActor]()
   case object StartScrape
   case class ScrapeRecords( endpoint:String )
+  val NO_FOUND_MAX=10
 }
 
 @Singleton
 class SafetyViolationSanctionScrapingActor @Inject() (svsDAO:SafetyViolationSanctionDAO, settings:SettingDAO,
                                                       ws:WSClient, bizDAO:BusinessEntityDAO,
                                                       actorSystem:ActorSystem,
-                                                      config:Configuration)(implicit anEc:ExecutionContext) extends Actor {
+                                                      config:Configuration)(implicit anEc:ExecutionContext)
+  extends Actor with JsonScraper {
   private val log = Logger(classOf[SafetyViolationSanctionScrapingActor])
   private val D = Duration(5, duration.MINUTES)
+  private var noFoundCount = 0;
   
   override def receive: Receive = {
-    case StartScrape => scrape(
-      config.get[String]("scraper.sanctions.endpoint") + "&limit=" + config.get[String]("scraper.sanctions.limit") + "&sort=date desc"
-    )
+    case StartScrape =>
+      noFoundCount = 0
+      scrape(
+        config.get[String]("scraper.sanctions.endpoint") + "&limit=" + config.get[String]("scraper.sanctions.limit") + "&sort=date desc"
+      )
     case ScrapeRecords( url ) => scrape(url)
   }
   
@@ -88,14 +93,23 @@ class SafetyViolationSanctionScrapingActor @Inject() (svsDAO:SafetyViolationSanc
     
     // parse and store actual records
     val records = (res \ "result" \ "records").as[JsArray]
-    val foundExisting = records.value.map( parseSingleRecord ).fold(false)(_||_)
+    val foundOnlyExisting = records.value.map( parseSingleRecord ).fold(false)(_||_)
     
     // if all records where new, return Some("_links/next") else return None.
-    if ( foundExisting )
+    if ( foundOnlyExisting ) {
+      noFoundCount = noFoundCount+1
+      log.info(s"No new violations found (count: $noFoundCount)")
+    } else {
+      noFoundCount = 0
+    }
+    
+    if ( noFoundCount==NO_FOUND_MAX )
       None
     else
-      Some((res \ "result" \ "_links"  \ "next").get.asInstanceOf[JsString].value)
-    
+      (res \ "result" \ "_links"  \ "next").toOption match {
+        case None => None
+        case Some(url) => Some(url.asInstanceOf[JsString].value)
+      }
   }
   
   /**
@@ -109,21 +123,17 @@ class SafetyViolationSanctionScrapingActor @Inject() (svsDAO:SafetyViolationSanc
     // There's a typo in the key name that they might fix sometime
     val violationSiteKey = if (jsonRec.keys("adress")) "adress" else "address"
     val violationClauseKey = if (jsonRec.keys("volationclause")) "volationclause" else "violationclause"
-    val decisionText = (jsonRec \ "commissionersdecision").get.asInstanceOf[JsString].value.trim
-    val sanctionDate = (jsonRec\"date").get match {
-      case JsNull => LocalDate.of(1970,1,1)
-      case s:JsString => LocalDate.parse(s.value.trim.split("T")(0))
-    }
+    
     val svsRec = SafetyViolationSanction(
       id = 0,
-      sanctionNumber = safeLong( (jsonRec \ "number").get ).get.toInt,
-      date = sanctionDate,
-      companyName = (jsonRec \ "companyname").get.asInstanceOf[JsString].value.trim,
-      pcNumber = (jsonRec \ "hpnumber").toOption.flatMap( safeLong ),
-      violationSite = (jsonRec \ violationSiteKey).get.asInstanceOf[JsString].value.trim,
-      violationClause = (jsonRec \ violationClauseKey).get.asInstanceOf[JsString].value.trim,
-      sum = safeLong( (jsonRec \ "sum").get ).get.toInt,
-      commissionersDecision = if (decisionText.isBlank) None else Some(decisionText),
+      sanctionNumber = safeExtractLong( jsonRec, "number" ).getOrElse(0L).toInt,
+      date =  safeExtractDate(jsonRec, "date").getOrElse(LocalDate.of(1970,1,1)),
+      companyName = safeExtractStr(jsonRec, "companyname").getOrElse(""),
+      pcNumber = safeExtractLong(jsonRec, "hpnumber"),
+      violationSite = safeExtractStr(jsonRec, violationSiteKey).getOrElse(""),
+      violationClause = safeExtractStr(jsonRec, violationClauseKey).getOrElse(""),
+      sum = safeExtractLong( jsonRec, "sum").getOrElse(0L).toInt,
+      commissionersDecision = safeExtractStr(jsonRec, "commissionersdecision"),
       kloBizEntId = None
     )
     
@@ -153,24 +163,6 @@ class SafetyViolationSanctionScrapingActor @Inject() (svsDAO:SafetyViolationSanc
   
   private def getKloBizIdFor(sanction: SafetyViolationSanction):Option[Long] = {
     Await.result( bizDAO.findByPcNumOrName(sanction.pcNumber.getOrElse(-1), sanction.companyName), D ).map(_.id)
-  }
-  
-  private def safeLong(jsVal:JsValue):Option[Long] = {
-    jsVal match {
-      case num:JsNumber => Some(num.value.toLong)
-      case str:JsString => try {
-        Some(str.value.toLong )
-      } catch {
-        case numberFormatException: NumberFormatException => {
-          log.warn(s"safeLong: Error converting string to long. String value: `${str.value}`")
-          None
-        }
-      }
-      case _ => {
-        log.warn(s"safeLong: Error converting json to long. Json value: `${jsVal}`")
-        None
-      }
-    }
   }
   
 }

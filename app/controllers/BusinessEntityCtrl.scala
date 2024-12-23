@@ -185,9 +185,18 @@ class BusinessEntityCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerCompon
     Accepted("Scraping Safety Violations")
   }
   
-  def apiScrapeWarrants():Action[AnyContent] = localAction(cc.parsers.anyContent(None)) { req =>
-    warrantsScrapeActor ! WarrantScrapingActor.StartScrape
-    Accepted("Scraping Warrants")
+  def apiScrapeWarrants(year:Option[String]):Action[AnyContent] = localAction(cc.parsers.anyContent(None)) { req =>
+    year match {
+      case None =>
+        log.info("Scraping warrants because of api request")
+        warrantsScrapeActor ! WarrantScrapingActor.StartScrape
+        Accepted("Scraping Warrants\n")
+      case Some(yearTxt) =>
+        val yearInt = yearTxt.trim.toInt
+        log.info(s"Scraping warrants of year $yearInt")
+        warrantsScrapeActor ! WarrantScrapingActor.ScrapeYear(yearInt)
+        Accepted(s"Scraping Warrants of year $yearInt and later.\n")
+    }
   }
   
   private def loadSanctions(raw:String):Map[String,Seq[String]] = {

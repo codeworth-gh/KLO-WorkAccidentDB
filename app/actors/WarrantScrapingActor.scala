@@ -16,32 +16,43 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{Await, ExecutionContext, Future, duration}
 import scala.concurrent.duration.Duration
 import scala.io.Source
+import scala.util.{Failure, Success, Try}
 
 object WarrantScrapingActor {
   def props: Props = Props[WarrantScrapingActor]()
   
-  val dateFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+  private val dateFmt_old: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
   val ldtFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
   case object StartScrape
   case class ScrapeRecords( endpoint:String, preScrapeCount:Int )
+  case class ScrapeYear(year:Int)
 }
 
 @Singleton
 class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:SettingDAO, ws:WSClient,
                                       actorSystem:ActorSystem,
-                                      config:Configuration)(implicit anEc:ExecutionContext) extends Actor {
+                                      config:Configuration)(implicit anEc:ExecutionContext) extends Actor with JsonScraper {
   private val log = Logger(classOf[WarrantScrapingActor])
   private val D = Duration(5, duration.MINUTES)
   import WarrantScrapingActor._
   private val mutedCategories = config.get[Seq[String]]("scraper.safety.mutedCategories").toSet
-  
+  private var scrapingYear:Option[Int]=None
   
   override def receive: Receive = {
-    case StartScrape => scrape(
-      config.get[String]("scraper.safety.endpoint") + "&limit=" + config.get[String]("scraper.safety.limit"), //+ "&sort=send_date desc"
-      3
-    )
-    case ScrapeRecords( url, psCount ) => scrape(url, psCount )
+    // NOTE: Sorting by date does not work as the database field on gov.il's side acts like a text here, not a date(?)
+    case StartScrape =>
+      scrapingYear = None
+      scrape(
+        config.get[String]("scraper.safety.endpoint") + "&limit=" + config.get[String]("scraper.safety.limit"), // + "&sort=send_date desc",
+        10
+      )
+    case ScrapeRecords( url, psCount) => scrape(url, psCount)
+    case ScrapeYear(year) =>
+      scrapingYear = Some(year)
+      scrape(
+        config.get[String]("scraper.safety.endpoint") + "&limit=" + config.get[String]("scraper.safety.limit"), // + "&sort=send_date desc",
+        10
+      )
   }
 
   def scrape(endpoint:String, preScrapeCount:Int ):Unit  = {
@@ -72,7 +83,7 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
           actorSystem.scheduler.scheduleOnce(Duration( seconds, TimeUnit.SECONDS), self, ScrapeRecords(nextUrl, psc))
         
         case None =>
-          log.info(s"Scraping safety violation sanctions done for today")
+          log.info(s"Scraping safety warrants done for today")
         
       }
     } catch {
@@ -96,57 +107,106 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
     
     // parse and store actual records
     val records = (res \ "result" \ "records").as[JsArray]
-    val foundExisting = records.value.map( parseSingleRecord ).fold(false)(_||_)
+    val recResults = records.value
+      .filter( r => r.isInstanceOf[JsObject]).map(r => r.asInstanceOf[JsObject])
+      .map( r => parseWarrantRec(r) ).filter( _.isSuccess ).map(_.get)
     
-    // if all records where new, return Some("_links/next") else return None.
-    if ( foundExisting ) {
-      if ( preScrapeCount == 0 ) {
-        None
-      } else {
-        Some( ((res \ "result" \ "_links" \ "next").get.asInstanceOf[JsString].value, preScrapeCount-1) )
-      }
-    } else {
-      Some( ((res \ "result" \ "_links"  \ "next").get.asInstanceOf[JsString].value, preScrapeCount) )
+    val minDate = recResults.map(_.sentDate).minOption
+    val maxDate = recResults.map(_.sentDate).maxOption
+    log.info(s"Scraped range this batch: $minDate - $maxDate")
+    
+    val foundExisting = records.value.map( storeSingleRecord ).fold(false)(_||_)
+    
+    // if some records where new, return Some("_links/next") else return None.
+    val nextLink = (res \ "result" \ "_links"  \ "next").toOption
+    nextLink match {
+      case None => None
+      case Some(url) =>
+        scrapingYear match {
+          case None => {
+            if (foundExisting) {
+              if (preScrapeCount == 0) {
+                None
+              } else {
+                Some(url.asInstanceOf[JsString].value, preScrapeCount - 1)
+              }
+            } else {
+              Some(url.asInstanceOf[JsString].value, preScrapeCount)
+            }
+          }
+          case Some(minYear) => {
+            minDate.map(_.getYear) match {
+              case None => None
+              case Some(aYear) =>
+                if ( aYear < minYear ) None
+                else Some(url.asInstanceOf[JsString].value, preScrapeCount)
+            }
+          }
+        }
     }
+    
     
   }
   
-  private def parseSingleRecord(jsVal:JsValue ):Boolean = {
-    val jsonRec = jsVal.asInstanceOf[JsObject]
-    // in case they fix spelling at some point
-    val warrantIdKey = if (jsonRec.keys("warrant_id")) "warrant_id" else "warrent_id"
-    val warrant = SafetyWarrant(
-      id = (jsonRec \ warrantIdKey ).get.asInstanceOf[JsString].value.trim.toLong,
-      sentDate = LocalDate.parse( (jsonRec \ "send_date").get.as[JsString].value, dateFmt ),
-      operatorTextId = (jsonRec \ "work_id").get.as[JsNumber].value.toString(),
-      operatorName   = (jsonRec \ "work_name").toOption.map( _.as[JsString].value ).getOrElse(""),
-      cityName = (jsonRec \ "city_name").toOption.map( _.as[JsString].value ).getOrElse(""),
-      executorName = (jsonRec \ "executor_name").toOption.map( _.as[JsString].value ).getOrElse(""),
-      categoryName = (jsonRec \ "category_name").toOption.map( _.as[JsString].value ).getOrElse(""),
-      felony       = (jsonRec \ "felony_name").toOption.map( _.as[JsString].value ).getOrElse(""),
-      law          = (jsonRec \ "law_name").toOption.map( _.as[JsString].value ).getOrElse(""),
-      clause       = (jsonRec \ "clause_name").toOption.map({
-        case JsNull => ""
-        case s: JsString => s.value
-      }).getOrElse(""),
-      scrapeDate = LocalDateTime.now(),
-      None, None, None
-    )
-    if ( mutedCategories(warrant.categoryName) ) {
-      log.info(s"Skipping scraped warrant ${warrant.id} since its category, ${warrant.categoryName} is muted.")
-      false
-      
-    } else {
-      if ( Await.result(safetyWarrants.exists(warrant.id), D) ) {
-        log.info(s"Warrant ${warrant.id} already scrapped.")
-        true
-        
-      } else {
-        Await.result(safetyWarrants.store(warrant), D)
-        settings.set(SettingKey.SafetyWarrantProductsNeedUpdate, "yes")
-        log.info(s"Adding scraped warrant ${warrant.id}.")
-        false
+  /**
+   * Parses and possibly stores a single record. Parsing failures will be logged.
+   * @param jsVal value to be parsed
+   * @return `true` if the record already existed, `false` otherwise.
+   */
+  private def storeSingleRecord(jsVal:JsValue ):Boolean = {
+    try {
+      val jsonRec = jsVal.asInstanceOf[JsObject]
+      parseWarrantRec(jsonRec) match {
+        case Failure(e) =>
+          log.warn(s"Failure parsing safety warrant: ${e.getMessage}", e)
+          false
+        case Success( warrant ) =>
+          if ( mutedCategories(warrant.categoryName) ) {
+            log.info(s"Skipping scraped warrant ${warrant.id} since its category, ${warrant.categoryName} is muted.")
+            false
+            
+          } else {
+            if ( Await.result(safetyWarrants.exists(warrant.id), D) ) {
+              log.info(s"Warrant ${warrant.id} already scrapped.")
+              true
+              
+            } else {
+              Await.result(safetyWarrants.store(warrant), D)
+              settings.set(SettingKey.SafetyWarrantProductsNeedUpdate, "yes")
+              log.info(s"Adding scraped warrant ${warrant.id}.")
+              false
+            }
+          }
       }
+    } catch {
+      case e:Exception =>
+        log.warn(s"Exception while converting a safety warrant JsValue to JsObject: ${e.getMessage}", e)
+        return false
+    }
+  }
+  
+  private def parseWarrantRec(rec:JsObject ):Try[SafetyWarrant] = {
+    val warrantIdKey = if (rec.keys("warrant_id")) "warrant_id" else "warrent_id"
+    try {
+      Success(SafetyWarrant(
+        id             = safeExtractLong(rec, warrantIdKey).get,
+        sentDate       = safeExtractDate(rec, "send_date").getOrElse(LocalDate.of(1970,1,1)),
+        operatorTextId = safeExtractStr(rec,  "work_id").getOrElse(""),
+        operatorName   = safeExtractStr(rec,  "work_name").getOrElse(""),
+        cityName       = safeExtractStr(rec,  "city_name").getOrElse(""),
+        executorName   = safeExtractStr(rec,  "executor_name").getOrElse(""),
+        categoryName   = safeExtractStr(rec,  "category_name").getOrElse(""),
+        felony         = safeExtractStr(rec,  "felony_name").getOrElse(""),
+        law            = safeExtractStr(rec,  "law_name").getOrElse(""),
+        clause         = safeExtractStr(rec,  "clause_name").getOrElse(""),
+        scrapeDate     = LocalDateTime.now(),
+        None, None, None
+      ))
+    } catch {
+      case e:Exception =>
+        log.warn(s"Error extracting SafetyWarrant object: ${e.getMessage}")
+        log.warn(rec.toString)
+        Failure(e)
     }
   }
   
@@ -193,13 +253,13 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
   }
   
   private def parseSingleWarrant( jsv:JsValue, timestamp:LocalDateTime ):Option[SafetyWarrant] = {
-    import WarrantScrapingActor.dateFmt
+    import WarrantScrapingActor.dateFmt_old
     val dataObj = (jsv.asInstanceOf[JsObject] \ "Data").get.asInstanceOf[JsObject]
     try {
       Some(SafetyWarrant(
         //            typo is in JSON schema
         (dataObj \ "warrent_id").get.as[JsString].value.toInt,
-        LocalDate.parse( (dataObj \ "send_date").get.as[JsString].value, dateFmt ),
+        LocalDate.parse( (dataObj \ "send_date").get.as[JsString].value, dateFmt_old ),
         (dataObj \ "work_id").get.as[JsString].value,
         (dataObj \ "work_name").get.as[JsString].value,
         (dataObj \ "city_name").get.as[JsString].value,
