@@ -28,6 +28,13 @@ datasets.safetyWarrants=רשימת צווי בטיחות
 datasets.safetyViolationSanctions=רשימת עיצומים כספיים על ליקויי בטיחות
 datasets.safetyWarrants.lastUpdate=רשימת צווי בטיחות עודכנה לאחרונה בתאריך {0} בשעה {1}.
 
+dataImport.title=ייבוא נתונים
+dataImport.help=במסך זה ניתן לייבא קבצי CSV מאתר הנתונים של מדינת ישראל.
+dataImport.safetyWarrants=צווי בטיחות
+dataImport.csvDownloadUrl=כתובת להורדת קובץ הנתונים: <a href="{0}" target="_blank">{0}</a>
+dataImport.startImport=התחל ייבוא
+dataImport.safetyWarrantFile=בחירת קובץ נתונים
+
 error.email=כתובת אימייל לא תקינה
 error.email.exists=משתמשת עם כתובת אימייל כזו כבר קיימת במערכת
 error.username.exists=שם המשתמש הזה תפוס
@@ -74,6 +81,7 @@ navbar.users.invite=הזמנה
 navbar.users.editMyProfile=עריכת פרופיל
 navbar.businessEntities=גורמים מעורבים
 navbar.safetyWarrants=צווי בטיחות
+navbar.dataImport=ייבוא נתונים
 navbar.workAccidents=תאונות
 navbar.allAccidents=כל התאונות
 navbar.accidentsFollowup=תאונות בטיפול
@@ -333,6 +341,7 @@ safetyWarrants.warrant.law=שם חוק
 safetyWarrants.warrant.clause=שם סעיף
 safetyWarrants.warrant.category=קטגוריה
 safetyWarrants.warrant.cityName=יישוב
+safetyWarrants.warrant.source=מקור
 
 severity.light=פציעה קלה
 severity.medium=פציעה בינונית

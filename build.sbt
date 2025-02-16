@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
   caffeine,
   ws,
   guice,
-  "com.google.inject"            % "guice"                % "6.0.0", /* Needed for JDK17 */
+//  "com.google.inject"            % "guice"                % "6.0.0", /* Needed for JDK17 */
 //  "com.google.inject.extensions" % "guice-assistedinject" % "5.1.0", /* Needed for JDK17 */
   "org.playframework" %% "play-slick" % "6.1.1",
   "org.playframework" %% "play-slick-evolutions" % "6.1.1",
@@ -28,10 +28,11 @@ libraryDependencies ++= Seq(
   "org.playframework" %% "play-pekko-http-server" % "3.0.6",
   "org.playframework" %% "play-pekko-http2-support" % "3.0.6",
 //  "io.methvin" % "directory-watcher" % "0.18.0",
-  "be.objectify" %% "deadbolt-scala" % "2.9.0",
+  "be.objectify" %% "deadbolt-scala" % "3.0.0",
   "org.mindrot" % "jbcrypt" % "0.4",
-  "org.postgresql" % "postgresql" % "42.7.4",
+  "org.postgresql" % "postgresql" % "42.7.5",
   "com.github.jferard"% "fastods"%"0.8.1",
+  "com.opencsv" % "opencsv" % "5.10",
   "org.webjars" % "jquery" % "3.2.1",
   "org.webjars" % "jquery-ui" % "1.12.1",
   "org.webjars.bower" % "tether" % "1.4.7",

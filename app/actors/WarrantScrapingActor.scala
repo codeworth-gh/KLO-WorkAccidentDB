@@ -188,6 +188,7 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
   private def parseWarrantRec(rec:JsObject ):Try[SafetyWarrant] = {
     val warrantIdKey = if (rec.keys("warrant_id")) "warrant_id" else "warrent_id"
     try {
+      val scrapeDate = LocalDateTime.now()
       Success(SafetyWarrant(
         id             = safeExtractLong(rec, warrantIdKey).get,
         sentDate       = safeExtractDate(rec, "send_date").getOrElse(LocalDate.of(1970,1,1)),
@@ -199,8 +200,9 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
         felony         = safeExtractStr(rec,  "felony_name").getOrElse(""),
         law            = safeExtractStr(rec,  "law_name").getOrElse(""),
         clause         = safeExtractStr(rec,  "clause_name").getOrElse(""),
-        scrapeDate     = LocalDateTime.now(),
-        None, None, None
+        scrapeDate     = scrapeDate,
+        None, None, None,
+        s"Scraped ${WarrantScrapingActor.ldtFmt.format(scrapeDate)}"
       ))
     } catch {
       case e:Exception =>
@@ -269,7 +271,8 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
         (dataObj \ "law_name").get.as[JsString].value,
         (dataObj \ "clause_name").get.as[JsString].value,
         timestamp,
-        None, None, None
+        None, None, None,
+        s"Scraped ${WarrantScrapingActor.ldtFmt.format(timestamp)}"
       ))
     } catch {
       case e:Exception => {

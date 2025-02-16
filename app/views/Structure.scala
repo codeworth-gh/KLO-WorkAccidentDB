@@ -36,6 +36,7 @@ object BackOfficeSections extends Enumeration {
   val HelperTables = Value("Helper Tables")
   val BusinessEntities = Value("Business Entities")
   val WorkAccidents = Value("Work Accidents")
+  val DataImport = Value("Data Import")
   val Users = Value("Users")
 }
 
@@ -68,6 +69,7 @@ object Structure {
     ),
     PageSection("navbar.businessEntities", BackOfficeSections.BusinessEntities, routes.BusinessEntityCtrl.backofficeIndex(None,None,None,None) ),
     PageSection("navbar.helperTables", BackOfficeSections.HelperTables, routes.HelperTableCtrl.helperTablesIndex() ),
+    PageSection("navbar.dataImport", BackOfficeSections.DataImport, routes.DataImportCtrl.showDataImportIndex()),
     MultiPageSection("navbar.users", BackOfficeSections.Users, Seq(
       PageSectionItem("navbar.users.list", routes.UserCtrl.showUserList()),
       PageSectionItem("navbar.users.editMyProfile", routes.UserCtrl.showEditMyProfile()),

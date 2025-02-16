@@ -24,7 +24,9 @@ case class SafetyWarrant(
                         /** Id of business entity acting as constructor */
                         kloExecutorId:Option[Long],
                         /** Id of the industry in our db. */
-                        kloIndustryId:Option[Int]
+                        kloIndustryId:Option[Int],
+                        /** Source of warrant record */
+                        source:String
                         )
 
 

@@ -1,0 +1,39 @@
+@import be.objectify.deadbolt.scala.AuthenticatedRequest
+@(safetyWarrantUrl:String)(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
+
+@extraHead={
+  <script src="@routes.Assets.versioned("js/dataImport.js")"></script>
+}
+
+@extraBottom={
+  <script>
+    UiUtils.documentReady(function(){
+      setup();
+    });
+  </script>
+}
+
+@templates.backEndBase(Messages("dataImport.title"), views.BackOfficeSections.DataImport, extraHead, extraBottom) {
+  @comps.pageTitleRow(Messages("dataImport.title"))()
+  @comps.helpRow(Messages("dataImport.help"))
+
+  <div class="row">
+    <div class="col">
+      <h2>@Messages("dataImport.safetyWarrants")</h2>
+      @Html(Messages("dataImport.csvDownloadUrl", safetyWarrantUrl))
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <form action="javascript:return false;">
+        <div class="mb-2">
+          <label for="fileSafetyWarrants">@Messages("dataImport.safetyWarrantFile")</label>
+          <input class="form-control text-ltr" type="file" id="fileSafetyWarrants" accept=".csv,text/csv">
+        </div>
+        <div class="mb-2">
+          <button type="button" class="btn btn-klo-blue" id="btnSafetyWarrants" disabled>@Messages("dataImport.startImport")</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

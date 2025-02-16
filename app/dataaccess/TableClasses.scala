@@ -221,9 +221,10 @@ abstract class BaseSafetyWarrantsTable(t:Tag, tableName:String) extends Table[Sa
   def kloOperatorId  = column[Option[Long]]("klo_operator_id")
   def kloExecutorId  = column[Option[Long]]("klo_executor_id")
   def kloIndustryId  = column[Option[Int]]("klo_industry_id")
+  def source         = column[String]("source")
 
   def * = (id, sentDate, operatorTextId, operatorName, cityName, executorName, categoryName,
-    felony, law, clause, scrapeDate, kloOperatorId, kloExecutorId, kloIndustryId
+    felony, law, clause, scrapeDate, kloOperatorId, kloExecutorId, kloIndustryId, source
    ).mapTo[SafetyWarrant]
   
   def fkComp = foreignKey("fk_operator_id", kloOperatorId, TableRefs.businessEntities)(_.id.?)

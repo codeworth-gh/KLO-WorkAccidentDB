@@ -58,7 +58,8 @@ object HomeCtrl {
     routes.javascript.BusinessEntityCtrl.backofficeIndex,
     routes.javascript.BusinessEntityCtrl.apiMergeEntities,
     routes.javascript.BusinessEntityCtrl.apiGetEntityMergeStatus,
-    routes.javascript.PublicCtrl.bizEntDetails
+    routes.javascript.PublicCtrl.bizEntDetails,
+    routes.javascript.DataImportCtrl.apiImportSafetyWarrants
   )
 
   val beRouteHash:Int = Math.abs(beRouteSeq.map( r => r.f + r.name ).map( _.hashCode ).sum)
