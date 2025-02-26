@@ -34,6 +34,31 @@
           <button type="button" class="btn btn-klo-blue" id="btnSafetyWarrants" disabled>@Messages("dataImport.startImport")</button>
         </div>
       </form>
+      <div class="collapse" id="safetyImportMonitor">
+        <table class="table table-sm table-striped">
+          <tbody>
+            <tr>
+              <th>@Messages("dataImport.status")</th>
+              <td id="statusMonitor">...</td>
+            </tr>
+            <tr>
+              <th>@Messages("dataImport.added")</th>
+              <td id="addedMonitor">0</td>
+            </tr><tr>
+            <th>@Messages("dataImport.ignored")</th>
+            <td id="ignoredMonitor">0</td>
+          </tr><tr>
+            <th>@Messages("dataImport.existed")</th>
+            <td id="existedMonitor">0</td>
+          </tr><tr>
+            <th>@Messages("dataImport.errorCount")</th>
+            <td id="errorCountMonitor">0</td>
+          </tr>
+          </tbody>
+        </table>
+        <div class="alert alert-warning d-none" id="importErrorMessage"></div>
+      </div>
     </div>
   </div>
+
 }

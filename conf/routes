@@ -58,6 +58,7 @@ GET   /bkofc/accidents/:id  controllers.WorkAccidentCtrl.showEdit(id:Long)
 POST  /bkofc/accidents/     controllers.WorkAccidentCtrl.doSaveAccident()
 GET   /bkofc/dataImport     controllers.DataImportCtrl.showDataImportIndex()
 POST  /bkofc/dataImport/safetyWarrants controllers.DataImportCtrl.apiImportSafetyWarrants()
+GET   /bkofc/dataImport/safetyWarrants/monitor/:monitorId controllers.DataImportCtrl.apiSafetyImportStatus(monitorId)
 
 # Import (provisional)
 GET   /bkofc/import/accidents controllers.WorkAccidentCtrl.showImport()

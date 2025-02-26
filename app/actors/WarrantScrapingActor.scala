@@ -4,11 +4,14 @@ import actors.WarrantScrapingActor.ldtFmt
 import org.apache.pekko.actor.{Actor, ActorSystem, Props}
 import controllers.Assets
 import dataaccess.{SafetyWarrantDAO, SettingDAO, SettingKey}
-import models.SafetyWarrant
+import models.ImportStatus.Started
+import models.{ImportMonitor, ImportStatus, SafetyWarrant}
+import play.api.cache.AsyncCacheApi
 import play.api.libs.json.{JsArray, JsBoolean, JsDefined, JsNull, JsNumber, JsObject, JsString, JsUndefined, JsValue}
 import play.api.libs.ws.WSClient
 import play.api.{Configuration, Logger}
 
+import java.nio.file.{Files, OpenOption, Path}
 import java.time.{LocalDate, LocalDateTime}
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
@@ -26,11 +29,12 @@ object WarrantScrapingActor {
   case object StartScrape
   case class ScrapeRecords( endpoint:String, preScrapeCount:Int )
   case class ScrapeYear(year:Int)
+  case class ImportFile( monitor:ImportMonitor, path:java.nio.file.Path )
 }
 
 @Singleton
 class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:SettingDAO, ws:WSClient,
-                                      actorSystem:ActorSystem,
+                                      actorSystem:ActorSystem, cache: AsyncCacheApi,
                                       config:Configuration)(implicit anEc:ExecutionContext) extends Actor with JsonScraper {
   private val log = Logger(classOf[WarrantScrapingActor])
   private val D = Duration(5, duration.MINUTES)
@@ -53,6 +57,7 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
         config.get[String]("scraper.safety.endpoint") + "&limit=" + config.get[String]("scraper.safety.limit"), // + "&sort=send_date desc",
         10
       )
+    case ImportFile( monitor, path ) => importCsvFile( monitor, path )
   }
 
   def scrape(endpoint:String, preScrapeCount:Int ):Unit  = {
@@ -144,8 +149,37 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
           }
         }
     }
+  }
+  
+  def importCsvFile(monitor: ImportMonitor, path: Path):Unit = {
+    log.info( s"Started import of ${path.toAbsolutePath.normalize()}");
+    var myMon = monitor.copy(status = Started)
+    cache.set(monitor.id, myMon);
     
+    // validate headers
+    val expectedHeaders = Set(
+      "send_date", "warrent_id", "work_id",
+      "work_name", "city_name", "executor_name",
+      "category_name", "felony_name", "law_name", "clause_name")
     
+    val headRdr = Files.newBufferedReader(path)
+    val headerLine = headRdr.readLine()
+    headRdr.close()
+    val headers = headerLine.split(",").map( _.trim.toLowerCase ).filter(_.nonEmpty)
+      .map( _.filter( c => c>='_' && c<='z' ) ) // Removing BOM etc.
+      .toSet
+    
+    if ( ! expectedHeaders.subsetOf(headers) ) {
+      log.warn(s"Wrong headers. Actual:\n" + headers.toSeq.sorted + "\nExpected:\n" + expectedHeaders.toSeq.sorted)
+      var missingHeaders = expectedHeaders -- headers
+      log.warn(s"Missing headers:\n" + missingHeaders.toSeq.sorted)
+      
+      myMon = myMon.copy( status=ImportStatus.Error, message=Some("Missing headers. This might be a wrong file or the government format has changed."))
+      cache.set(myMon.id, myMon);
+    } else {
+      log.info("Headers OK")
+    }
+    // import records
   }
   
   /**

@@ -1,6 +1,9 @@
 /* jshint esversion:6 */
 let btnImportSW;
 let fileSW;
+let pj;
+let curSafetyMonitorId="";
+let clpSafetyImportMonitor;
 
 function setup() {
     btnImportSW = document.getElementById("btnSafetyWarrants");
@@ -8,6 +11,9 @@ function setup() {
 
     fileSW.onchange = swFileChanged;
     btnImportSW.onclick = startImport;
+
+    pj = new Playjax(beRoutes);
+    clpSafetyImportMonitor = new bootstrap.Collapse("#safetyImportMonitor", {toggle:false});
 }
 
 function swFileChanged(e) {
@@ -53,4 +59,35 @@ function startImport() {
 
 function startImportMonitor( data ) {
     console.info(data);
+    curSafetyMonitorId = data.id;
+    window.setTimeout(safetyMonitor, 2000);
+    clpSafetyImportMonitor.show();
+    Informationals.loader.dismiss();
+}
+
+function safetyMonitor() {
+    pj.using(c=>c.DataImportCtrl.apiSafetyImportStatus(curSafetyMonitorId))
+        .fetch()
+        .then( r => {
+            if ( r.ok ) {
+                r.json().then( monitorData => {
+                    for ( let d of ["status", "added", "ignored", "existed", "errorCount"]) {
+                        let emt = document.getElementById(d+"Monitor");
+                        if ( ! emt ) {
+                            console.error("Missing element " + d+"Monitor" );
+                        } else {
+                            emt.innerText = monitorData[d];
+                            UiUtils.highlight(emt);
+                        }
+                    }
+                    if ( monitorData.status === "Pending" || monitorData.status === "Started" ) {
+                        window.setTimeout(safetyMonitor, 2000);
+                    } else if ( monitorData.status === "Error" && monitorData.message && monitorData.message.trim() !== "") {
+                        const msgEmt = document.getElementById("importErrorMessage");
+                        msgEmt.innerText = monitorData.message;
+                        msgEmt.classList.remove("d-none");
+                    }
+                });
+            }
+        }).catch( e => console.error(e) );
 }

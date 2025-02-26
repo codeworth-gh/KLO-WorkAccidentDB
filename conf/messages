@@ -34,6 +34,11 @@ dataImport.safetyWarrants=צווי בטיחות
 dataImport.csvDownloadUrl=כתובת להורדת קובץ הנתונים: <a href="{0}" target="_blank">{0}</a>
 dataImport.startImport=התחל ייבוא
 dataImport.safetyWarrantFile=בחירת קובץ נתונים
+dataImport.status=מצב
+dataImport.added=נוספו
+dataImport.ignored=לא רלוונטיים
+dataImport.existed=היו קיימים קודם
+dataImport.errorCount=שגיאות
 
 error.email=כתובת אימייל לא תקינה
 error.email.exists=משתמשת עם כתובת אימייל כזו כבר קיימת במערכת

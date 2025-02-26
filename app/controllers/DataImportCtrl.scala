@@ -10,11 +10,14 @@ import play.api.mvc.{AbstractController, ControllerComponents}
 import views.JsonConverters
 
 import java.nio.file.Paths
-import javax.inject.Inject
+import javax.inject.{Inject, Named}
 import scala.concurrent.{ExecutionContext, Future}
-import  JsonConverters.importMonitorWrt
+import JsonConverters.importMonitorWrt
+import actors.WarrantScrapingActor
+import org.apache.pekko.actor.ActorRef
 
 class DataImportCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponents,
+                              @Named("WarrantScrapingActor") safetyWarrantImporter:ActorRef,
                                cache:AsyncCacheApi, conf:Configuration)
                               (implicit ec:ExecutionContext) extends AbstractController(cc) with I18nSupport with JsonApiHelper {
   private val log = Logger(classOf[DataImportCtrl])
@@ -35,9 +38,18 @@ class DataImportCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponents
         log.info(s"Got Safety warrant csv file: ${dest}")
         val monitor = ImportMonitors.create(csvTempFile.filename)
         cache.set(monitor.id, monitor)
+        safetyWarrantImporter ! WarrantScrapingActor.ImportFile(monitor, dest)
         Future( Ok(Json.toJson(monitor)) )
       case None => Future( BadRequest("Missing file") )
     }
-    
+  }
+  
+  def apiSafetyImportStatus( monitorId:String ) = deadbolt.SubjectPresent()() { implicit req =>
+    for {
+      res <- cache.get[ImportMonitor](monitorId)
+    } yield res match {
+      case None => notFoundJson(s"$monitorId not found")
+      case Some(m) => Ok(Json.toJson(m))
+    }
   }
 }

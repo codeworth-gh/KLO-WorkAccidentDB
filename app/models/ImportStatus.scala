@@ -16,10 +16,11 @@ case class ImportMonitor(
                        existed: Int,
                        ignored: Int,
                        errorCount: Int,
-                       originalFilename:String
+                       originalFilename:String,
+                       message:Option[String]
                     )
 
 object ImportMonitors {
   def create(filename:String):ImportMonitor = ImportMonitor(UUID.randomUUID().toString,
-    LocalDateTime.now(), None, ImportStatus.Pending, 0,0,0,0,filename )
+    LocalDateTime.now(), None, ImportStatus.Pending, 0,0,0,0,filename, None )
 }
