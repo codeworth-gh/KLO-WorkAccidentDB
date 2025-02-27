@@ -7,7 +7,7 @@ import java.time.{LocalDate, LocalDateTime}
  */
 case class SafetyWarrant(
                         id: Long,
-                        sentDate: LocalDate,
+                        sentDate: Option[LocalDate],
                         // Operator or site id (prob. a number)
                         operatorTextId: String,
                         // Operator or site name

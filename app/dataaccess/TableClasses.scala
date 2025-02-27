@@ -208,7 +208,7 @@ class AccidentToBusinessEntityTable(t:Tag) extends Table[RelationToAccidentRecor
 abstract class BaseSafetyWarrantsTable(t:Tag, tableName:String) extends Table[SafetyWarrant](t,tableName){
   
   def id             = column[Long]("id", O.PrimaryKey)
-  def sentDate       = column[LocalDate]("sent_date")
+  def sentDate       = column[Option[LocalDate]]("sent_date")
   def operatorTextId = column[String]("operator_text_id")
   def operatorName   = column[String]("operator_name")
   def cityName       = column[String]("city_name")

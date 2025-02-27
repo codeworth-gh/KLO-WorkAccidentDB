@@ -291,7 +291,7 @@ safetyWarrants.index.5TopExecAllTimes.remark=חמשת המבצעים שקיבל�
 safetyWarrants.index.5TopExec24Mo=דירוג מבצעים ב-24 החודשים האחרונים
 safetyWarrants.index.5TopExec24Mo.remark=חמשת המבצעים שקיבלו את מספר הצווים הגבוה ביותר ב-24 החודשים האחרונים
 safetyWarrants.index.seeFullList=לרשימה המלאה
-safetyWarrants.dateRange=הצווים במאגר ניתנו בין ה-{0} ל-{1}.
+safetyWarrants.dateRange=הצווים המתוארכים במאגר ניתנו בין ה-{0} ל-{1}.
 
 safetyWarrants.nav.dashboard=מבט על
 safetyWarrants.nav.top20=20 השיאנים
@@ -301,7 +301,7 @@ safetyWarrants.warrantCountNoName=ישנם {0} צווים בהם שם המבצע
 
 safetyWarrants.title=צווי בטיחות
 safetyWarrants.info=צווים אלו ניתנים על ידי מפקחי המנהל, בעקבות הפרות בטיחות.
-safetyWarrants.count=באתר רשומים כרגע {0} צווים. ב-{1} מהם שם המבצע לא ידוע.
+safetyWarrants.count=באתר רשומים כרגע {0} צווים. ב-{1} מהם שם המבצע לא ידוע, וב-{2} מהם תאריך המסירה לא ידוע.
 safetyWarrants.top20.title=20 השיאנים של כל הזמנים
 safetyWarrants.top20.place=מקום
 safetyWarrants.top20.info=20 המבצעים להם הוצא מספר הצווים הרב ביותר מאז נבנה המאגר. סה״כ הוצאו {1} צווים לחברות אלו, המהווים {2, number, percent} מתוך {0} הצווים הרשומים.

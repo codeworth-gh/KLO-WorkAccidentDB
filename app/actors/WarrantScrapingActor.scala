@@ -118,8 +118,8 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
       .filter( r => r.isInstanceOf[JsObject]).map(r => r.asInstanceOf[JsObject])
       .map( r => parseWarrantRec(r) ).filter( _.isSuccess ).map(_.get)
     
-    val minDate = recResults.map(_.sentDate).minOption
-    val maxDate = recResults.map(_.sentDate).maxOption
+    val minDate = recResults.flatMap(_.sentDate).minOption
+    val maxDate = recResults.flatMap(_.sentDate).maxOption
     log.info(s"Scraped range this batch: $minDate - $maxDate")
     
     val foundExisting = records.value.map( storeSingleRecord ).fold(false)(_||_)
@@ -172,11 +172,11 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
     
     if ( ! expectedHeaders.subsetOf(headerSeq.toSet) ) {
       log.warn(s"Wrong headers. Actual:\n" + headerSeq.sorted + "\nExpected:\n" + expectedHeaders.toSeq.sorted)
-      var missingHeaders = expectedHeaders -- headerSeq.toSet
+      val missingHeaders = expectedHeaders -- headerSeq.toSet
       log.warn(s"Missing headers:\n" + missingHeaders.toSeq.sorted)
       
       myMon = myMon.copy( status=ImportStatus.Error, message=Some("Missing headers. This might be a wrong file or the government format has changed."))
-      cache.set(myMon.id, myMon);
+      cache.set(myMon.id, myMon)
       return
       
     } else {
@@ -236,7 +236,7 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
       
       Success(SafetyWarrant(
         id = row(cols("warrent_id")).toLong,
-        sentDate = safeParseDate(row(cols("send_date"))).getOrElse(LocalDate.of(1970, 1, 1)),
+        sentDate = safeParseDate(row(cols("send_date"))),
         operatorTextId = row(cols("work_id")),
         operatorName = row(cols("work_name")),
         cityName = row(cols("city_name")),
@@ -300,7 +300,7 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
       val scrapeDate = LocalDateTime.now()
       Success(SafetyWarrant(
         id             = safeExtractLong(rec, warrantIdKey).get,
-        sentDate       = safeExtractDate(rec, "send_date").getOrElse(LocalDate.of(1970,1,1)),
+        sentDate       = safeExtractDate(rec, "send_date"),
         operatorTextId = safeExtractStr(rec,  "work_id").getOrElse(""),
         operatorName   = safeExtractStr(rec,  "work_name").getOrElse(""),
         cityName       = safeExtractStr(rec,  "city_name").getOrElse(""),
@@ -370,7 +370,7 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
       Some(SafetyWarrant(
         //            typo is in JSON schema
         (dataObj \ "warrent_id").get.as[JsString].value.toInt,
-        LocalDate.parse( (dataObj \ "send_date").get.as[JsString].value, dateFmt_old ),
+        safeExtractDate(dataObj, "send_date"),
         (dataObj \ "work_id").get.as[JsString].value,
         (dataObj \ "work_name").get.as[JsString].value,
         (dataObj \ "city_name").get.as[JsString].value,

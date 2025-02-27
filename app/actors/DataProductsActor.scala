@@ -50,10 +50,7 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
   
   override def receive: Receive = {
     case PossiblyUpdateWarrantTable() => {
-      if ( ! settings.isTrueish(SettingKey.SafetyWarrantProductsNeedUpdate) ) {
-        log.info("Data products do not need an update")
-
-      } else {
+      if ( settings.isTrueish(SettingKey.SafetyWarrantProductsNeedUpdate) ) {
         settings.set(SettingKey.SafetyWarrantProductsNeedUpdate, "no")
         log.info("Updating safety warrant ODS")
         updateSafetyWarrantDownloadable()

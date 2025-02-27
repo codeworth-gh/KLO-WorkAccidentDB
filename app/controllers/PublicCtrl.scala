@@ -245,13 +245,14 @@ class PublicCtrl @Inject()(cc: ControllerComponents, accidents:WorkAccidentDAO, 
         total <- safetyWarrants.count()
         totalUnknown <- safetyWarrants.unknownExecutorCount()
         dateRange <- safetyWarrants.warrantDates()
+        datelessCount <- safetyWarrants.countDatelessWarrants()
       } yield {
         val top5AllTime = top5.filter(_.name.trim.nonEmpty).groupBy(_.count).map( kv => kv._1->kv._2.map(_.name).sorted ).toSeq.sortBy(-_._1).take(5)
         val top5in24Mo = top5Last24.filter(_._1.trim.nonEmpty).groupBy(_._2).map( kv => kv._1->kv._2.map(_._1).sorted ).toSeq.sortBy(-_._1).take(5)
         val years = byCatYear.map(_.year).distinct.sorted
         val countPerYearByCat = byCatYear.map( r => (r.category, r.year)->r.count ).toMap
         Ok( views.html.publicside.safetywarrants.index(total, totalUnknown, top5AllTime,
-          top5in24Mo, byCatAll, byCat24Mo, byLaw, years, countPerYearByCat, dateRange) )
+          top5in24Mo, byCatAll, byCat24Mo, byLaw, years, countPerYearByCat, dateRange, datelessCount) )
       }
     }
   }

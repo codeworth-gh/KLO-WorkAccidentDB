@@ -33,6 +33,13 @@ object Column {
     }
   }
   
+  def printDate( od:Option[LocalDate], w:TableCellWalker ):Unit = {
+    od match {
+      case None =>
+        w.setStringValue("")
+      case Some(d) => printDate(d,w)
+    }
+  }
   def printDate( d:LocalDate, w:TableCellWalker ):Unit = {
     val millies = d.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli
     val jd = new Date(millies)

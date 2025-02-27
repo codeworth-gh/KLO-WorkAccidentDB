@@ -56,7 +56,7 @@
           @for( p <- warrants ) {
             <tr>
               <td><a href="@routes.PublicCtrl.showSafetyWarrant(p.id)">@p.id</a></td>
-              <td>@Helpers.dateFormats(Helpers.DateFmt.HR_Date).format(p.sentDate)</td>
+              <td>@Helpers.nonEmptyOrElse(p.sentDate.map(d => Helpers.dateFormats(Helpers.DateFmt.HR_Date).format(d))){s=>@s}{<span class="noData">@Messages("unknown")</span>}</td>
               <td>@p.cityName</td>
               <td>@p.felony</td>
               <td><a href="@routes.PublicCtrl.safetyWarrantsForExec(p.executorName)">@p.executorName</a></td>

@@ -9,7 +9,10 @@
   </div>
   <div class="row my-1">
     <div class="col-sm-3">@Messages("safetyWarrants.warrant.date")</div>
-    <div class="col-sm-9">@Helpers.dateFormats(Helpers.DateFmt.HR_Date).format(warrant.sentDate)</div>
+    <div class="col-sm-9">@warrant.sentDate match {
+      case Some(date) => {@Helpers.dateFormats(Helpers.DateFmt.HR_Date).format(date)}
+      case None => {<span class="noData">@Messages("unknown")</span>}
+    }</div>
   </div>
   <div class="row my-1">
     <div class="col-sm-3">@Messages("safetyWarrants.warrant.site")</div>

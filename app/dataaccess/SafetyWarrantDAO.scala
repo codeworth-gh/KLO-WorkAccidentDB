@@ -97,7 +97,7 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
   def listWarrants(skip:Int, fetchSize:Int, searchStr:Option[String], startDate:Option[LocalDate], endDate:Option[LocalDate], executorName:Option[String] ):Future[Seq[SafetyWarrant]] = {
     db.run(
       filterWarrants(searchStr, startDate, endDate, executorName)
-        .sortBy(_.sentDate.desc).drop(skip).take(fetchSize).result
+        .sortBy(_.sentDate.desc.nullsLast).drop(skip).take(fetchSize).result
     )
   }
   
@@ -112,6 +112,9 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
     executorsWithOver4In24.size.result
   )
   
+  def countDatelessWarrants(): Future[Int] = db.run(
+    safetyWarrantTbl.filter(_.sentDate.isEmpty ).size.result
+  )
   
   private val LOCAL_DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd")
   def warrantDates():Future[(LocalDate,LocalDate)] = db.run(
@@ -148,7 +151,7 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
       .withStatementParameters(
         rsType = ResultSetType.ForwardOnly,
         rsConcurrency = ResultSetConcurrency.ReadOnly,
-        fetchSize = 1000)
+        fetchSize = 512)
       .transactionally)
   
   def refreshViews():Future[Unit] = {
