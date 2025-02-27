@@ -1,0 +1,44 @@
+@import be.objectify.deadbolt.scala.AuthenticatedRequest
+@()(implicit request:AuthenticatedRequest[_], msgs:MessagesProvider)
+
+@extraHead={
+  <script src="@routes.Assets.versioned("js/reports.js")"></script>
+}
+
+@extraBottom={
+  <script>
+          UiUtils.documentReady(function(){
+            setup();
+          });
+  </script>
+}
+
+@templates.backEndBase(Messages("reports.title"), views.BackOfficeSections.Reports, extraHead, extraBottom) {
+  @comps.pageTitleRow(Messages("reports.title"))()
+  @comps.helpRow(Messages("reports.help"))
+
+  <form action="#">
+    <div class="row mb-3">
+      <label for="dateStart" class="col-sm-2 col-form-label">@Messages("reports.start")</label>
+      <div class="col-sm-10">
+        <input type="date" class="form-control" id="dateStart">
+      </div>
+    </div>
+    <div class="row mb-3">
+      <label for="dateEnd" class="col-sm-2 col-form-label">@Messages("reports.end")</label>
+      <div class="col-sm-10">
+        <input type="date" class="form-control" id="dateEnd">
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col text-end">
+        <button type="button" class="btn btn-outline-klo-blue" onclick="lastYear()">@Messages("reports.rangeLastYear")</button>
+        <button type="button" class="btn btn-outline-klo-blue" onclick="lastSixMonth()">@Messages("reports.rangeLastSixMonths")</button>
+        <button type="button" class="btn btn-outline-klo-blue" onclick="lastQuarter()">@Messages("reports.rangeLastQuarter")</button>
+        <button type="button" class="btn btn-outline-klo-blue" onclick="lastMonth()">@Messages("reports.rangeLastMonth")</button>
+      </div>
+    </div>
+
+    <button type="button" class="btn btn-primary" onclick="createReport()">@Messages("reports.generate")</button>
+  </form>
+}
