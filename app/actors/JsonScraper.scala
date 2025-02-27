@@ -32,6 +32,16 @@ trait JsonScraper  {
     )
   }
   
+  protected def safeParseDate(input:String):Option[LocalDate] = {
+    if ( input.isBlank ) return None
+    val dateOnlyPart = input.trim.takeWhile(_ != ' ')
+    try {
+      Some(LocalDate.parse(dateOnlyPart, isoDateFmt))
+    } catch {
+      case e: java.time.format.DateTimeParseException => Some(LocalDate.parse(dateOnlyPart, dateFmt))
+    }
+  }
+  
   protected def safeExtractLong(obj: JsObject, key: String): Option[Long] = {
     safeExtractValue(obj, key).flatMap {
       case jsNum: JsNumber => Some(jsNum.value.toLong)

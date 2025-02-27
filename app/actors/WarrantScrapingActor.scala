@@ -1,10 +1,11 @@
 package actors
 
 import actors.WarrantScrapingActor.ldtFmt
+import com.opencsv.{CSVReaderBuilder, CSVReaderHeaderAware, CSVReaderHeaderAwareBuilder}
 import org.apache.pekko.actor.{Actor, ActorSystem, Props}
 import controllers.Assets
 import dataaccess.{SafetyWarrantDAO, SettingDAO, SettingKey}
-import models.ImportStatus.Started
+import models.ImportStatus.{Done, Started}
 import models.{ImportMonitor, ImportStatus, SafetyWarrant}
 import play.api.cache.AsyncCacheApi
 import play.api.libs.json.{JsArray, JsBoolean, JsDefined, JsNull, JsNumber, JsObject, JsString, JsUndefined, JsValue}
@@ -19,7 +20,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{Await, ExecutionContext, Future, duration}
 import scala.concurrent.duration.Duration
 import scala.io.Source
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success, Try, Using}
 
 object WarrantScrapingActor {
   def props: Props = Props[WarrantScrapingActor]()
@@ -98,6 +99,7 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
         log.warn("Response Body:\n" + result.body)
       }
     }
+    settings.set(SettingKey.LastSafetyWarrantScrapeTime, WarrantScrapingActor.ldtFmt.format(LocalDateTime.now()))
   }
   
   def parse( res:JsObject, preScrapeCount:Int ):Option[(String, Int)] = {
@@ -165,21 +167,94 @@ class WarrantScrapingActor @Inject() (safetyWarrants:SafetyWarrantDAO, settings:
     val headRdr = Files.newBufferedReader(path)
     val headerLine = headRdr.readLine()
     headRdr.close()
-    val headers = headerLine.split(",").map( _.trim.toLowerCase ).filter(_.nonEmpty)
-      .map( _.filter( c => c>='_' && c<='z' ) ) // Removing BOM etc.
-      .toSet
+    val headerSeq = headerLine.split(",").map( _.trim.toLowerCase ).filter(_.nonEmpty)
+      .map( _.filter( c => c>='_' && c<='z' ) ).toSeq // Removing BOM etc.
     
-    if ( ! expectedHeaders.subsetOf(headers) ) {
-      log.warn(s"Wrong headers. Actual:\n" + headers.toSeq.sorted + "\nExpected:\n" + expectedHeaders.toSeq.sorted)
-      var missingHeaders = expectedHeaders -- headers
+    if ( ! expectedHeaders.subsetOf(headerSeq.toSet) ) {
+      log.warn(s"Wrong headers. Actual:\n" + headerSeq.sorted + "\nExpected:\n" + expectedHeaders.toSeq.sorted)
+      var missingHeaders = expectedHeaders -- headerSeq.toSet
       log.warn(s"Missing headers:\n" + missingHeaders.toSeq.sorted)
       
       myMon = myMon.copy( status=ImportStatus.Error, message=Some("Missing headers. This might be a wrong file or the government format has changed."))
       cache.set(myMon.id, myMon);
+      return
+      
     } else {
       log.info("Headers OK")
     }
+    
     // import records
+    val headerIdx = headerSeq.zipWithIndex.map( p => p._1->p._2 ).toMap
+    Using( new CSVReaderBuilder(Files.newBufferedReader(path)).build ){ rdr =>
+      rdr.readNext() // skip headers
+      var curRow:Array[String]=rdr.readNext()
+      var go = true
+      var count = 0
+      val importComment = s"Imported from ${myMon.originalFilename}, ${WarrantScrapingActor.ldtFmt.format(LocalDateTime.now())}"
+      while( go ) {
+        try {
+          parseWarrant(curRow, headerIdx, importComment) match {
+            case Failure(e) =>
+              log.warn(e.getMessage, e)
+              myMon = myMon.copy(errorCount = myMon.errorCount + 1)
+            case Success(warrant) =>
+              if (mutedCategories(warrant.categoryName)) {
+                myMon = myMon.copy(ignored = myMon.ignored + 1)
+              } else {
+                if (Await.result(safetyWarrants.exists(warrant.id), D)) {
+                  myMon = myMon.copy(existed = myMon.existed + 1)
+                  
+                } else {
+                  Await.result(safetyWarrants.store(warrant), D)
+                  myMon = myMon.copy(added = myMon.added + 1)
+                }
+              }
+          }
+        } catch {
+          case exception: Exception =>
+            myMon = myMon.copy(errorCount = myMon.errorCount + 1)
+            log.warn(s"Error parsing row ${curRow}: ${exception.getMessage}", exception)
+        }
+        
+        curRow = rdr.readNext()
+        go = (curRow != null)
+        count = count+1
+        if ( count%100 == 0 ) cache.set(myMon.id, myMon)
+      }
+      if ( myMon.added > 0 ) {
+        settings.set(SettingKey.SafetyWarrantProductsNeedUpdate, "yes")
+      }
+      myMon = myMon.copy(status=Done)
+      cache.set(myMon.id, myMon)
+      settings.set(SettingKey.LastSafetyWarrantScrapeTime, WarrantScrapingActor.ldtFmt.format(LocalDateTime.now()))
+    }
+  }
+  
+  private def parseWarrant(row: Array[String], cols: Map[String, Int], importComment:String): Try[SafetyWarrant] = {
+    try {
+      val scrapeDate = LocalDateTime.now()
+      
+      Success(SafetyWarrant(
+        id = row(cols("warrent_id")).toLong,
+        sentDate = safeParseDate(row(cols("send_date"))).getOrElse(LocalDate.of(1970, 1, 1)),
+        operatorTextId = row(cols("work_id")),
+        operatorName = row(cols("work_name")),
+        cityName = row(cols("city_name")),
+        executorName = row(cols("executor_name")),
+        categoryName = row(cols("category_name")),
+        felony = row(cols("felony_name")),
+        law = row(cols("law_name")),
+        clause = row(cols("clause_name")),
+        scrapeDate = scrapeDate,
+        None, None, None,
+        importComment
+      ))
+    } catch {
+      case e: Exception =>
+        log.warn(s"Error parsing SafetyWarrant line: ${e.getMessage}")
+        log.warn(row.mkString(", "))
+        Failure(e)
+    }
   }
   
   /**
