@@ -142,6 +142,11 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
     accidentsByMonthTable(from, to, document)
     casualtiesByIndustryTable(from, to, document)
     casualtiesByYearTable(from.getMonthValue, to.getMonthValue, document)
+    casualtiesByYearAndIndustryTable(from.getMonthValue, to.getMonthValue, false, document)
+    casualtiesByYearAndIndustryTable(from.getMonthValue, to.getMonthValue, true, document)
+    fatalitiesPerCitizenshipTable(from, to, document)
+    casualtiesByCausesTable(from, to, false, document)
+    casualtiesByCausesTable(from, to, true, document)
     
     System.getProperty("java.io.tmpdir")
     val tempPath = Paths.get(System.getProperty("java.io.tmpdir")).resolve(s"${lpm.id}.ods")
@@ -157,6 +162,93 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
     log.info( s"Done composing periodical report ${from}-${to}")
   }
   
+  private def fatalitiesPerCitizenshipTable(from: LocalDate, to: LocalDate, document:OdsDocument ): Unit = {
+    val tbl = document.addTable("Fatalities per Citizenship")
+    val walker = RichWalker(tbl.getWalker)
+    
+    val title = messages("reports.ods.fatalitiesByCitizenship.title")
+    walker.th(title).nextRow()
+    walker.nextRow();
+    tbl.setCellMerge(0, 0, 1, 6)
+    
+    walker.bold
+      .td(messages("citizenship")).td(messages("reports.ods.sev.fatal"))
+      .plain.nextRow()
+    
+    Await.result(
+      workAccidents.getCasualtiesByCitizenship(from,to).map( rows => {
+        for ( row <- rows.sortBy(_._2) ) {
+          walker.bold.td(Option(row._1).getOrElse(messages("reports.ods.unknown"))).plain.td(row._2).nextRow()
+        }
+      }), D
+    )
+  }
+  
+  private def casualtiesByCausesTable(from:LocalDate, to:LocalDate, isFatal:Boolean, document:OdsDocument):Unit = {
+    val tbl = document.addTable( if ( isFatal ) "Fatalities per Cause" else "Injuries per Cause")
+    
+    val walker = RichWalker(tbl.getWalker)
+    val title = messages(if (isFatal) "reports.ods.fatalitiesByCause.title" else "reports.ods.injuriesByCause.title")
+    walker.th(title).nextRow().nextRow()
+    tbl.setCellMerge(0, 0, 1, 6)
+    
+    val min = if (isFatal) Severity.fatal else Severity.medium
+    val max = if (isFatal) Severity.fatal else Severity.nearFatal
+    Await.result(
+      workAccidents.getCausesBySeverity(from, to, min, max).map( rows => {
+            for ( row <- rows.sortBy(_._2).reverse ) {
+              walker.td(Option(row._1).getOrElse(messages("reports.ods.unknown")))
+              walker.td(row._2)
+              walker.nextRow()
+            }
+      }),D
+    )
+    
+  }
+  
+  private def casualtiesByYearAndIndustryTable( startMonth:Int, endMonth:Int, isFatal:Boolean, document:OdsDocument ): Unit = {
+    val tbl = document.addTable( if ( isFatal ) "Fatalities per Year, Industry" else "Injured per Year, Industry")
+    val walker = RichWalker(tbl.getWalker)
+    
+    val title = messages(s"reports.ods.${if (isFatal) "killed" else "injured" }ByPeriodAndIndustry.title", messages("month." + startMonth), messages("month." + endMonth))
+    walker.th(title).nextRow().nextRow()
+    tbl.setCellMerge(0, 0, 1, 6)
+    
+    val min = if (isFatal) Severity.fatal else Severity.medium
+    val max = if (isFatal) Severity.fatal else Severity.nearFatal
+    
+    Await.result(
+      workAccidents.getCasualtiesCountByYearAndIndustry(startMonth, endMonth, min, max).map(rawRows=>{
+        val rows = rawRows.map( r => (r._1, if (r._2!=null) r._2 else messages("reports.ods.unknown"), r._3 ))
+        val years = rows.map(_._1).toSet.toSeq.sorted
+        val inds = rows.map(_._2).toSet.toSeq.sorted
+        
+        // table head
+        walker.th(messages("industry"))
+        years.foreach( walker.td )
+        walker.nextRow()
+        
+        // table body
+        for ( ind <- inds ) {
+          walker.bold.td(ind).plain
+          for ( year <- years ) {
+            rows.find( r => r._1 == year && r._2 == ind ) match {
+              case None => walker.td(0)
+              case Some(_,_,count) => walker.td(count)
+            }
+          }
+          walker.nextRow()
+        }
+        
+        // totals line
+        walker.bold.td(messages("total")).plain
+        for ( year <- years ) {
+          val total = rows.filter( _._1 == year ).map(_._3).sum
+          walker.td(total)
+        }
+        
+    }), D)
+  }
   private def casualtiesByYearTable( startMonth:Int, endMonth:Int, document:OdsDocument ): Unit = {
     val tbl = document.addTable("Casualties by Year")
     val walker = RichWalker(tbl.getWalker)
@@ -207,7 +299,7 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
       log.info(s"casualtiesByIndustryTable Got ${rows.length} rows")
       val byInd = rows.groupBy(_._1)
       byInd.foreach( itms => {
-        walker.bold.td(Option(itms._1).getOrElse("אחר/לא צויין")).plain
+        walker.bold.td(Option(itms._1).getOrElse(messages("reports.ods.unknown"))).plain
         itms._2.find(_._2 == false) match {
           case None => walker.td(0)
           case Some(_,_,count) => walker.td(count)

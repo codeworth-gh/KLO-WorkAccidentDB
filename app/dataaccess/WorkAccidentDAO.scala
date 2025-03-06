@@ -448,6 +448,18 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   """.as[(String, String, String, Int, Int)])
   }
   
+  def getCasualtiesByCitizenship( start:LocalDate, end:LocalDate ): Future[Seq[(String, Int)]] = {
+    val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val startStr = fmt.format(start)
+    val endStr = fmt.format(end)
+    db.run(
+      sql"""SELECT citizenship_name, count(*) as count
+           FROM injured_worker_summary
+           WHERE injury_severity=4 and date_time >= '#$startStr' and date_time <= '#$endStr'
+           GROUP BY citizenship_name;""".as[(String, Int)]
+    )
+  }
+  
   def getCasualtiesByIndustry( start:LocalDate, end:LocalDate ): Future[Seq[(String, Boolean, Int)]] = {
     val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     val startStr = fmt.format(start)
@@ -455,7 +467,7 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     db.run(
       sql"""SELECT industry_name, (injury_severity = 4) as killed, count(*) as count
       FROM injured_worker_summary
-      WHERE injury_severity > 1
+      WHERE injury_severity > 0
         AND date_time >= '#$startStr' AND date_time <= '#$endStr'
       GROUP BY industry_name, (injury_severity = 4);
       """.as[(String, Boolean, Int)])
@@ -468,6 +480,28 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
           GROUP BY year, injury_severity
           ORDER BY year, injury_severity;""".as[(Int,Int,Int)]
   )
+  
+  def getCasualtiesCountByYearAndIndustry(startMonth:Int, endMonth:Int, minSev:Severity.Value, maxSev:Severity.Value) : Future[Seq[(Int, String, Int)]] = db.run(
+    sql"""SELECT date_part('year', date_time) as year, industry_name, count(*) as count
+          FROM injured_worker_summary
+          WHERE injury_severity >= #${minSev.id} and injury_severity <= #${maxSev.id}
+            and date_part('month', date_time) >= #$startMonth and date_part('month', date_time) <= #$endMonth
+          GROUP BY year, industry_name
+          ORDER BY year, industry_name;""".as[(Int,String,Int)]
+  )
+  
+  def getCausesBySeverity(from:LocalDate, to:LocalDate, minSev:Severity.Value, maxSev:Severity.Value) : Future[Seq[(String, Int)]] = {
+    val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val startStr = fmt.format(from)
+    val endStr = fmt.format(to)
+    db.run(
+      sql"""select injury_cause_name, count(*)
+        from injured_worker_summary
+        where injury_severity>=#${minSev.id} and injury_severity<=#${maxSev.id}
+          and date_time >= '#${startStr}' and date_time <= '#${endStr}'
+        group by  injury_cause_name;""".as[(String,Int)]
+    )
+  }
   
   private def fromDto(iwRow:InjuredWorkerRecord, employer:Option[BusinessEntity]) = InjuredWorker( iwRow.id, iwRow.name, iwRow.age, iwRow.citizenship.flatMap(citizenships(_)),
     iwRow.industry.flatMap(industries(_)), employer, iwRow.from, iwRow.injuryCause.flatMap(injuryCauses(_)),

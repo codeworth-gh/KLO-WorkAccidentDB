@@ -271,13 +271,19 @@ reports.rangeLastQuarter=רבעון אחרון
 reports.rangeLastMonth=חודש אחרון
 
 reports.ods.casualtiesByPeriod.title=נפגעים בתאונות עבודה בחודשים {0}-{1} לפי שנה
+reports.ods.injuredByPeriodAndIndustry.title=פצועים בתאונות עבודה בחודשים {0}-{1} לפי שנה וענף
+reports.ods.killedByPeriodAndIndustry.title=הרוגים בתאונות עבודה בחודשים {0}-{1} לפי שנה וענף
+reports.ods.injuriesByCause.title=סיבות לפציעה בתאונה
+reports.ods.fatalitiesByCause.title=סיבות למוות בתאונה
 reports.ods.casualtiesByIndustry.title=נפגעים לפי ענף
+reports.ods.fatalitiesByCitizenship.title=זהות הרוגים
 reports.ods.accidentsByMonthTable.title=תאונות ונפגעים לפי חודש
 reports.ods.sev.medium=פצועים בינוני
 reports.ods.sev.mediumAndUp=פצועים בינוני ומעלה
 reports.ods.sev.severe=פצועים קשה
 reports.ods.sev.nearFatal=פצועים אנוש
 reports.ods.sev.fatal=הרוגים
+reports.ods.unknown=לא צויין
 
 publicIndex.hero=תאונות עבודה בישראל
 publicIndex.sub=פרוייקט תעוד תאונות עבודה של עמותת קו לעובד
