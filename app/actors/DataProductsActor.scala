@@ -5,8 +5,9 @@ import com.github.jferard.fastods.{OdsDocument, OdsFactory}
 import controllers.PublicCtrl.{integerDataStyle, rowStyle, titleStyle}
 import dataaccess.{SafetyWarrantDAO, SettingDAO, SettingKey, WorkAccidentDAO}
 import models.LongRunningProcessStatus.{Done, Started}
-import models.{Column, LongRunningProcessMonitor, SafetyWarrant}
+import models.{Column, LongRunningProcessMonitor, RichWalker, SafetyWarrant, Severity}
 import play.api.cache.AsyncCacheApi
+import play.api.i18n.{Lang, Messages, MessagesApi}
 import play.api.libs.Files.TemporaryFileCreator
 import play.api.{Configuration, Logger}
 
@@ -51,10 +52,12 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
                                    workAccidents: WorkAccidentDAO,
                                    settings:SettingDAO,
                                    cache:AsyncCacheApi,
+                                   messagesApi: MessagesApi,
                                    config:Configuration)(implicit anEc:ExecutionContext) extends Actor {
   import DataProductsActor._
   private val D = Duration(5, duration.MINUTES)
   private val log = Logger(classOf[WarrantScrapingActor])
+  private val messages = messagesApi.preferred(Seq(Lang("IW"), Lang("EN")))
   
   
   override def receive: Receive = {
@@ -137,6 +140,9 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
     val document = writer.document()
     
     accidentsByMonthTable(from, to, document)
+    casualtiesByIndustryTable(from, to, document)
+    casualtiesByYearTable(from.getMonthValue, to.getMonthValue, document)
+    
     System.getProperty("java.io.tmpdir")
     val tempPath = Paths.get(System.getProperty("java.io.tmpdir")).resolve(s"${lpm.id}.ods")
 //    fileCreator.create(tempPath) // ensure later deletion by the reaper
@@ -151,34 +157,99 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
     log.info( s"Done composing periodical report ${from}-${to}")
   }
   
+  private def casualtiesByYearTable( startMonth:Int, endMonth:Int, document:OdsDocument ): Unit = {
+    val tbl = document.addTable("Casualties by Year")
+    val walker = RichWalker(tbl.getWalker)
+    
+    val title = messages("reports.ods.casualtiesByPeriod.title", messages("month."+startMonth), messages("month."+endMonth))
+    walker.th(title).nextRow()
+    walker.nextRow();
+    tbl.setCellMerge(0,0,1,5)
+    
+    walker.th(messages("year"))
+    walker.th(messages("reports.ods.sev.medium"))
+    walker.th(messages("reports.ods.sev.severe"))
+    walker.th(messages("reports.ods.sev.nearFatal"))
+    walker.th(messages("reports.ods.sev.fatal"))
+    walker.nextRow()
+    
+    Await.result(workAccidents.getCasualtiesCountByYear(startMonth, endMonth).map(rows => {
+      log.info(s"getCasualtiesCountByYear Got ${rows.length} rows")
+      val byYear = rows.groupBy(_._1)
+      
+      byYear.toSeq.sortBy(_._1).foreach( yearData => {
+        walker.bold.td(yearData._1).plain
+        Range.inclusive(Severity.medium.id, Severity.fatal.id).foreach( severity => {
+          yearData._2.find(_._2 == severity) match {
+            case None => walker.td(0)
+            case Some(_, _, count) => walker.td(count)
+          }
+        })
+        walker.nextRow()
+      })
+    }), D)
+    
+  }
+  
+  private def casualtiesByIndustryTable(from: LocalDate, to: LocalDate, document:OdsDocument):Unit = {
+    val tbl = document.addTable("Casualties by Industry")
+    val walker = RichWalker(tbl.getWalker)
+    
+    walker.th(messages("reports.ods.casualtiesByIndustry.title")).nextRow().nextRow()
+    tbl.setCellMerge(0,0,1,3)
+    
+    walker.th(messages("industry"))
+    walker.th(messages("reports.ods.sev.mediumAndUp"))
+    walker.th(messages("reports.ods.sev.fatal"))
+    walker.nextRow()
+    
+    Await.result(workAccidents.getCasualtiesByIndustry(from, to).map(rows => {
+      log.info(s"casualtiesByIndustryTable Got ${rows.length} rows")
+      val byInd = rows.groupBy(_._1)
+      byInd.foreach( itms => {
+        walker.bold.td(Option(itms._1).getOrElse("אחר/לא צויין")).plain
+        itms._2.find(_._2 == false) match {
+          case None => walker.td(0)
+          case Some(_,_,count) => walker.td(count)
+        }
+        itms._2.find(_._2 == true) match {
+          case None => walker.td(0)
+          case Some(_,_,count) => walker.td(count)
+        }
+        walker.nextRow()
+      })
+    }), D)
+  }
+  
   private def accidentsByMonthTable(from: LocalDate, to: LocalDate, document:OdsDocument):Unit = {
     val tbl = document.addTable("Accidents by month")
     
-    val walker = tbl.getWalker
+    val walker = RichWalker(tbl.getWalker)
+    walker.th(messages("reports.ods.accidentsByMonthTable.title")).nextRow().nextRow()
+    tbl.setCellMerge(0,0,1,4)
     
-    walker.setStringValue("Year");    walker.setStyle(titleStyle); walker.next()
-    walker.setStringValue("Month");   walker.setStyle(titleStyle); walker.next()
-    walker.setStringValue("Injured"); walker.setStyle(titleStyle); walker.next()
-    walker.setStringValue("Killed");  walker.setStyle(titleStyle); walker.next()
+    walker.th(messages("year"))
+    walker.th(messages("month"))
+    walker.th(messages("reports.ods.sev.mediumAndUp"))
+    walker.th(messages("reports.ods.sev.fatal"))
     walker.nextRow()
     
     val injuredSum = new AtomicInteger()
     val killedSum = new AtomicInteger()
     Await.result( workAccidents.getCasualtiesByMonth(from, to).map( rows => {
-      log.info( s"Got ${rows.length} rows")
+      log.info( s"accidentsByMonthTable Got ${rows.length} rows")
       rows.foreach( row => {
-        walker.setStringValue(row._2); walker.next()
-        walker.setStringValue(row._3); walker.next()
-        walker.setFloatValue(row._4); walker.setDataStyle(integerDataStyle); walker.next()
-        walker.setFloatValue(row._5); walker.setDataStyle(integerDataStyle); walker.next()
+        walker.td(row._2)
+        walker.td(row._3)
+        walker.td(row._4)
+        walker.td(row._5)
         walker.nextRow()
         injuredSum.addAndGet(row._4)
         killedSum.addAndGet(row._5)
       })
     }), D)
-    walker.next()
-    walker.next();
-    walker.setFloatValue(injuredSum.get());walker.setStyle(titleStyle); walker.next()
-    walker.setFloatValue(killedSum.get());walker.setStyle(titleStyle); walker.next()
+    walker.skip().skip().bold
+    walker.td(injuredSum.get())
+    walker.td(killedSum.get())
   }
 }

@@ -448,6 +448,27 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   """.as[(String, String, String, Int, Int)])
   }
   
+  def getCasualtiesByIndustry( start:LocalDate, end:LocalDate ): Future[Seq[(String, Boolean, Int)]] = {
+    val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val startStr = fmt.format(start)
+    val endStr = fmt.format(end)
+    db.run(
+      sql"""SELECT industry_name, (injury_severity = 4) as killed, count(*) as count
+      FROM injured_worker_summary
+      WHERE injury_severity > 1
+        AND date_time >= '#$startStr' AND date_time <= '#$endStr'
+      GROUP BY industry_name, (injury_severity = 4);
+      """.as[(String, Boolean, Int)])
+  }
+  
+  def getCasualtiesCountByYear(startMonth:Int, endMonth:Int) : Future[Seq[(Int, Int, Int)]] = db.run(
+    sql"""SELECT date_part('year', date_time) as year, injury_severity, count(*) as count
+          FROM injured_worker_summary
+          WHERE injury_severity > 0 and date_part('month', date_time) >= #$startMonth and date_part('month', date_time) <= #$endMonth
+          GROUP BY year, injury_severity
+          ORDER BY year, injury_severity;""".as[(Int,Int,Int)]
+  )
+  
   private def fromDto(iwRow:InjuredWorkerRecord, employer:Option[BusinessEntity]) = InjuredWorker( iwRow.id, iwRow.name, iwRow.age, iwRow.citizenship.flatMap(citizenships(_)),
     iwRow.industry.flatMap(industries(_)), employer, iwRow.from, iwRow.injuryCause.flatMap(injuryCauses(_)),
     iwRow.injurySeverity.map( Severity.apply ), iwRow.injuryDescription, iwRow.publicRemarks, iwRow.sensitiveRemarks

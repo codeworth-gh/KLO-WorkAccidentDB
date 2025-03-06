@@ -43,8 +43,8 @@ function monitorProgress() {
             r.json().then( d => {
                 Informationals.loader(d.status);
                 if ( d.status === "Done" ) {
-                    Informationals.loader.dismiss();
                     window.setTimeout(()=>{
+                        Informationals.loader.dismiss();
                         window.location.href = beRoutes.controllers.ReportsCtrl.getReportFile(MONITOR.id).url;
                     }, 3000);
                 }
@@ -76,7 +76,6 @@ function lastXMonth(monthCount) {
 
     dpStart.value = `${startYear}-${startMonth}-01`;
     end.setDate(end.getDate()-1); // take 1 day back
-    console.log(end.toISOString().split("T")[0]);
     dpEnd.value = end.toISOString().split("T")[0];
 }
 

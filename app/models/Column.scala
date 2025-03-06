@@ -1,10 +1,13 @@
 package models
 
 import com.github.jferard.fastods.TableCellWalker
+import com.github.jferard.fastods.attribute.{BorderAttribute, BorderStyle}
+import com.github.jferard.fastods.datastyle.{FloatStyle, FloatStyleBuilder}
+import com.github.jferard.fastods.style.TableCellStyle
 import controllers.PublicCtrl.integerDataStyle
 
 import java.time.{LocalDate, LocalDateTime, ZoneOffset}
-import java.util.Date
+import java.util.{Date, Locale}
 
 class Column[T](val name: String, writer: (T, TableCellWalker) => Any) {
   def write(t: T, w: TableCellWalker): Any = writer(t, w)
@@ -48,5 +51,74 @@ object Column {
   def printDate( d:LocalDateTime, w:TableCellWalker ):Unit = {
     val jd = new Date(d.toInstant(ZoneOffset.UTC).toEpochMilli)
     w.setDateValue(jd)
+  }
+}
+
+object RichWalker {
+  val titleStyle: TableCellStyle = TableCellStyle.builder("title").fontWeightBold().borderBottom(
+    BorderAttribute.builder().borderSize(1).borderStyle(BorderStyle.SOLID).build())
+    .build()
+  val boldStyle: TableCellStyle = TableCellStyle.builder("bold").fontWeightBold().build()
+  val integerDataStyle: FloatStyle = new FloatStyleBuilder("int", Locale.US).decimalPlaces(0).groupThousands(false).build()
+}
+
+class RichWalker(cw:TableCellWalker, var isBold:Boolean) {
+  
+  def this(aCw:TableCellWalker) = this(aCw, false)
+  
+  def bold: RichWalker = {
+    isBold = true
+    this
+  }
+  def plain: RichWalker = {
+    isBold = false
+    this
+  }
+  
+  def th(s:String): RichWalker = {
+    cw.setStringValue(s)
+    cw.setStyle(RichWalker.titleStyle)
+    cw.next()
+    this
+  }
+  
+  def td(s:String): RichWalker = {
+    cw.setStringValue(s)
+    if ( isBold ) {
+      cw.setStyle(RichWalker.boldStyle)
+    }
+    cw.next()
+    this
+  }
+  
+  def td(s:Int): RichWalker = {
+    cw.setFloatValue(s.toFloat)
+    cw.setDataStyle(RichWalker.integerDataStyle)
+    if ( isBold ) {
+      cw.setStyle(RichWalker.boldStyle)
+    }
+    cw.next()
+    this
+  }
+  
+  def td(s: LocalDate): RichWalker = {
+    val millies = s.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli
+    val jd = new Date(millies)
+    cw.setDateValue(jd)
+    if (isBold) {
+      cw.setStyle(RichWalker.boldStyle)
+    }
+    cw.next()
+    this
+  }
+  
+  def skip():RichWalker = {
+    cw.next()
+    this
+  }
+  
+  def nextRow(): RichWalker = {
+    cw.nextRow()
+    this
   }
 }
