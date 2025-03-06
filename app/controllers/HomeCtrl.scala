@@ -59,6 +59,9 @@ object HomeCtrl {
     routes.javascript.BusinessEntityCtrl.apiMergeEntities,
     routes.javascript.BusinessEntityCtrl.apiGetEntityMergeStatus,
     routes.javascript.PublicCtrl.bizEntDetails,
+    routes.javascript.ReportsCtrl.apiGenerateReport,
+    routes.javascript.ReportsCtrl.apiReportStatus,
+    routes.javascript.ReportsCtrl.getReportFile,
     routes.javascript.DataImportCtrl.apiImportSafetyWarrants,
     routes.javascript.DataImportCtrl.apiSafetyImportStatus
   )

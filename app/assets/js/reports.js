@@ -1,15 +1,53 @@
 /* jshint esversion:6 */
 let dpStart;
 let dpEnd;
+let pj;
 
 function setup() {
     dpStart = document.getElementById("dateStart");
     dpEnd = document.getElementById("dateEnd");
+    pj = new Playjax(beRoutes);
 }
 
 function createReport() {
-    // TODO: validate dates, put end last.
     Informationals.loader( `start: ${dpStart.value} end: ${dpEnd.value}` );
+    const dates =[dpStart.value, dpEnd.value].map(p=>p.trim()).filter( v=>v.length>0).sort();
+    if ( dates.length < 2 ) {
+        Informationals.loader.dismiss();
+        swal("Please provide two valid dates", {icon:"error"});
+    }
+    const payload = {
+        start: dates[0],
+        end:   dates[1]
+    };
+
+    pj.using( c=>c.ReportsCtrl.apiGenerateReport() )
+        .fetch( payload )
+        .then( r => {
+           Informationals.loader("Started");
+           r.json().then( m => {startMonitoring(m);});
+        });
+
+}
+
+let MONITOR = null;
+function startMonitoring(monitor) {
+    MONITOR = monitor;
+    window.setTimeout(monitorProgress, 2000);
+}
+
+function monitorProgress() {
+    pj.using( c => c.ReportsCtrl.apiReportStatus(MONITOR.id) )
+        .fetch()
+        .then( r => {
+            r.json().then( d => {
+                Informationals.loader(d.status);
+                if ( d.status === "Done" ) {
+                    Informationals.loader.dismiss();
+                    window.location.href = beRoutes.controllers.ReportsCtrl.getReportFile(MONITOR.id).url;
+                }
+            });
+        });
 }
 
 function lastSixMonth() {

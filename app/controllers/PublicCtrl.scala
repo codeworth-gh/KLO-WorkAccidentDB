@@ -6,7 +6,7 @@ import be.objectify.deadbolt.scala.DeadboltActions
 import com.github.jferard.fastods.{AnonymousOdsFileWriter, ObjectToCellValueConverter, OdsFactory, Table, TableCellWalker}
 import com.github.jferard.fastods.style.TableCellStyle
 import com.github.jferard.fastods.attribute.SimpleLength
-import com.github.jferard.fastods.datastyle.{DataStyle, FloatStyleBuilder}
+import com.github.jferard.fastods.datastyle.{DataStyle, FloatStyle, FloatStyleBuilder}
 import com.github.jferard.fastods.style.TableRowStyle
 import dataaccess.BusinessEntityDAO.StatsSortKey
 import dataaccess.{BusinessEntityDAO, CitizenshipsDAO, IndustriesDAO, InjuryCausesDAO, RegionsDAO, RelationToAccidentDAO, SafetyViolationSanctionDAO, SafetyWarrantDAO, SanctionsDAO, SettingDAO, SettingKey, TableRefs, WorkAccidentDAO}
@@ -40,9 +40,9 @@ object PublicCtrl {
   val INDEX_PAGE_CACHE_KEY = "PublicCtrl::publicMain"
   val SW_INDEX_PAGE_CACHE_KEY = "PublicCtrl::SWIndex"
   val DATA_PRODUCT_SANCTIONS_KEY = "PublicCtrl::DATA_PRODUCT_SANCTIONS_KEY"
-  val integerDataStyle = new FloatStyleBuilder("int", Locale.US).decimalPlaces(0).groupThousands(false).build()
-  val rowStyle = TableRowStyle.builder("okRow").rowHeight(SimpleLength.pt(16.0)).build()
-  val titleStyle = TableCellStyle.builder("title").fontWeightBold().build()
+  val integerDataStyle: FloatStyle = new FloatStyleBuilder("int", Locale.US).decimalPlaces(0).groupThousands(false).build()
+  val rowStyle: TableRowStyle = TableRowStyle.builder("okRow").rowHeight(SimpleLength.pt(16.0)).build()
+  val titleStyle: TableCellStyle = TableCellStyle.builder("title").fontWeightBold().build()
 }
 
 

@@ -4,9 +4,14 @@ import org.apache.pekko.actor.{Actor, Props}
 import com.github.jferard.fastods.OdsFactory
 import controllers.PublicCtrl.{rowStyle, titleStyle}
 import dataaccess.{SafetyWarrantDAO, SettingDAO, SettingKey}
-import models.{Column, SafetyWarrant}
+import models.LongRunningProcessStatus.{Done, Started}
+import models.{Column, LongRunningProcessMonitor, SafetyWarrant}
+import play.api.cache.AsyncCacheApi
+import play.api.libs.Files.TemporaryFileCreator
 import play.api.{Configuration, Logger}
+
 import java.nio.file.{Files, Paths, StandardCopyOption}
+import java.time.LocalDate
 import java.util.Locale
 import javax.inject.Inject
 import scala.concurrent.duration.Duration
@@ -18,6 +23,7 @@ object DataProductsActor {
   case class PossiblyUpdateWarrantTable()
   case class ForceUpdateWarrantTable()
   case class UpdateTemporalViews()
+  case class CreatePeriodicalReport( from:LocalDate, to:LocalDate, monitor:LongRunningProcessMonitor)
   
   import Column._
   val safetyWarrantCols = Seq(
@@ -42,6 +48,7 @@ object DataProductsActor {
  */
 class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
                                    settings:SettingDAO,
+                                   cache:AsyncCacheApi, fileCreator: TemporaryFileCreator,
                                    config:Configuration)(implicit anEc:ExecutionContext) extends Actor {
   import DataProductsActor._
   private val D = Duration(5, duration.MINUTES)
@@ -68,7 +75,8 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
       updateSafetyWarrantDownloadable()
       safetyWarrants.refreshViews()
       sender() ! "OK"
-      
+    
+    case CreatePeriodicalReport(f,t,m) => composePeriodicalReport(f,t,m)
   }
   
   private def updateSafetyWarrantDownloadable():Unit = {
@@ -113,5 +121,37 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
     log.info("Moving temp file to place")
     Files.move(tempPath, tempPath.resolveSibling("safetyWarrants.ods"),
       StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+  }
+  
+  def composePeriodicalReport(from: LocalDate, to: LocalDate, anLpm: LongRunningProcessMonitor): Unit = {
+    var lpm = anLpm.copy(status = Started)
+    cache.set(lpm.id, lpm)
+    log.info( s"Composing periodical report ${from}-${to}")
+    
+    Await.result(safetyWarrants.refreshViews(), D)
+    
+    val odsFactory = OdsFactory.create(java.util.logging.Logger.getLogger("ReportsCtrl"), Locale.US)
+    val writer = odsFactory.createWriter
+    val document = writer.document()
+    
+    val table = document.addTable("Safety Warrants")
+    val walker = table.getWalker
+    Range(0, 11).foreach(i => {
+      Column.printLong(i, walker)
+      walker.next()
+    })
+    
+    val tempPath = Paths.get(config.get[String]("klo.dataProductFolder")).resolve(s"${lpm.id}.ods")
+    fileCreator.create(tempPath) // ensure later deletion by the reaper
+    
+    Using(Files.newOutputStream(tempPath)){
+      writer.save
+    }
+    
+    lpm = lpm.copy(status = Done)
+    cache.set(lpm.id, lpm)
+    
+    log.info( s"Done composing periodical report ${from}-${to}")
+    
   }
 }

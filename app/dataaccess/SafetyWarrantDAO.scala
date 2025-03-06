@@ -169,7 +169,8 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
          """.as[Int]
     ).map(_=>{
       cache.remove(PublicCtrl.SW_INDEX_PAGE_CACHE_KEY)
-      ()})
+      ()
+    })
   }
   
   
