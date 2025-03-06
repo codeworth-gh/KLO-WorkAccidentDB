@@ -7,6 +7,8 @@ import play.api.cache.AsyncCacheApi
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.{GetResult, JdbcProfile, PostgresProfile}
 
+import java.text.DateFormat
+import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}
 import javax.inject.Inject
 import scala.collection.immutable.Set
@@ -421,6 +423,30 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
   def getLastUpdateDate:Future[LocalDateTime] = db.run(
     sql"select max(date_time) from work_accidents".as[LocalDateTime]
   ).map( res => res.headOption.getOrElse(LocalDateTime.of(1970,1,1,0,0)))
+  
+  def getCasualtiesByMonth( start:LocalDate, end:LocalDate ):Future[Seq[(String, String, String, Int, Int)]] = {
+    val fmt = DateTimeFormatter.ofPattern("yyyyMM")
+    val startStr = fmt.format(start)
+    val endStr = fmt.format(end)
+    log.info(s"casualties by month: $startStr to $endStr")
+    db.run(
+      sql"""with accident_tmp as (SELECT  date_part('year', wa.date_time) as year,
+              date_part('month', wa.date_time) as month,
+             ( SELECT count(*) AS count
+               FROM injured_workers iw
+               WHERE iw.accident_id = wa.id AND (iw.injury_severity = ANY (ARRAY[2,3]))) AS injured_count,
+             ( SELECT count(*) AS count
+               FROM injured_workers iw
+               WHERE iw.accident_id = wa.id AND iw.injury_severity = 4) AS killed_count
+        FROM work_accidents wa)
+        SELECT concat(year,lpad(month::text,2,'0')) ts, year, month, SUM(injured_count), SUM(killed_count)
+        FROM accident_tmp
+        GROUP BY month, year
+        HAVING concat(year,lpad(month::text,2,'0'))>='#$startStr'
+           AND concat(year,lpad(month::text,2,'0'))<='#$endStr'
+        ORDER BY year, month
+  """.as[(String, String, String, Int, Int)])
+  }
   
   private def fromDto(iwRow:InjuredWorkerRecord, employer:Option[BusinessEntity]) = InjuredWorker( iwRow.id, iwRow.name, iwRow.age, iwRow.citizenship.flatMap(citizenships(_)),
     iwRow.industry.flatMap(industries(_)), employer, iwRow.from, iwRow.injuryCause.flatMap(injuryCauses(_)),

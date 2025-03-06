@@ -44,7 +44,9 @@ function monitorProgress() {
                 Informationals.loader(d.status);
                 if ( d.status === "Done" ) {
                     Informationals.loader.dismiss();
-                    window.location.href = beRoutes.controllers.ReportsCtrl.getReportFile(MONITOR.id).url;
+                    window.setTimeout(()=>{
+                        window.location.href = beRoutes.controllers.ReportsCtrl.getReportFile(MONITOR.id).url;
+                    }, 3000);
                 }
             });
         });

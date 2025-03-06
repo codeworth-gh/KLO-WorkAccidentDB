@@ -1,9 +1,9 @@
 package actors
 
 import org.apache.pekko.actor.{Actor, Props}
-import com.github.jferard.fastods.OdsFactory
-import controllers.PublicCtrl.{rowStyle, titleStyle}
-import dataaccess.{SafetyWarrantDAO, SettingDAO, SettingKey}
+import com.github.jferard.fastods.{OdsDocument, OdsFactory}
+import controllers.PublicCtrl.{integerDataStyle, rowStyle, titleStyle}
+import dataaccess.{SafetyWarrantDAO, SettingDAO, SettingKey, WorkAccidentDAO}
 import models.LongRunningProcessStatus.{Done, Started}
 import models.{Column, LongRunningProcessMonitor, SafetyWarrant}
 import play.api.cache.AsyncCacheApi
@@ -13,6 +13,7 @@ import play.api.{Configuration, Logger}
 import java.nio.file.{Files, Paths, StandardCopyOption}
 import java.time.LocalDate
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, duration}
@@ -47,8 +48,9 @@ object DataProductsActor {
  * Actor for making data products in the background.
  */
 class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
+                                   workAccidents: WorkAccidentDAO,
                                    settings:SettingDAO,
-                                   cache:AsyncCacheApi, fileCreator: TemporaryFileCreator,
+                                   cache:AsyncCacheApi,
                                    config:Configuration)(implicit anEc:ExecutionContext) extends Actor {
   import DataProductsActor._
   private val D = Duration(5, duration.MINUTES)
@@ -123,7 +125,7 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
       StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
   }
   
-  def composePeriodicalReport(from: LocalDate, to: LocalDate, anLpm: LongRunningProcessMonitor): Unit = {
+  private def composePeriodicalReport(from: LocalDate, to: LocalDate, anLpm: LongRunningProcessMonitor): Unit = {
     var lpm = anLpm.copy(status = Started)
     cache.set(lpm.id, lpm)
     log.info( s"Composing periodical report ${from}-${to}")
@@ -134,24 +136,49 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
     val writer = odsFactory.createWriter
     val document = writer.document()
     
-    val table = document.addTable("Safety Warrants")
-    val walker = table.getWalker
-    Range(0, 11).foreach(i => {
-      Column.printLong(i, walker)
-      walker.next()
-    })
-    
-    val tempPath = Paths.get(config.get[String]("klo.dataProductFolder")).resolve(s"${lpm.id}.ods")
-    fileCreator.create(tempPath) // ensure later deletion by the reaper
+    accidentsByMonthTable(from, to, document)
+    System.getProperty("java.io.tmpdir")
+    val tempPath = Paths.get(System.getProperty("java.io.tmpdir")).resolve(s"${lpm.id}.ods")
+//    fileCreator.create(tempPath) // ensure later deletion by the reaper
     
     Using(Files.newOutputStream(tempPath)){
       writer.save
     }
-    
+    log.info(s"File created at: ${tempPath.toAbsolutePath}")
     lpm = lpm.copy(status = Done)
     cache.set(lpm.id, lpm)
     
     log.info( s"Done composing periodical report ${from}-${to}")
+  }
+  
+  private def accidentsByMonthTable(from: LocalDate, to: LocalDate, document:OdsDocument):Unit = {
+    val tbl = document.addTable("Accidents by month")
     
+    val walker = tbl.getWalker
+    
+    walker.setStringValue("Year");    walker.setStyle(titleStyle); walker.next()
+    walker.setStringValue("Month");   walker.setStyle(titleStyle); walker.next()
+    walker.setStringValue("Injured"); walker.setStyle(titleStyle); walker.next()
+    walker.setStringValue("Killed");  walker.setStyle(titleStyle); walker.next()
+    walker.nextRow()
+    
+    val injuredSum = new AtomicInteger()
+    val killedSum = new AtomicInteger()
+    Await.result( workAccidents.getCasualtiesByMonth(from, to).map( rows => {
+      log.info( s"Got ${rows.length} rows")
+      rows.foreach( row => {
+        walker.setStringValue(row._2); walker.next()
+        walker.setStringValue(row._3); walker.next()
+        walker.setFloatValue(row._4); walker.setDataStyle(integerDataStyle); walker.next()
+        walker.setFloatValue(row._5); walker.setDataStyle(integerDataStyle); walker.next()
+        walker.nextRow()
+        injuredSum.addAndGet(row._4)
+        killedSum.addAndGet(row._5)
+      })
+    }), D)
+    walker.next()
+    walker.next();
+    walker.setFloatValue(injuredSum.get());walker.setStyle(titleStyle); walker.next()
+    walker.setFloatValue(killedSum.get());walker.setStyle(titleStyle); walker.next()
   }
 }

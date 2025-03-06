@@ -58,7 +58,7 @@ class ReportsCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponents,
       case Some(m) => if ( m.status != Done ) {
         BadRequest("Current report status:\n"+m.toString)
       } else {
-        val reportFile = Paths.get(conf.get[String]("klo.dataProductFolder")).resolve(s"${monitorId}.ods").toFile
+        val reportFile = Paths.get(System.getProperty("java.io.tmpdir")).resolve(s"${monitorId}.ods").toFile
         log.info("Sending file " + reportFile.toPath.toAbsolutePath.normalize())
         cache.remove(monitorId)
         Ok.sendFile(reportFile, inline=false, fileName = f=>Some(s"${m.message.get}.ods") )
