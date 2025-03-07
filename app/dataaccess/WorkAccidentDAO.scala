@@ -503,6 +503,20 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     )
   }
   
+  def getCasualtyCountByCauseFatalityIndustry(from:LocalDate, to:LocalDate) : Future[Seq[(String, String, Boolean, Int)]] = {
+    val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val startStr = fmt.format(from)
+    val endStr = fmt.format(to)
+    db.run(
+      sql"""select injury_cause_name, industry_name, (injury_severity=4) as is_fatal, count(*)
+            from injured_worker_summary
+            where injury_severity>0
+              and date_time >= '#${startStr}' and date_time <= '#${endStr}'
+            group by  injury_cause_name, (injury_severity=4), industry_name"""
+        .as[(String, String, Boolean,Int)]
+    )
+  }
+  
   private def fromDto(iwRow:InjuredWorkerRecord, employer:Option[BusinessEntity]) = InjuredWorker( iwRow.id, iwRow.name, iwRow.age, iwRow.citizenship.flatMap(citizenships(_)),
     iwRow.industry.flatMap(industries(_)), employer, iwRow.from, iwRow.injuryCause.flatMap(injuryCauses(_)),
     iwRow.injurySeverity.map( Severity.apply ), iwRow.injuryDescription, iwRow.publicRemarks, iwRow.sensitiveRemarks

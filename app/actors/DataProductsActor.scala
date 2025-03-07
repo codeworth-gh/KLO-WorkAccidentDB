@@ -147,6 +147,10 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
     fatalitiesPerCitizenshipTable(from, to, document)
     casualtiesByCausesTable(from, to, false, document)
     casualtiesByCausesTable(from, to, true, document)
+    causesByIndustryTable(from, to, document)
+    warrantCountsTable(from, to, document)
+    warrantCountByYearAndCategory(from.getMonthValue, to.getMonthValue, document)
+    commonWarrantClauses(from, to, document)
     
     System.getProperty("java.io.tmpdir")
     val tempPath = Paths.get(System.getProperty("java.io.tmpdir")).resolve(s"${lpm.id}.ods")
@@ -160,6 +164,141 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
     cache.set(lpm.id, lpm)
     
     log.info( s"Done composing periodical report ${from}-${to}")
+  }
+  
+  private def commonWarrantClauses( from:LocalDate, to:LocalDate, document:OdsDocument ):Unit = {
+    val tbl = document.addTable("Common Warrant Clauses")
+    val walker = RichWalker(tbl.getWalker)
+    walker.th(messages("reports.ods.commonWarrantClauses.title")).nextRow()
+    tbl.setCellMerge(0,0,1,2)
+    Await.result( for {
+      rawRows <- safetyWarrants.mostCommonClauses(from, to)
+      rows = rawRows.map( r => (nulls2unknown(r._1), r._2) )
+    } yield {
+      val counts = rows.map(_._2).distinct.sorted.toArray
+      val cutoff = if (counts.length > 10 ) counts(10) else 0
+      rows.filter(_._2 >= cutoff).foreach( r => {
+        walker.td(r._1).td(r._2).nextRow()
+      })
+    }, D)
+  }
+  
+  private def warrantCountByYearAndCategory(startMonth:Int, endMonth:Int, document:OdsDocument):Unit = {
+    val tbl = document.addTable("Warrants by Industry, Year")
+    val walker = RichWalker(tbl.getWalker)
+    walker.th(
+      messages("reports.ods.warrantsByIndustryAndYear.title",
+        messages("month."+startMonth), messages("month."+endMonth))
+    ).nextRow()
+    
+    Await.result(for {
+      rawRows <- safetyWarrants.warrantCountByCategoryAndYear(startMonth, endMonth)
+      rows = rawRows.map( r => (r._1, nulls2unknown(r._2), r._3) )
+    } yield {
+      val categories = rows.map(_._2).distinct.sorted
+      val years = rows.map(_._1).distinct.sorted
+      
+      tbl.setCellMerge(0,0,1,categories.length+1)
+      
+      walker.bold
+      (messages("year") +: categories).foreach( walker.td )
+      walker.nextRow().plain
+      
+      for ( year <- years ) {
+        walker.bold.td(year).plain
+        for ( cat <- categories ) {
+          walker.td( rows.find( r=>r._1==year && r._2==cat).map(_._3).getOrElse(0) )
+        }
+        walker.nextRow()
+      }
+    }, D)
+  }
+  
+  private def warrantCountsTable( from:LocalDate, to:LocalDate, document:OdsDocument ):Unit = {
+    val tbl = document.addTable("Warrants by Industry")
+    val walker = RichWalker(tbl.getWalker)
+    walker.th(messages("reports.ods.warrantsByIndustry.title")).nextRow()
+    
+    walker.nextRow().plain
+    Await.result( for {
+      rawRows <- safetyWarrants.warrantCountByMonthAndBranch(from, to)
+      rows    = rawRows.map(r => (r._1, r._2, nulls2unknown(r._3), r._4) )
+      
+    } yield {
+      val branches = rows.map(_._3).distinct.sorted
+      val dates = rows.map( r => (r._1, r._2) ).sortBy(r=>r._1.toDouble+(r._2/100.0)).distinct
+      
+      tbl.setCellMerge(0,0,1,branches.length+2)
+      
+      walker.bold
+      Seq("year", "month")
+        .map(messages(_))
+        .foreach(walker.td)
+      branches.foreach( walker.td )
+      walker.plain.nextRow()
+      
+      dates.foreach( d => {
+        val rowsForDate = rows.filter( r => r._1==d._1 && r._2==d._2 )
+        walker.bold.td(d._1).td(d._2).plain
+        branches.foreach( b => {
+          walker.td( rowsForDate.find(r=>r._3==b).map(_._4).getOrElse(0) )
+        })
+        walker.nextRow()
+      })
+      walker.bold.td(messages("total")).skip().plain
+      branches.foreach(b => {
+        walker.td(rows.filter(r => r._3 == b).map(_._4).sum)
+      })
+    }, D)
+  }
+  
+  private def causesByIndustryTable(from: LocalDate, to: LocalDate, document:OdsDocument ): Unit = {
+    val tbl = document.addTable("Causes by Industry")
+    val walker = RichWalker(tbl.getWalker)
+    
+    Await.result( workAccidents.getCasualtyCountByCauseFatalityIndustry(from, to).map( rawRows => {
+      val rows = rawRows.map( r => (nulls2unknown(r._1), nulls2unknown(r._2), r._3, r._4))
+      val causes = rows.map(_._1).distinct.sorted
+      val industries = rows.map(_._2).distinct.sorted
+      
+      walker.th(messages("reports.ods.causesByIndustry.injuries.title")).nextRow().nextRow()
+      tbl.setCellMerge(0,0,1,1+industries.length)
+      
+      walker.bold
+      walker.td(messages("injuryCause"))
+      industries.foreach(walker.td)
+      walker.plain
+      walker.nextRow()
+      
+      val injData = rows.filter( _._3 != true )
+      for ( cause <- causes ) {
+        walker.bold.td(cause).plain
+        for ( ind <- industries ) {
+          walker.td( injData.filter(d => d._1==cause&&d._2==ind).map(_._4).sum )
+        }
+        walker.nextRow()
+      }
+      
+      walker.nextRow()
+      walker.th(messages("reports.ods.causesByIndustry.fatalities.title"))
+      tbl.setCellMerge(walker.rowIdx, 0, 1, 1+industries.length)
+      walker.nextRow().nextRow()
+      
+      walker.bold
+      walker.td(messages("injuryCause"))
+      industries.foreach(walker.td)
+      walker.plain
+      walker.nextRow()
+      val ftlData = rows.filter(_._3 == true)
+      for (cause <- causes) {
+        walker.bold.td(cause).plain
+        for (ind <- industries) {
+          walker.td(ftlData.filter(d => d._1 == cause && d._2 == ind).map(_._4).sum)
+        }
+        walker.nextRow()
+      }
+      
+    }),D)
   }
   
   private def fatalitiesPerCitizenshipTable(from: LocalDate, to: LocalDate, document:OdsDocument ): Unit = {
@@ -344,4 +483,6 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
     walker.td(injuredSum.get())
     walker.td(killedSum.get())
   }
+  
+  private def nulls2unknown(s:String ):String = if (s==null || s.isBlank) messages("reports.ods.unknown") else s
 }

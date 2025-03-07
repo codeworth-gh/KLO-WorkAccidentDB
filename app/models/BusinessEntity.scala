@@ -42,7 +42,7 @@ object BusinessEntityStats {
 
 case class ExecutorCountRow(name:String, count:Int)
 case class ExecutorCountPerYearRow(name:String, year:Int, count:Int)
-case class CountByCategoryAndYear( category:String, year:Int, count:Int )
+case class CountByCategoryAndYear( category:Option[String], year:Option[Int], count:Int )
 
 case class EntityMergeLogEntry(
                               mergeId: UUID,

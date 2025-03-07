@@ -75,6 +75,9 @@ class RichWalker(cw:TableCellWalker, var isBold:Boolean) {
     this
   }
   
+  def rowIdx:Int = cw.rowIndex()
+  def colIdx:Int = cw.colIndex()
+  
   def th(s:String): RichWalker = {
     cw.setStringValue(s)
     cw.setStyle(RichWalker.titleStyle)
@@ -110,6 +113,18 @@ class RichWalker(cw:TableCellWalker, var isBold:Boolean) {
     }
     cw.next()
     this
+  }
+  
+  def td(v:Any):RichWalker = {
+    if ( v == null ) 
+      skip()
+    else
+      v match {
+        case s:String => td(s)
+        case d:LocalDate => td(d)
+        case i:Int => td(i)
+        case _ => td(v.toString)
+      }
   }
   
   def skip():RichWalker = {

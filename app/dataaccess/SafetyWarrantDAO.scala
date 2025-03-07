@@ -141,6 +141,36 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
     }
   }
   
+  def warrantCountByMonthAndBranch( from:LocalDate, to:LocalDate ):Future[Seq[(Int, Int, String, Int)]] = {
+    val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val startStr = fmt.format(from)
+    val endStr = fmt.format(to)
+    db.run(
+      sql"""select date_part('year', sent_date) as year, date_part('month', sent_date) as month, category_name, count(*)
+          from safety_warrants
+          where sent_date >= '#${startStr}' AND sent_date <= '#${endStr}'
+          group by date_part('year', sent_date), date_part('month', sent_date), category_name;
+         """.as[(Int, Int, String, Int)]
+    )
+  }
+  
+  def warrantCountByCategoryAndYear( fromMonth:Int, toMonth:Int ):Future[Seq[(Int, String, Int)]] = db.run(
+    sql"""select date_part('year', sent_date) as year, category_name, count(*)
+         from safety_warrants
+         where date_part('month', sent_date) >= #$fromMonth and date_part('month', sent_date) <= #$toMonth
+         group by date_part('year', sent_date), category_name;
+         """.as[(Int, String, Int)]
+  )
+  
+  def mostCommonClauses(from:LocalDate, to:LocalDate):Future[Seq[(String, Int)]] = db.run(
+    safetyWarrantTbl
+      .filter( r => r.sentDate>=from && r.sentDate<=to )
+      .groupBy(_.clause)
+      .map{ case (clause, group) => (clause, group.length) }
+      .sortBy(_._2.desc)
+      .take(20)
+      .result
+  )
   
   def count():Future[Int] = db.run(safetyWarrantTbl.size.result)
   

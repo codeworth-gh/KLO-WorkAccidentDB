@@ -290,8 +290,8 @@ class SWPerExecutorPerYear(t:Tag) extends Table[ExecutorCountPerYearRow](t, "saf
 }
 
 class SWPerCategoryPerYear(t:Tag) extends Table[CountByCategoryAndYear](t, "safety_warrant_by_category_and_year") {
-  def name  = column[String]("name")
-  def year  = column[Int]("year")
+  def name  = column[Option[String]]("name")
+  def year  = column[Option[Int]]("year")
   def count = column[Int]("count")
   
   def * = (name, year, count).mapTo[CountByCategoryAndYear]
