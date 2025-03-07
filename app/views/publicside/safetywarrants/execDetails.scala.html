@@ -14,7 +14,7 @@
           x:'x',
           type: 'bar',
           columns: [
-            ['x', @Html(yearlyCounts.map(_.year).mkString("'","', '","'"))],
+            ['x', @Html(yearlyCounts.map(_.year.getOrElse(0)).mkString("'","', '","'"))],
             ['@Messages("safetyWarrants.executor.warrants")', @yearlyCounts.map(_.count).mkString(",")]
           ]
         },
@@ -59,7 +59,7 @@
           @for( p <- warrants ) {
             <tr>
               <td><a href="@routes.PublicCtrl.showSafetyWarrant(p.id)">@p.id</a></td>
-              <td>@Helpers.nonEmptyOrElse(p.sentDate.map(d => Helpers.dateFormats(Helpers.DateFmt.HR_Date).format(d))){s=>s}{<span class="noData">@Messages("unknown")</span>}</td>
+              <td>@Helpers.nonEmptyOrElse(p.sentDate.map(d => Helpers.dateFormats(Helpers.DateFmt.HR_Date).format(d))){s=>@s}{<span class="noData">@Messages("unknown")</span>}</td>
               <td>@p.cityName</td>
               <td>@p.felony</td>
               <td><a href="@routes.PublicCtrl.showSafetyWarrant(p.id)">@comps.svg.arrowLeftCircle()</a></td>

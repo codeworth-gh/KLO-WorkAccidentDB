@@ -131,13 +131,15 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
   def getExecutorYearlyCounts( execName:String ):Future[Seq[ExecutorCountPerYearRow]] = for {
     rows <- db.run(swPerExecutorPerYear.filter( _.execName === execName ).sortBy( _.year.asc ).result)
   } yield {
-    val years = rows.map(_.year).toSet
+    val years = rows.flatMap(_.year).toSet
     if ( years.isEmpty ) {
       Seq()
     } else if ( years.max - years.min == years.size-1 ) {
       rows // all years are present
     } else {
-      Range.inclusive(years.min, years.max).map( year => rows.find( _.year == year).getOrElse(ExecutorCountPerYearRow(execName,year,0)))
+      val rowsWithYear = rows.filter( _.year.isDefined )
+      Range.inclusive(years.min, years.max)
+        .map( year => rows.find( _.year.contains(year) ).getOrElse(ExecutorCountPerYearRow(execName,Some(year),0)))
     }
   }
   
@@ -162,15 +164,33 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
          """.as[(Int, String, Int)]
   )
   
-  def mostCommonClauses(from:LocalDate, to:LocalDate):Future[Seq[(String, Int)]] = db.run(
-    safetyWarrantTbl
-      .filter( r => r.sentDate>=from && r.sentDate<=to )
-      .groupBy(_.clause)
-      .map{ case (clause, group) => (clause, group.length) }
-      .sortBy(_._2.desc)
-      .take(20)
-      .result
-  )
+  def mostCommonFelonies(from:LocalDate, to:LocalDate):Future[Seq[(String, Int)]] = {
+    val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val startStr = fmt.format(from)
+    val endStr = fmt.format(to)
+    db.run(
+      sql"""select felony, count(*) as count
+           from safety_warrants
+           where sent_date >= '#$startStr' and sent_date <= '#$endStr'
+           group by felony
+           order by count desc
+           limit 25""".as[(String, Int)]
+    )
+  }
+  
+  def mostCommonLaws(from:LocalDate, to:LocalDate):Future[Seq[(String, Int)]] = {
+    val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val startStr = fmt.format(from)
+    val endStr = fmt.format(to)
+    db.run(
+      sql"""select law, count(*) as count
+             from safety_warrants
+             where sent_date >= '#$startStr' and sent_date <= '#$endStr'
+             group by law
+             order by count desc
+             limit 25""".as[(String, Int)]
+    )
+  }
   
   def count():Future[Int] = db.run(safetyWarrantTbl.size.result)
   
@@ -216,6 +236,20 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
   def getForExecutor(execName:String):Future[Seq[SafetyWarrant]] = db.run(
     safetyWarrantTbl.filter(_.executorName===execName).sortBy(_.sentDate.desc).result
   )
+  
+  def countsByExecutor(from:LocalDate, to:LocalDate):Future[Seq[(String, Int)]] = {
+    val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val startStr = fmt.format(from)
+    val endStr = fmt.format(to)
+    db.run(
+      sql"""SELECT sw.executor_name AS name, count(*) AS warrant_count
+            FROM safety_warrants sw
+            WHERE sw.sent_date >= '2024-01-01'
+            GROUP BY sw.executor_name
+            HAVING count(*) >= 3
+            ORDER BY warrant_count DESC;""".as[(String, Int)]
+    )
+  }
   
   private def filterWarrants(searchStr:Option[String], startDate:Option[LocalDate], endDate:Option[LocalDate], executorName:Option[String] ) = {
     var q: Query[SafetyWarrantsTable, SafetyWarrant, Seq] = safetyWarrantTbl

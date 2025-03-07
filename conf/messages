@@ -281,8 +281,10 @@ reports.ods.accidentsByMonthTable.title=תאונות ונפגעים לפי חו�
 reports.ods.causesByIndustry.injuries.title=גורמים לפציעות לפי ענף
 reports.ods.causesByIndustry.fatalities.title=גורמים לתאונות קטלניות לפי ענף
 reports.ods.warrantsByIndustry.title=צווי בטיחות לפי חודש וענף
+reports.ods.mostWarrants.title=החברות עם הכי הרבה צווי בטיחות
 reports.ods.warrantsByIndustryAndYear.title=מספר צווי בטיחות בחודשים {0}-{1} לפי שנה וענף
-reports.ods.commonWarrantClauses.title=העילות הנפוצות להוצאת צווי בטיחות
+reports.ods.commonWarrantFelonies.title=העבירות הנפוצות להוצאת צווי בטיחות
+reports.ods.commonWarrantLaws.title=החוקים הנפוצים להוצאת צווי בטיחות
 reports.ods.warrantCount=מספר צווים
 
 reports.ods.sev.medium=פצועים בינוני
@@ -291,6 +293,7 @@ reports.ods.sev.severe=פצועים קשה
 reports.ods.sev.nearFatal=פצועים אנוש
 reports.ods.sev.fatal=הרוגים
 reports.ods.unknown=לא צויין
+reports.ods.executor=שם חברה
 
 publicIndex.hero=תאונות עבודה בישראל
 publicIndex.sub=פרוייקט תעוד תאונות עבודה של עמותת קו לעובד

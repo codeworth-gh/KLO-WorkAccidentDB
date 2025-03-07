@@ -283,7 +283,7 @@ class SWOver10After201820Table(t:Tag) extends Table[ExecutorCountRow](t, "safety
 
 class SWPerExecutorPerYear(t:Tag) extends Table[ExecutorCountPerYearRow](t, "safety_warrants_per_executor_per_year") {
   def execName = column[String]("executor_name")
-  def year     = column[Int]("year")
+  def year     = column[Option[Int]]("year")
   def count    = column[Int]("count")
   
   def * = (execName, year, count).mapTo[ExecutorCountPerYearRow]

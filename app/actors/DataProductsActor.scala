@@ -150,7 +150,8 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
     causesByIndustryTable(from, to, document)
     warrantCountsTable(from, to, document)
     warrantCountByYearAndCategory(from.getMonthValue, to.getMonthValue, document)
-    commonWarrantClauses(from, to, document)
+    commonWarrantBases(from, to, document)
+    companiesWithMostWarrants(from, to, document)
     
     System.getProperty("java.io.tmpdir")
     val tempPath = Paths.get(System.getProperty("java.io.tmpdir")).resolve(s"${lpm.id}.ods")
@@ -166,18 +167,58 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
     log.info( s"Done composing periodical report ${from}-${to}")
   }
   
-  private def commonWarrantClauses( from:LocalDate, to:LocalDate, document:OdsDocument ):Unit = {
-    val tbl = document.addTable("Common Warrant Clauses")
+  private def companiesWithMostWarrants( from:LocalDate, to:LocalDate, document:OdsDocument):Unit = {
+    val tbl = document.addTable("Most Warrants")
     val walker = RichWalker(tbl.getWalker)
-    walker.th(messages("reports.ods.commonWarrantClauses.title")).nextRow()
+    walker.th(messages("reports.ods.mostWarrants.title")).nextRow()
+    tbl.setCellMerge(0, 0, 1, 2)
+    walker.bold
+      .td(messages("reports.ods.executor")).td(messages("reports.ods.warrantCount")).nextRow()
+      .plain
+    Await.result(for {
+      rawRows <- safetyWarrants.countsByExecutor(from, to)
+      rows = rawRows.map(r => (nulls2unknown(r._1), r._2))
+    } yield {
+      val cutoff = getCutoff(rows.map(_._2), 10)
+      rows.filter(_._2 > cutoff).foreach(r => {
+        walker.td(r._1).td(r._2).nextRow()
+      })
+    }, D)
+  }
+  
+  private def commonWarrantBases( from:LocalDate, to:LocalDate, document:OdsDocument ):Unit = {
+    val tbl = document.addTable("Common Warrant Bases")
+    val walker = RichWalker(tbl.getWalker)
+    walker.th(messages("reports.ods.commonWarrantFelonies.title")).nextRow()
     tbl.setCellMerge(0,0,1,2)
+    walker.bold
+      .td(messages("safetyWarrants.table.felony")).td(messages("reports.ods.warrantCount")).nextRow()
+      .plain
+    
     Await.result( for {
-      rawRows <- safetyWarrants.mostCommonClauses(from, to)
+      rawRows <- safetyWarrants.mostCommonFelonies(from, to)
       rows = rawRows.map( r => (nulls2unknown(r._1), r._2) )
     } yield {
-      val counts = rows.map(_._2).distinct.sorted.toArray
-      val cutoff = if (counts.length > 10 ) counts(10) else 0
-      rows.filter(_._2 >= cutoff).foreach( r => {
+      val cutoff = getCutoff(rows.map(_._2), 10)
+      rows.filter(_._2 > cutoff).foreach( r => {
+        walker.td(r._1).td(r._2).nextRow()
+      })
+    }, D)
+    
+    walker.nextRow()
+    walker.th(messages("reports.ods.commonWarrantLaws.title"))
+    tbl.setCellMerge(walker.rowIdx, 0, 1, 2)
+    
+    walker.nextRow().bold
+      .td(messages("safetyWarrants.index.law")).td(messages("reports.ods.warrantCount")).nextRow()
+      .plain
+    
+    Await.result(for {
+      rawRows <- safetyWarrants.mostCommonLaws(from, to)
+      rows = rawRows.map(r => (nulls2unknown(r._1), r._2))
+    } yield {
+      val cutoff = getCutoff(rows.map(_._2), 10)
+      rows.filter(_._2 > cutoff).foreach(r => {
         walker.td(r._1).td(r._2).nextRow()
       })
     }, D)
@@ -484,5 +525,9 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
     walker.td(killedSum.get())
   }
   
+  private def getCutoff( valueItr:IterableOnce[Int], topCount:Int):Int = {
+    val values = valueItr.iterator.toSet.toSeq.sorted.reverse
+    if (values.length > topCount ) values(topCount) else 0
+  }
   private def nulls2unknown(s:String ):String = if (s==null || s.isBlank) messages("reports.ods.unknown") else s
 }
