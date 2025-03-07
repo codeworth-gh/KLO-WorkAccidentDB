@@ -517,6 +517,28 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
     )
   }
   
+  def accidentCountByCity(from:LocalDate, to:LocalDate):Future[Seq[(String, Int, Int)]] = {
+    val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val startStr = fmt.format(from)
+    val endStr = fmt.format(to)
+    db.run(
+      sql"""WITH city_acc_count AS (
+                select TRIM(split_part(wa.location,',',1)) as city_name, count(*) as accident_count
+                from work_accidents wa
+                where wa.date_time >= '#${startStr}' and wa.date_time <= '#${endStr}'
+                group by city_name
+            )
+            SELECT cac.city_name, cac.accident_count,
+                (select count(*)
+                 from safety_warrants sw
+                 where TRIM(sw.city_name) = cac.city_name
+                  and sent_date >= '#${startStr}' and sent_date <= '#${endStr}'
+                    ) as warrant_count
+            FROM city_acc_count cac
+            ORDER BY accident_count DESC;""".as[(String, Int, Int)]
+    )
+  }
+  
   private def fromDto(iwRow:InjuredWorkerRecord, employer:Option[BusinessEntity]) = InjuredWorker( iwRow.id, iwRow.name, iwRow.age, iwRow.citizenship.flatMap(citizenships(_)),
     iwRow.industry.flatMap(industries(_)), employer, iwRow.from, iwRow.injuryCause.flatMap(injuryCauses(_)),
     iwRow.injurySeverity.map( Severity.apply ), iwRow.injuryDescription, iwRow.publicRemarks, iwRow.sensitiveRemarks

@@ -151,6 +151,7 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
     warrantCountsTable(from, to, document)
     warrantCountByYearAndCategory(from.getMonthValue, to.getMonthValue, document)
     commonWarrantBases(from, to, document)
+    accidentsAndWarrantsByCityTable(from, to, document)
     companiesWithMostWarrants(from, to, document)
     
     System.getProperty("java.io.tmpdir")
@@ -165,6 +166,29 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
     cache.set(lpm.id, lpm)
     
     log.info( s"Done composing periodical report ${from}-${to}")
+  }
+  
+  private def accidentsAndWarrantsByCityTable( from:LocalDate, to:LocalDate, document:OdsDocument):Unit = {
+    val tbl = document.addTable("Accidents and Warrants By City")
+    val walker = RichWalker(tbl.getWalker)
+    walker.th(messages("reports.ods.accidentAndWarrantCountByCity.title")).nextRow()
+    tbl.setCellMerge(0, 0, 1, 4)
+    walker.bold
+      .td(messages("safetyWarrants.table.cityName"))
+      .td(messages("reports.ods.accidentCount"))
+      .td(messages("reports.ods.warrantCount"))
+      .nextRow()
+      .plain
+    Await.result(for {
+      rawRows <- workAccidents.accidentCountByCity(from, to)
+      rows = rawRows.map(r => (nulls2unknown(r._1), r._2, r._3))
+    } yield {
+      val cutoff = getCutoff(rows.map(_._2), 10)
+      rows.filter(_._2 > cutoff).foreach(r => {
+        walker.td(r._1).td(r._2).td(r._3).nextRow()
+      })
+    }, D)
+    walker.nextRow().td(messages("reports.ods.accidentAndWarrantCountByCity.warning"))
   }
   
   private def companiesWithMostWarrants( from:LocalDate, to:LocalDate, document:OdsDocument):Unit = {

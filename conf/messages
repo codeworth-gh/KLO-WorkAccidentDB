@@ -282,10 +282,13 @@ reports.ods.causesByIndustry.injuries.title=גורמים לפציעות לפי �
 reports.ods.causesByIndustry.fatalities.title=גורמים לתאונות קטלניות לפי ענף
 reports.ods.warrantsByIndustry.title=צווי בטיחות לפי חודש וענף
 reports.ods.mostWarrants.title=החברות עם הכי הרבה צווי בטיחות
+reports.ods.accidentAndWarrantCountByCity.title=הערים עם הכי הרבה תאונות, ומספר צווי הבטיחות שהוצאו בהן
+reports.ods.accidentAndWarrantCountByCity.warning=אזהרה: מספרי הצווים והתאונות מושפעים מדרך הכתיבה שלהם. כתיבה לא אחידה ושגיאות כתיב יקטינו את מספר הצווים והתאונות המופיעים בדו״ח.
 reports.ods.warrantsByIndustryAndYear.title=מספר צווי בטיחות בחודשים {0}-{1} לפי שנה וענף
 reports.ods.commonWarrantFelonies.title=העבירות הנפוצות להוצאת צווי בטיחות
 reports.ods.commonWarrantLaws.title=החוקים הנפוצים להוצאת צווי בטיחות
 reports.ods.warrantCount=מספר צווים
+reports.ods.accidentCount=מספר תאונות
 
 reports.ods.sev.medium=פצועים בינוני
 reports.ods.sev.mediumAndUp=פצועים בינוני ומעלה
