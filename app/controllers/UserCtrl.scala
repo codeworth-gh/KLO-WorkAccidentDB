@@ -130,7 +130,7 @@ class UserCtrl @Inject()(deadbolt:DeadboltActions, conf:Configuration,
     Ok( views.html.users.login(loginForm) )
   }
   
-  def doLogin = Action.async { implicit request =>
+  def doLogin() = Action.async { implicit request =>
     loginForm.bindFromRequest().fold(
       badForm   => Future(BadRequest(views.html.users.login(badForm))),
       loginData => {
@@ -144,12 +144,12 @@ class UserCtrl @Inject()(deadbolt:DeadboltActions, conf:Configuration,
     )
   }
 
-  def doLogout:Action[AnyContent] = Action { implicit req =>
+  def doLogout():Action[AnyContent] = Action { implicit req =>
     Redirect(routes.PublicCtrl.main()).withNewSession
       .flashing(FlashKeys.MESSAGE->Informational(Informational.Level.Success, Messages("login.logoutMessage"), "").encoded)
   }
 
-  def userHome = deadbolt.SubjectPresent()(){ implicit req =>
+  def userHome(): Action[?] = deadbolt.SubjectPresent()(){ implicit req =>
     val user = req.subject.get.asInstanceOf[UserSubject].user
     for {
       waCount <- accidents.accidentCount(None, None, Set(), Set(), Set(), Set(), Set(), false)
@@ -285,6 +285,7 @@ class UserCtrl @Inject()(deadbolt:DeadboltActions, conf:Configuration,
   }
 
   def doForgotPassword = Action.async{ implicit req =>
+    logger.info(s"Got forgotPassword request: ${req.body.toString}")
     emailForm.bindFromRequest().fold(
       fwi => Future(BadRequest(views.html.users.forgotPassword(None,Some("Error processing forgot password form")))),
       fd => {
@@ -297,12 +298,15 @@ class UserCtrl @Inject()(deadbolt:DeadboltActions, conf:Configuration,
             .getOrElse(Future(false))
         } yield {
           if ( emailExists ){
-            val bodyText = "To reset your password, please click the link below: \n " + conf.get[String]("psps.server.publicUrl") +
-              routes.UserCtrl.showResetPassword(userSessionId).url
-            val email = Email("Forgot my password", conf.get[String]("play.mailer.user"), Seq(fd.email), bodyText = Some(bodyText))
-            mailerClient.send(email)
-            val msg = Informational( Informational.Level.Success, Messages("forgotPassword.emailSent", fd.email), "")
-            Redirect( routes.UserCtrl.showLogin() ).flashing( FlashKeys.MESSAGE->msg.encoded )
+            try {
+              val bodyText = "To reset your password, please click the link below: \n " + conf.get[String]("psps.server.publicUrl") +
+                routes.UserCtrl.showResetPassword(userSessionId).url
+              val email = Email("Forgot my password", conf.get[String]("play.mailer.user"), Seq(fd.email), bodyText = Some(bodyText))
+              mailerClient.send(email)
+              val msg = Informational( Informational.Level.Success, Messages("forgotPassword.emailSent", fd.email), "")
+              Redirect( routes.UserCtrl.showLogin() ).flashing( FlashKeys.MESSAGE->msg.encoded )
+            } catch 
+              case e:Exception => InternalServerError(s"Cannot send email: ${e.getMessage}" )
           }
           else {
             BadRequest(views.html.users.forgotPassword(Some(fd.email), Some(Messages("forgotPassword.emailNotFound"))))

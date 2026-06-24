@@ -86,7 +86,7 @@ class HomeCtrl @Inject()(deadbolt:DeadboltActions, localAction:LocalAction,
     Action { implicit request =>
       Ok(
         routing.JavaScriptReverseRouter("feRoutes")(
-          HomeCtrl.feRouteSeq: _*
+          HomeCtrl.feRouteSeq*
         )).as("text/javascript")
     }
 
@@ -97,7 +97,7 @@ class HomeCtrl @Inject()(deadbolt:DeadboltActions, localAction:LocalAction,
   def backEndRoutes = deadbolt.SubjectPresent()() { implicit request =>
       Future(Ok(
         routing.JavaScriptReverseRouter("beRoutes")(
-          HomeCtrl.beRouteSeq: _*
+          HomeCtrl.beRouteSeq*
         )).as("text/javascript"))
   }
 

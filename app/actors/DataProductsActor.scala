@@ -142,8 +142,8 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
     accidentsByMonthTable(from, to, document)
     casualtiesByIndustryTable(from, to, document)
     casualtiesByYearTable(from.getMonthValue, to.getMonthValue, document)
-    casualtiesByYearAndIndustryTable(from.getMonthValue, to.getMonthValue, false, document)
-    casualtiesByYearAndIndustryTable(from.getMonthValue, to.getMonthValue, true, document)
+    casualtiesByYearAndIndustryTable(from.getMonthValue, to.getMonthValue, isFatal=false, document)
+    casualtiesByYearAndIndustryTable(from.getMonthValue, to.getMonthValue, isFatal=true, document)
     fatalitiesPerCitizenshipTable(from, to, document)
     casualtiesByCausesTable(from, to, false, document)
     casualtiesByCausesTable(from, to, true, document)
@@ -469,7 +469,7 @@ class DataProductsActor @Inject() (safetyWarrants:SafetyWarrantDAO,
     walker.th(messages("reports.ods.sev.fatal"))
     walker.nextRow()
     
-    Await.result(workAccidents.getCasualtiesCountByYear(startMonth, endMonth).map(rows => {
+    Await.result(workAccidents.getCasualtiesCountByYearInMonthPeriod(startMonth, endMonth).map(rows => {
       log.info(s"getCasualtiesCountByYear Got ${rows.length} rows")
       val byYear = rows.groupBy(_._1)
       

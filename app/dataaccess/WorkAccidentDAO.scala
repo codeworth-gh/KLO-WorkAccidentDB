@@ -434,16 +434,16 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
               date_part('month', wa.date_time) as month,
              ( SELECT count(*) AS count
                FROM injured_workers iw
-               WHERE iw.accident_id = wa.id AND (iw.injury_severity = ANY (ARRAY[2,3]))) AS injured_count,
+               WHERE iw.accident_id = wa.id AND (iw.injury_severity IN (1,2,3)) ) AS injured_count,
              ( SELECT count(*) AS count
                FROM injured_workers iw
                WHERE iw.accident_id = wa.id AND iw.injury_severity = 4) AS killed_count
-        FROM work_accidents wa)
-        SELECT concat(year,lpad(month::text,2,'0')) ts, year, month, SUM(injured_count), SUM(killed_count)
+               FROM work_accidents wa)
+        SELECT concat(year,lpad(month::text,2,'0')) ts, year, month, SUM(injured_count) as injured_count, SUM(killed_count) as killed_count
         FROM accident_tmp
+        WHERE concat(year,lpad(month::text,2,'0'))>='#$startStr'
+          AND concat(year,lpad(month::text,2,'0'))<='#$endStr'
         GROUP BY month, year
-        HAVING concat(year,lpad(month::text,2,'0'))>='#$startStr'
-           AND concat(year,lpad(month::text,2,'0'))<='#$endStr'
         ORDER BY year, month
   """.as[(String, String, String, Int, Int)])
   }
@@ -473,7 +473,7 @@ class WorkAccidentDAO @Inject() (protected val dbConfigProvider:DatabaseConfigPr
       """.as[(String, Boolean, Int)])
   }
   
-  def getCasualtiesCountByYear(startMonth:Int, endMonth:Int) : Future[Seq[(Int, Int, Int)]] = db.run(
+  def getCasualtiesCountByYearInMonthPeriod(startMonth:Int, endMonth:Int) : Future[Seq[(Int, Int, Int)]] = db.run(
     sql"""SELECT date_part('year', date_time) as year, injury_severity, count(*) as count
           FROM injured_worker_summary
           WHERE injury_severity > 0 and date_part('month', date_time) >= #$startMonth and date_part('month', date_time) <= #$endMonth

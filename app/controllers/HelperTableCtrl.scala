@@ -33,7 +33,7 @@ class HelperTableCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponent
     }
   }
   
-  private def apiList[T](store:IdNameDAO[T, _])(implicit tjs:Writes[T]) = {
+  private def apiList[T](store:IdNameDAO[T, ?])(implicit tjs:Writes[T]) = {
     for {
       regs:Seq[T] <- store.list()
     } yield {
@@ -41,7 +41,7 @@ class HelperTableCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponent
     }
   }
   
-  private def apiGet[T](store:IdNameDAO[T, _], id:Int)(implicit tjs:Writes[T]) = {
+  private def apiGet[T](store:IdNameDAO[T, ?], id:Int)(implicit tjs:Writes[T]) = {
     for {
       itmOpt <- store.get(id)
     } yield {
@@ -52,21 +52,21 @@ class HelperTableCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponent
     }
   }
   
-  def apiAdd[T](req:Request[JsValue], store:IdNameDAO[T, _])(implicit tjs:Format[T]) = {
+  def apiAdd[T](req:Request[JsValue], store:IdNameDAO[T, ?])(implicit tjs:Format[T]) = {
     req.body.validate[T] match {
       case JsSuccess(item,_) => store.put(item).map(newR => Created(Json.toJson(newR)))
       case JsError(errors) => Future(badRequestJson(errors))
     }
   }
   
-  def apiEdit[T](id:Int, req:Request[JsValue], store:IdNameDAO[T, _], nm:T=>T)(implicit tjs:Format[T]) = {
+  def apiEdit[T](id:Int, req:Request[JsValue], store:IdNameDAO[T, ?], nm:T=>T)(implicit tjs:Format[T]) = {
     req.body.validate[T] match {
       case JsSuccess(itm,_) => store.put(nm(itm)).map(newItem => Created(Json.toJson(newItem)))
       case JsError(errors) => Future(badRequestJson(errors))
     }
   }
   
-  def apiDelete[T](id:Int, store:IdNameDAO[T,_]) = {
+  def apiDelete[T](id:Int, store:IdNameDAO[T,?]) = {
     for {
       delRes <- store.delete(id)
     } yield {

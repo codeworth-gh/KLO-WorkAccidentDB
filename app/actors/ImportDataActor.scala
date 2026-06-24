@@ -163,7 +163,7 @@ class ImportDataActor @Inject() (businessEnts:BusinessEntityDAO, regions:Regions
     None
   }
   
-  private def mergeAccidentRows( group:(_, Seq[WorkAccident]) ):WorkAccident = {
+  private def mergeAccidentRows( group:(?, Seq[WorkAccident]) ):WorkAccident = {
     val template = group._2.head
     if ( group._2.size==1 ) {
       template

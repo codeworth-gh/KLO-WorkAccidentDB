@@ -1,14 +1,16 @@
-import javax.activation.MimeType
-import javax.inject._
+package controllers
+
+import play.api.*
 import play.api.http.{DefaultHttpErrorHandler, MimeTypes}
-import play.api._
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc._
-import play.api.mvc.Results._
+import play.api.mvc.*
+import play.api.mvc.Results.*
 import play.api.routing.Router
 
-import scala.concurrent._
+import javax.activation.MimeType
+import javax.inject.*
+import scala.concurrent.*
 
 @Singleton
 class ErrorHandler @Inject() (

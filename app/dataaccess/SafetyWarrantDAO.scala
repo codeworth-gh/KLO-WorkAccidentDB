@@ -244,7 +244,7 @@ class SafetyWarrantDAO @Inject() (protected val dbConfigProvider:DatabaseConfigP
     db.run(
       sql"""SELECT sw.executor_name AS name, count(*) AS warrant_count
             FROM safety_warrants sw
-            WHERE sw.sent_date >= '2024-01-01'
+            WHERE sw.sent_date >= '#$startStr' and sw.sent_date <='#$endStr'
             GROUP BY sw.executor_name
             HAVING count(*) >= 3
             ORDER BY warrant_count DESC;""".as[(String, Int)]

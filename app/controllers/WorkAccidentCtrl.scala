@@ -211,12 +211,12 @@ class WorkAccidentCtrl @Inject()(deadbolt:DeadboltActions, cc:ControllerComponen
     })
   }
   
-  private def showEditAccidentForm( aForm:Form[WorkAccidentFD] )(implicit req:AuthenticatedRequest[_], msgs:MessagesProvider) = {
+  private def showEditAccidentForm( aForm:Form[WorkAccidentFD] )(implicit req:AuthenticatedRequest[?], msgs:MessagesProvider) = {
     for {
       rgns <- regions.list()
       bePr <- businesses.listIdNamePairs()
       inds <- industries.list()
-      ctzs <- citizenships.list()
+      ctzs <- citizenships.list() 
       ijcs <- causes.list()
       rtac <- accidentRelations.list()
     } yield {
